@@ -1,33 +1,18 @@
+# render.yaml - FastAPI backend for FreshGroup
 services:
-  # Backend: FastAPI Python Service
   - type: web
     name: freshgroup-backend
     env: python
+    pythonVersion: 3.11
     plan: free
-    branch: main
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATABASE_URL
-        value: mysql://user:password@host:port/dbname  # Replace with your MySQL connection string
-      - key: SECRET_KEY
-        value: your-secret-key
-
-  # Frontend: React/Next.js Service
-  - type: web
-    name: freshgroup-frontend
-    env: node
-    plan: free
-    branch: main
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
-    envVars:
-      - key: REACT_APP_API_URL
-        value: https://freshgroup-backend.onrender.com
-
-databases:
-  - name: freshgroup-db
-    plan: free
-    region: oregon
+      - key: MYSQL_HOST
+        value: dpg-d3bdshuuk2gs7385aaa0-a
+      - key: MYSQL_USER
+        value: freshgroup_db_user
+      - key: MYSQL_PASSWORD
+        value: Av77CwIK914ceBhgF8iN884dGGYPc1UD
+      - key: MYSQL_DATABASE
+        value: freshgroup_db
