@@ -1,0 +1,265 @@
+# datasets.py
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from db import get_db_connection
+from dependencies import get_current_user
+from utils import classify_honors, classify_income
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.cluster import KMeans
+from kneed import KneeLocator
+import pandas as pd
+import os, uuid, json
+from datetime import datetime
+from typing import List
+
+router = APIRouter()
+os.makedirs("uploads", exist_ok=True)
+
+# --- Helper: Normalize & Prepare DataFrame ---
+def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df.columns = df.columns.str.strip().str.lower()
+    col_map = {
+        "sex": "sex", "gender": "sex",
+        "program": "program", "course": "program",
+        "municipality": "municipality", "city": "municipality",
+        "income": "income", "family income": "income",
+        "shs_type": "shs_type", "strand": "shs_type",
+        "gwa": "gwa", "general weighted average": "gwa",
+        "name": "name", "fullname": "name", "student name": "name"
+    }
+    df = df.rename(columns={col: col_map[col] for col in df.columns if col in col_map})
+
+    required_cols = ['name', 'sex', 'program', 'municipality', 'income', 'shs_type', 'gwa']
+    for col in required_cols:
+        if col not in df.columns:
+            df[col] = None
+
+    df['Honors'] = df.apply(classify_honors, axis=1)
+    df['IncomeCategory'] = df['income'].apply(classify_income)
+
+    df['gwa'] = pd.to_numeric(df['gwa'], errors='coerce').fillna(0)
+    df['income'] = pd.to_numeric(df['income'], errors='coerce').fillna(0)
+
+    categorical_cols = ['sex', 'program', 'municipality', 'shs_type']
+    for col in categorical_cols:
+        enc_col = f"{col}_enc"
+        try:
+            le = LabelEncoder()
+            # ensure no None or empty strings
+            df[col] = df[col].fillna("Unknown").replace("", "Unknown")
+            df[enc_col] = le.fit_transform(df[col].astype(str))
+        except Exception:
+            uniques = {
+                v: i
+                for i, v in enumerate(
+                    df[col].fillna("Unknown").replace("", "Unknown").astype(str).unique()
+                )
+            }
+            df[enc_col] = df[col].astype(str).map(uniques)
+
+
+    return df
+
+# --- Elbow Helper Functions ---
+def compute_wcss_for_range(X_scaled, k_min=2, k_max=10) -> List[float]:
+    wcss = []
+    for k in range(k_min, k_max + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        kmeans.fit(X_scaled)
+        wcss.append(float(kmeans.inertia_))
+    return wcss
+
+def recommend_k_by_curvature(wcss: List[float], k_min=2) -> int:
+    try:
+        kneedle = KneeLocator(
+            range(k_min, k_min + len(wcss)),
+            wcss,
+            curve="convex",
+            direction="decreasing"
+        )
+        if kneedle.knee is not None:
+            return int(kneedle.knee)
+    except Exception:
+        pass
+    return max(2, min(5, len(wcss) // 2))  # fallback default
+
+# -----------------------------
+# Elbow Preview
+# -----------------------------
+@router.post("/api/datasets/elbow")
+async def elbow_preview(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can compute elbow preview")
+
+    if not file.filename.endswith(('.csv', '.xlsx')):
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+
+    file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
+    try:
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
+        else:
+            df = pd.read_excel(file_path)
+
+        df = normalize_and_prepare_df(df)
+
+        features = ['gwa', 'income']
+        X = df[features].fillna(0)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
+        recommended_k = recommend_k_by_curvature(wcss)
+
+        return {"wcss": wcss, "recommended_k": recommended_k}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+# -----------------------------
+# Upload Dataset
+# -----------------------------
+@router.post("/api/datasets/upload")
+async def upload_dataset(
+    file: UploadFile = File(...),
+    k: int | None = None,   # optional k
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can upload datasets")
+
+    if not file.filename.endswith(('.csv', '.xlsx')):
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+
+    file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
+        else:
+            df = pd.read_excel(file_path)
+
+        df = normalize_and_prepare_df(df)
+
+        features = ['gwa', 'income']
+        X = df[features].fillna(0)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # auto-select k if not provided
+        if k is None:
+            wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
+            k = recommend_k_by_curvature(wcss)
+
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
+
+        all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
+    # Keep only GWA (index 0) and income (index 1)
+        centroids = [[c[0], c[1]] for c in all_centroids]
+
+        connection = get_db_connection()
+        if not connection:
+            os.remove(file_path)
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "INSERT INTO datasets (filename, uploaded_by, upload_date) VALUES (%s, %s, %s)",
+            (file.filename, current_user["id"], datetime.now())
+        )
+        dataset_id = cursor.lastrowid
+
+        cursor.execute(
+            "INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
+            (dataset_id, k, json.dumps(centroids))
+        )
+        cluster_id = cursor.lastrowid
+
+        for _, row in df.iterrows():
+            cursor.execute("""
+                INSERT INTO students (name, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                (row['name'] or "Unknown"), (row['sex'] or "Unknown"), (row['program'] or "Unknown"), (row['municipality'] or "Unknown"),
+                (row['income'] if row['income'] else 0), (row['shs_type'] or "Unknown"), (row['gwa'] if row['gwa'] else 0), (row['Honors'] or "Unknown"),
+                (row['IncomeCategory'] or "Unknown"), dataset_id
+            ))
+            student_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                (student_id, cluster_id, int(row['Cluster']))
+            )
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        os.remove(file_path)
+
+        return {
+            "message": "Dataset uploaded and processed successfully",
+            "dataset_id": dataset_id,
+            "total_students": len(df),
+            "clusters": k
+        }
+
+    except Exception as e:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(status_code=500, detail=f"Error processing dataset: {str(e)}")
+
+# -----------------------------
+# Get Dataset History
+# -----------------------------
+@router.get("/api/datasets")
+async def get_datasets(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can view dataset history")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT d.*, u.email as uploaded_by_email, 
+               COUNT(s.id) as student_count,
+               c.k as cluster_count
+        FROM datasets d
+        LEFT JOIN users u ON d.uploaded_by = u.id
+        LEFT JOIN students s ON d.id = s.dataset_id
+        LEFT JOIN clusters c ON d.id = c.dataset_id
+        GROUP BY d.id
+        ORDER BY d.upload_date DESC
+    """)
+    datasets = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return datasets
+
+# -----------------------------
+# Delete Dataset
+# -----------------------------
+@router.delete("/api/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can delete datasets")
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM student_cluster WHERE student_id IN (SELECT id FROM students WHERE dataset_id = %s)", (dataset_id,))
+    cursor.execute("DELETE FROM students WHERE dataset_id = %s", (dataset_id,))
+    cursor.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
+    cursor.execute("DELETE FROM datasets WHERE id = %s", (dataset_id,))
+    cursor.close()
+    connection.close()
+    return {"message": "Dataset deleted successfully"}
