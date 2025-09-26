@@ -1,18 +1,22 @@
-# render.yaml - FastAPI backend for FreshGroup
-
 services:
   - type: web
     name: freshgroup-backend
     env: python
-    pythonVersion: 3.11.8
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: MYSQL_HOST
-        value: dpg-d3bdshuuk2gs7385aaa0-a
-      - key: MYSQL_USER
-        value: freshgroup_db_user
-      - key: MYSQL_PASSWORD
-        value: Av77CwIK914ceBhgF8iN884dGGYPc1UD
-      - key: MYSQL_DATABASE
-        value: freshgroup_db
+      - key: DB_HOST
+        value: "dpg-d3bdshuuk2gs7385aaa0-a"
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USER
+        value: "freshgroup_db_user"
+      - key: DB_PASSWORD
+        value: "Av77CwIK914ceBhgF8iN884dGGYPc1UD"
+      - key: DB_NAME
+        value: "freshgroup_db"
+      - key: SECRET_KEY
+        value: "frshgrp_5432"
