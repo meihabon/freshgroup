@@ -1,16 +1,18 @@
-from passlib.context import CryptContext
+import os
+from dotenv import load_dotenv
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+load_dotenv()  # for local dev, Railway ignores this and uses its Variables
 
-SECRET_KEY = "frshgrp_5432"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 DB_CONFIG = {
-    'host': 'dpg-d3bdshuuk2gs7385aaa0-a',
-    'database': 'freshgroup_db',
-    'user': 'freshgroup_db_user',
-    'password': 'Av77CwIK914ceBhgF8iN884dGGYPc1UD',
+    'host': os.getenv("DB_HOST"),
+    'port': int(os.getenv("DB_PORT")),
+    'database': os.getenv("DB_NAME"),
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
     'charset': 'utf8mb4',
     'autocommit': True
 }
