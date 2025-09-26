@@ -7,12 +7,12 @@ services:
     env: python
     plan: free
     branch: main
-    rootDir: backend       # Points to /backend folder
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: mysql://user:password@host:port/dbname  # Replace with your actual MySQL DB
+        value: mysql://user:password@host:port/dbname  # Replace with your MySQL connection string
       - key: SECRET_KEY
         value: your-secret-key
 
@@ -22,19 +22,15 @@ services:
     env: node
     plan: free
     branch: main
-    rootDir: frontend       # Points to /frontend folder
+    rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: REACT_APP_API_URL
-        value: https://freshgroup-backend.onrender.com  # Render will provide this URL
+        value: https://freshgroup-backend.onrender.com
 
 databases:
-  # MySQL Database
   - name: freshgroup-db
     plan: free
     region: oregon
     type: mysql
-    envVars:
-      - key: DATABASE_URL
-        value: mysql://user:password@host:port/dbname  # Same as backend DB
