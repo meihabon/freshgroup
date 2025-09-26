@@ -1,0 +1,40 @@
+# render.yaml - FreshGroup Monorepo Deployment
+
+services:
+  # Backend: FastAPI Python Service
+  - type: web
+    name: freshgroup-backend
+    env: python
+    plan: free
+    branch: main
+    rootDir: backend       # Points to /backend folder
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: postgres://user:password@host:port/dbname  # Replace with your actual DB
+      - key: SECRET_KEY
+        value: your-secret-key
+
+  # Frontend: React/Next.js Service
+  - type: web
+    name: freshgroup-frontend
+    env: node
+    plan: free
+    branch: main
+    rootDir: frontend       # Points to /frontend folder
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://freshgroup-backend.onrender.com  # Render will provide this URL
+
+databases:
+  # PostgreSQL Database
+  - name: freshgroup-db
+    plan: free
+    region: oregon
+    type: postgresql
+    envVars:
+      - key: DATABASE_URL
+        value: postgres://user:password@host:port/dbname  # Same as backend
