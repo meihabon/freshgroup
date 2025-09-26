@@ -1,4 +1,5 @@
 # render.yaml - FastAPI backend for FreshGroup
+
 services:
   - type: web
     name: freshgroup-backend
