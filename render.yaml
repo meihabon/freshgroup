@@ -1,5 +1,3 @@
-# render.yaml - FreshGroup Monorepo Deployment
-
 services:
   # Backend: FastAPI Python Service
   - type: web
@@ -33,4 +31,3 @@ databases:
   - name: freshgroup-db
     plan: free
     region: oregon
-    type: mysql
