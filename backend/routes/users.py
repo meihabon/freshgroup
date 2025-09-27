@@ -122,15 +122,23 @@ async def update_current_user_profile(
     current_user: dict = Depends(get_current_user)
 ):
     connection = get_db_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT profile FROM users WHERE id=%s", (current_user["id"],))
+    row = cursor.fetchone()
+    existing_profile = json.loads(row["profile"]) if row["profile"] else {}
+
+    # Merge updates, ignoring None
+    updated_profile = {**existing_profile, **{k: v for k, v in profile.dict().items() if v is not None}}
+
     cursor.execute(
         "UPDATE users SET profile=%s WHERE id=%s",
-        (profile.json(), current_user["id"])
+        (json.dumps(updated_profile), current_user["id"])
     )
     connection.commit()
     cursor.close()
     connection.close()
-    return {"message": "Profile updated successfully", "profile": profile.dict()}
+    return {"message": "Profile updated successfully", "profile": updated_profile}
+
 
 # --- Delete User ---
 @router.delete("/users/{user_id}")
