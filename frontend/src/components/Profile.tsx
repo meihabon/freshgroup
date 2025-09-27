@@ -35,7 +35,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await getMe()  // ✅ wrapper already calls /api/auth/me
+        const res = await getMe()  
         const profile = res.data.profile || {}
         setProfileData({
           name: profile.name || "",

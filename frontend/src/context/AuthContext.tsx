@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser()
   }, [])
 
-  // ✅ now fetches from /users/me instead of /auth/me
+  
   const refreshUser = async () => {
     try {
       const response = await API.get("/users/me")
