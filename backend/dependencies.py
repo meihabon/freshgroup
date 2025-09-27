@@ -1,30 +1,19 @@
 # dependencies.py
-from fastapi import HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from config import SECRET_KEY, ALGORITHM
+from fastapi import Request, HTTPException
 from db import get_db_connection
+from security import verify_token
 
-# Tell FastAPI where to expect the token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+async def get_current_user(request: Request):
+    # ✅ Read JWT from Authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    try:
-        # Decode JWT
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
+    token = auth_header.split(" ")[1]
+    email = verify_token(token)
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-    # Look up user in DB
     connection = get_db_connection()
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
@@ -36,6 +25,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     connection.close()
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(status_code=401, detail="User not found")
 
     return user
