@@ -2,10 +2,25 @@ import React, { useState, useEffect } from "react"
 import { Row, Col, Card, Form, Button, Alert, InputGroup, Spinner } from "react-bootstrap"
 import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import axios from "axios"
+
+// 🔗 Create API instance
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://heroic-rejoicing-production.up.railway.app/api"
+
+const API = axios.create({ baseURL: API_URL })
+
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 function Profile() {
-  const { API } = useAuth()
-  const { user, refreshUser } = useAuth() // ✅ use refreshUser instead of setUser
+  const { user, refreshUser } = useAuth()
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile")
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -34,7 +49,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await API.get("auth/me")
+        const res = await API.get("/api/auth/me")
         const profile = res.data.profile || {}
         setProfileData({
           name: profile.name || "",
@@ -59,7 +74,7 @@ function Profile() {
     setSuccess("")
 
     try {
-      await API.put("auth/me", profileData)
+      await API.put("/api/auth/me", profileData)
       setSuccess("Profile updated successfully!")
       await refreshUser() // ✅ re-fetch latest user data
     } catch (err: any) {
@@ -87,7 +102,7 @@ function Profile() {
 
     setLoading(true)
     try {
-      await API.post("auth/change-password", {
+      await API.post("/api/auth/change-password", {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
         confirmPassword: passwordData.confirmPassword
