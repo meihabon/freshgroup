@@ -8,11 +8,10 @@ from typing import Optional
 
 router = APIRouter()
 
-# --- Pydantic model for profile updates ---
 class ProfileUpdate(BaseModel):
-    name: str = ""
-    department: str = ""
-    position: str = ""
+    name: Optional[str] = None
+    department: Optional[str] = None
+    position: Optional[str] = None
 
 # --- Get all users (Admin only) ---
 @router.get("/users")
