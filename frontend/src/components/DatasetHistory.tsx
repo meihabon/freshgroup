@@ -4,7 +4,6 @@ import {
   Spinner, Alert, Badge, ProgressBar 
 } from 'react-bootstrap'
 import { Upload, Trash2, Eye, Database, Download } from 'lucide-react'
-import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import Plot from 'react-plotly.js'
 import * as XLSX from 'xlsx'
@@ -20,6 +19,7 @@ interface Dataset {
 }
 
 function DatasetHistory() {
+  const { API } = useAuth()
   const { user } = useAuth()
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +44,7 @@ function DatasetHistory() {
 
   const fetchDatasets = async () => {
     try {
-      const response = await axios.get('/api/datasets')
+      const response = await API.get('datasets')
       setDatasets(response.data)
     } catch (error: any) {
       setError(error.response?.data?.detail || 'Failed to fetch datasets')
@@ -79,7 +79,7 @@ function DatasetHistory() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await axios.post('/api/datasets/elbow', formData, {
+      const response = await API.post('datasets/elbow', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
@@ -118,7 +118,7 @@ function DatasetHistory() {
       formData.append('file', selectedFile)
       formData.append('k', clusterCount.toString())
 
-      const response = await axios.post('/api/datasets/upload', formData, {
+      const response = await API.post('datasets/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -143,7 +143,7 @@ function DatasetHistory() {
     }
 
     try {
-      await axios.delete(`/api/datasets/${id}`)
+      await API.delete(`datasets/${id}`)
       setSuccess('Dataset deleted successfully')
       fetchDatasets()
     } catch (error: any) {

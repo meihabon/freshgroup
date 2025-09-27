@@ -19,7 +19,7 @@ async def get_current_user(request: Request):
         raise HTTPException(status_code=500, detail="Database connection failed")
 
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE email = %s AND active = TRUE", (email,))
+    cursor.execute("SELECT * FROM users WHERE email = %s AND active = 1", (email,))
     user = cursor.fetchone()
     cursor.close()
     connection.close()

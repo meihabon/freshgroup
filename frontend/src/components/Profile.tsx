@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react"
 import { Row, Col, Card, Form, Button, Alert, InputGroup, Spinner } from "react-bootstrap"
 import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
-import axios from "axios"
 
 function Profile() {
+  const { API } = useAuth()
   const { user, refreshUser } = useAuth() // ✅ use refreshUser instead of setUser
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile")
   const [loading, setLoading] = useState(false)
@@ -34,7 +34,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("/api/users/me")
+        const res = await API.get("users/me")
         const profile = res.data.profile || {}
         setProfileData({
           name: profile.name || "",
@@ -59,7 +59,7 @@ function Profile() {
     setSuccess("")
 
     try {
-      await axios.put("/api/users/me", profileData)
+      await API.put("users/me", profileData)
       setSuccess("Profile updated successfully!")
       await refreshUser() // ✅ re-fetch latest user data
     } catch (err: any) {
@@ -87,7 +87,7 @@ function Profile() {
 
     setLoading(true)
     try {
-      await axios.post("/api/auth/change-password", {
+      await API.post("auth/change-password", {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
         confirmPassword: passwordData.confirmPassword

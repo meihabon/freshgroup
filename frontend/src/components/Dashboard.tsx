@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Row, Col, Card, Spinner, Alert, Modal, Table } from 'react-bootstrap'
 import { Users, GraduationCap, MapPin, DollarSign, School, Award, User } from 'lucide-react'
-import axios from 'axios'
 import Plot from 'react-plotly.js'
-
+import { useAuth } from "../context/AuthContext"
 interface DashboardStats {
   total_students: number
   most_common_program: string
@@ -21,6 +20,7 @@ interface DashboardStats {
 }
 
 function Dashboard() {
+  const { API } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -34,7 +34,7 @@ function Dashboard() {
     setLoading(true)
     setError('')
     try {
-      const response = await axios.get<DashboardStats>('/api/dashboard/stats')
+      const response = await API.get<DashboardStats>('dashboard/stats')
       setStats(response.data)
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch dashboard statistics')

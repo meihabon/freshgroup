@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
-import axios from "axios"
+import axios, { AxiosInstance } from "axios"
 
 interface User {
   id: number
@@ -14,7 +14,8 @@ interface AuthContextType {
   logout: () => void
   register: (email: string, password: string, profile?: any) => Promise<void>
   loading: boolean
-  refreshUser: () => Promise<void>   // ✅ added here
+  refreshUser: () => Promise<void>
+  API: AxiosInstance   // 👈 add this
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -72,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (email: string, password: string, profile: any = {}) => {
     try {
       await API.post("/auth/register", { email, password, profile })
-      // optional: auto-refresh after register
       await refreshUser()
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Registration failed")
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, register, loading, refreshUser }} // ✅ expose refreshUser
+      value={{ user, login, logout, register, loading, refreshUser, API }} // 👈 added API
     >
       {children}
     </AuthContext.Provider>

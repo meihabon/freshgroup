@@ -1,8 +1,9 @@
 import React, { useState } from "react"
 import { Button, Card, Row, Col, Alert, Spinner } from "react-bootstrap"
-import axios from "axios"
+import { useAuth } from "../context/AuthContext"
 
 function Reports() {
+  const { API } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -10,7 +11,7 @@ function Reports() {
     setLoading(true)
     setError("")
     try {
-      const response = await axios.get(`/api/reports/${reportType}?format=${format}`, {
+      const response = await API.get(`reports/${reportType}?format=${format}`, {
         responseType: "blob",
       })
 

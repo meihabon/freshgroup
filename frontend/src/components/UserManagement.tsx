@@ -23,7 +23,6 @@ import {
   Download,
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
-import axios from "axios"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import * as XLSX from "xlsx"
@@ -44,6 +43,7 @@ interface UserType {
 }
 
 function UserManagement() {
+  const { API } = useAuth()
   const { user } = useAuth()
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,7 +78,7 @@ function UserManagement() {
     setLoading(true)
     setError("")
     try {
-      const response = await axios.get("/api/users")
+      const response = await API.get("users")
       setUsers(response.data)
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to fetch users")
@@ -115,10 +115,10 @@ function UserManagement() {
     setSuccess("")
     try {
       if (editingUser) {
-        await axios.put(`/api/users/${editingUser.id}`, form)
+        await API.put(`users/${editingUser.id}`, form)
         setSuccess("User updated successfully")
       } else {
-        await axios.post("/api/users", form)
+        await API.post("users", form)
         setSuccess("User added successfully")
       }
       setShowModal(false)
@@ -145,7 +145,7 @@ function UserManagement() {
     setError("")
     setSuccess("")
     try {
-      await axios.post(`/api/users/${resetUser?.id}/reset-password`, resetForm)
+      await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
       setSuccess(`Password updated for ${resetUser?.email}`)
       setShowResetModal(false)
     } catch (err: any) {
@@ -158,7 +158,7 @@ function UserManagement() {
   const handleDeleteUser = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return
     try {
-      await axios.delete(`/api/users/${id}`)
+      await API.delete(`users/${id}`)
       setSuccess("User deleted successfully")
       fetchUsers()
     } catch (err: any) {

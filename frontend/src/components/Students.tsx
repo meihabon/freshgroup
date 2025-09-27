@@ -4,7 +4,7 @@ import {
   InputGroup, Badge, Spinner, Alert 
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
-import axios from 'axios'
+import { useAuth } from "../context/AuthContext"
 
 interface Student {
   id: number
@@ -20,6 +20,7 @@ interface Student {
 }
 
 function Students() {
+  const { API } = useAuth()
   const [students, setStudents] = useState<Student[]>([])
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
@@ -54,16 +55,17 @@ function Students() {
 
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('/api/students')
+      const response = await API.get('students')
       setStudents(response.data)
 
       const uniquePrograms = [...new Set(response.data.map((s: Student) => s.program))].sort()
       const uniqueMunicipalities = [...new Set(response.data.map((s: Student) => s.municipality))].sort()
       const uniqueShsTypes = [...new Set(response.data.map((s: Student) => s.SHS_type))].sort()
 
-      setPrograms(uniquePrograms)
-      setMunicipalities(uniqueMunicipalities)
-      setShsTypes(uniqueShsTypes)
+    setPrograms(uniquePrograms as string[])
+    setMunicipalities(uniqueMunicipalities as string[])
+    setShsTypes(uniqueShsTypes as string[])
+
     } catch (error: any) {
       setError(error.response?.data?.detail || 'Failed to fetch students')
     } finally {
