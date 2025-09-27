@@ -84,3 +84,5 @@ export const exportClusterPlayground = () =>
 
 // ----------------- HEALTH CHECK -----------------
 export const healthCheck = () => API.get("/");
+
+export default API;
