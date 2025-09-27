@@ -1,15 +1,17 @@
 import axios from "axios";
 
-// ----------------- API INSTANCE -----------------
 const API = axios.create({
-  baseURL: "https://heroic-rejoicing-production.up.railway.app/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
+  withCredentials: true, // allow cookies
 });
 
-// Attach JWT token automatically
+// Attach JWT token only if backend issues it (optional)
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -27,62 +29,60 @@ API.interceptors.response.use(
   }
 );
 
-// ----------------- AUTH -----------------
-export const login = async (email: string, password: string) => {
-  const res = await API.post("/auth/login", { email, password });
-  if (res.data.token) {
-    localStorage.setItem("token", res.data.token);
-  }
-  return res;
-};
+export default API;
 
-export const register = (data: any) => API.post("/auth/register", data);
+/* ---------------- AUTH ---------------- */
+export const login = (email: string, password: string) =>
+  API.post("/api/auth/login", { email, password });
 
-export const logout = async () => {
-  localStorage.removeItem("token");
-  return API.post("/auth/logout");
-};
+export const register = (data: any) => API.post("/api/auth/register", data);
 
-export const getMe = () => API.get("/auth/me");   // fetch logged-in user info
+export const logout = () => API.post("/api/auth/logout");
 
-export const updateProfile = (data: any) => API.put("/auth/me", data);
+export const getMe = () => API.get("/api/auth/me");
 
-export const changePassword = (data: any) => API.post("/auth/change-password", data);
+export const updateProfile = (data: any) =>  
+  API.put("/api/auth/me", data);
 
-// ----------------- USERS -----------------
+export const changePassword = (data: any) =>
+  API.post("/api/auth/change-password", data);
+
+/* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");
 export const createUser = (data: any) => API.post("/users", data);
-export const updateUser = (userId: number, data: any) => API.put(`/users/${userId}`, data);
+export const updateUser = (userId: number, data: any) =>
+  API.put(`/users/${userId}`, data);
 export const deleteUser = (userId: number) => API.delete(`/users/${userId}`);
 export const resetUserPassword = (userId: number, data: any) =>
   API.post(`/users/${userId}/reset-password`, data);
 
-// ----------------- DASHBOARD -----------------
+/* ---------------- DASHBOARD ---------------- */
 export const getDashboardStats = () => API.get("/dashboard/stats");
 
-// ----------------- STUDENTS -----------------
+/* ---------------- STUDENTS ---------------- */
 export const getStudents = () => API.get("/students");
 
-// ----------------- CLUSTERS -----------------
+/* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");
 export const recluster = (data: any) => API.post("/clusters/recluster", data);
 export const getPairwiseClusters = () => API.get("/clusters/pairwise");
 export const getClusterPlayground = () => API.get("/clusters/playground");
 
-// ----------------- DATASETS -----------------
+/* ---------------- DATASETS ---------------- */
 export const getDatasets = () => API.get("/datasets");
 export const uploadDataset = (formData: FormData) =>
-  API.post("/datasets/upload", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  API.post("/datasets/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 export const previewElbow = (data: any) => API.post("/datasets/elbow", data);
-export const deleteDataset = (datasetId: number) => API.delete(`/datasets/${datasetId}`);
+export const deleteDataset = (datasetId: number) =>
+  API.delete(`/datasets/${datasetId}`);
 
-// ----------------- REPORTS -----------------
+/* ---------------- REPORTS ---------------- */
 export const exportReport = (reportType: string) =>
   API.get(`/reports/${reportType}`, { responseType: "blob" });
 export const exportClusterPlayground = () =>
   API.get("/reports/cluster_playground", { responseType: "blob" });
 
-// ----------------- HEALTH CHECK -----------------
+/* ---------------- HEALTH ---------------- */
 export const healthCheck = () => API.get("/");
-
-export default API;
