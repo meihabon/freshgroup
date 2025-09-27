@@ -34,7 +34,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await API.get("users/me")
+        const res = await API.get("auth/me")
         const profile = res.data.profile || {}
         setProfileData({
           name: profile.name || "",
@@ -59,7 +59,7 @@ function Profile() {
     setSuccess("")
 
     try {
-      await API.put("users/me", profileData)
+      await API.put("auth/me", profileData)
       setSuccess("Profile updated successfully!")
       await refreshUser() // ✅ re-fetch latest user data
     } catch (err: any) {
