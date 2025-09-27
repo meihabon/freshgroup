@@ -44,7 +44,7 @@ function DatasetHistory() {
 
   const fetchDatasets = async () => {
     try {
-      const response = await API.get('datasets')
+      const response = await API.get('/datasets')
       setDatasets(response.data)
     } catch (error: any) {
       setError(error.response?.data?.detail || 'Failed to fetch datasets')
