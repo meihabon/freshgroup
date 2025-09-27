@@ -201,3 +201,23 @@ async def delete_user(user_id: int, current_user: dict = Depends(get_current_use
     connection.close()
     return {"message": "User deleted successfully"}
 
+# --- Update current logged-in user's profile ---
+@router.put("/users/me")
+async def update_current_user_profile(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    profile = {
+        "name": data.get("name", ""),
+        "department": data.get("department", ""),
+        "position": data.get("position", "")
+    }
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "UPDATE users SET profile=%s WHERE id=%s",
+        (json.dumps(profile), current_user["id"])
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"message": "Profile updated successfully"}
