@@ -2,22 +2,8 @@ import React, { useState, useEffect } from "react"
 import { Row, Col, Card, Form, Button, Alert, InputGroup, Spinner } from "react-bootstrap"
 import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
-import axios from "axios"
+import { getMe, updateProfile, changePassword } from "../api"
 
-// 🔗 Create API instance
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://heroic-rejoicing-production.up.railway.app/api"
-
-const API = axios.create({ baseURL: API_URL })
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
 
 function Profile() {
   const { user, refreshUser } = useAuth()
@@ -49,7 +35,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await API.get("/api/auth/me")
+        const res = await getMe()  // ✅ wrapper already calls /api/auth/me
         const profile = res.data.profile || {}
         setProfileData({
           name: profile.name || "",
@@ -73,13 +59,13 @@ function Profile() {
     setError("")
     setSuccess("")
 
-    try {
-      await API.put("/api/auth/me", profileData)
-      setSuccess("Profile updated successfully!")
-      await refreshUser() // ✅ re-fetch latest user data
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to update profile")
-    } finally {
+  try {
+    await updateProfile(profileData)  // ✅ wrapper instead of API.put
+    setSuccess("Profile updated successfully!")
+    await refreshUser()
+  } catch (err: any) {
+    setError(err.response?.data?.detail || "Failed to update profile")
+  } finally {
       setLoading(false)
     }
   }
@@ -102,12 +88,7 @@ function Profile() {
 
     setLoading(true)
     try {
-      await API.post("/api/auth/change-password", {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-        confirmPassword: passwordData.confirmPassword
-      })
-
+      await changePassword(passwordData) // ✅ wrapper function
       setSuccess("Password changed successfully!")
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
     } catch (err: any) {

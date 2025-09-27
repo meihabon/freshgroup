@@ -39,7 +39,10 @@ export const register = (data: any) => API.post("/api/auth/register", data);
 
 export const logout = () => API.post("/api/auth/logout");
 
-export const getMe = () => API.get("/api/auth/me");   // ✅ FIXED
+export const getMe = () => API.get("/api/auth/me");
+
+export const updateProfile = (data: any) =>  
+  API.put("/api/auth/me", data);
 
 export const changePassword = (data: any) =>
   API.post("/api/auth/change-password", data);
