@@ -2,13 +2,13 @@ from fastapi import APIRouter, HTTPException, Response, Depends
 from db import get_db_connection
 from security import verify_password, get_password_hash, create_access_token
 from dependencies import get_current_user
-import json
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
+import json
 
 router = APIRouter()
 
 @router.post("/api/auth/login")
-async def login(credentials: dict, response: Response):
+async def login(credentials: dict):
     email = credentials.get("email")
     password = credentials.get("password")
 
@@ -28,17 +28,12 @@ async def login(credentials: dict, response: Response):
     if not user or not verify_password(password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # ✅ Return access token in JSON (not cookie)
     access_token = create_access_token(data={"sub": user["email"]})
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax"
-    )
 
     return {
-        "message": "Login successful",
+        "access_token": access_token,
+        "token_type": "bearer",
         "user": {
             "id": user["id"],
             "email": user["email"],
@@ -72,18 +67,18 @@ async def register(user_data: dict):
         "INSERT INTO users (email, password_hash, role, profile) VALUES (%s, %s, %s, %s)",
         (email, hashed_password, "Viewer", json.dumps(profile))
     )
+    connection.commit()
     cursor.close()
     connection.close()
     return {"message": "User registered successfully"}
 
 @router.post("/api/auth/logout")
-async def logout(response: Response):
-    response.delete_cookie(key="access_token")
+async def logout():
+    # Frontend just needs to delete token from localStorage
     return {"message": "Logged out successfully"}
 
 @router.get("/api/auth/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
-    import json
     return {
         "id": current_user["id"],
         "email": current_user["email"],
