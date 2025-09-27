@@ -3,8 +3,17 @@ from db import get_db_connection
 from dependencies import get_current_user
 from security import get_password_hash, verify_password
 import json
+from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter()
+
+# --- Pydantic model for profile updates ---
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = ""
+    department: Optional[str] = ""
+    position: Optional[str] = ""
+
 
 # --- Get all users (Admin only) ---
 @router.get("/users")
