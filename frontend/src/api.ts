@@ -33,19 +33,19 @@ export default API;
 
 /* ---------------- AUTH ---------------- */
 export const login = (email: string, password: string) =>
-  API.post("/api/auth/login", { email, password });
+  API.post("/auth/login", { email, password });
 
-export const register = (data: any) => API.post("/api/auth/register", data);
+export const register = (data: any) => API.post("/auth/register", data);
 
-export const logout = () => API.post("/api/auth/logout");
+export const logout = () => API.post("/auth/logout");
 
-export const getMe = () => API.get("/api/auth/me");
+export const getMe = () => API.get("/auth/me");   // ✅ FIXED (remove /api)
 
-export const updateProfile = (data: any) =>  
-  API.put("/api/auth/me", data);
+export const updateProfile = (data: any) =>
+  API.put("/auth/me", data);                      // ✅ FIXED
 
 export const changePassword = (data: any) =>
-  API.post("/api/auth/change-password", data);
+  API.post("/auth/change-password", data);
 
 /* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");
