@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
-  withCredentials: true, // allow cookies
+  baseURL: "https://your-backend-url.onrender.com/api",
+  withCredentials: true,
 });
 
 // Attach JWT token only if backend issues it (optional)
