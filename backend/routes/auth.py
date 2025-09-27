@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Response, Depends
+from pydantic import BaseModel, EmailStr
 from db import get_db_connection
 from security import verify_password, get_password_hash, create_access_token
 from dependencies import get_current_user
@@ -7,33 +8,48 @@ import json
 
 router = APIRouter()
 
+# ---------------------------
+# Request Models
+# ---------------------------
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    profile: dict | None = None
+
+# ---------------------------
+# Auth Routes
+# ---------------------------
+
 @router.post("/api/auth/login")
-async def login(credentials: dict):
-    email = credentials.get("email")
-    password = credentials.get("password")
-
-    if not email or not password:
-        raise HTTPException(status_code=400, detail="Email and password required")
-
+async def login(credentials: LoginRequest, response: Response):
     connection = get_db_connection()
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE email = %s AND active = TRUE", (email,))
+    cursor.execute("SELECT * FROM users WHERE email = %s AND active = TRUE", (credentials.email,))
     user = cursor.fetchone()
     cursor.close()
     connection.close()
 
-    if not user or not verify_password(password, user["password_hash"]):
+    if not user or not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # ✅ Return access token in JSON (not cookie)
     access_token = create_access_token(data={"sub": user["email"]})
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax"
+    )
 
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
+        "message": "Login successful",
         "user": {
             "id": user["id"],
             "email": user["email"],
@@ -42,40 +58,37 @@ async def login(credentials: dict):
         }
     }
 
+
 @router.post("/api/auth/register")
-async def register(user_data: dict):
-    email = user_data.get("email")
-    password = user_data.get("password")
-    profile = user_data.get("profile", {})
-
-    if not email or not password:
-        raise HTTPException(status_code=400, detail="Email and password required")
-
+async def register(payload: RegisterRequest):
     connection = get_db_connection()
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
     cursor = connection.cursor()
-    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+    cursor.execute("SELECT id FROM users WHERE email = %s", (payload.email,))
     if cursor.fetchone():
         cursor.close()
         connection.close()
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    hashed_password = get_password_hash(password)
+    hashed_password = get_password_hash(payload.password)
     cursor.execute(
         "INSERT INTO users (email, password_hash, role, profile) VALUES (%s, %s, %s, %s)",
-        (email, hashed_password, "Viewer", json.dumps(profile))
+        (payload.email, hashed_password, "Viewer", json.dumps(payload.profile or {}))
     )
     connection.commit()
     cursor.close()
     connection.close()
+
     return {"message": "User registered successfully"}
 
+
 @router.post("/api/auth/logout")
-async def logout():
-    # Frontend just needs to delete token from localStorage
+async def logout(response: Response):
+    response.delete_cookie(key="access_token")
     return {"message": "Logged out successfully"}
+
 
 @router.get("/api/auth/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
