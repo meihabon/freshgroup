@@ -17,7 +17,7 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     cursor.execute("SELECT id, email, role, active, profile, created_at FROM users ORDER BY created_at DESC")
     users = cursor.fetchall()
     for user in users:
-        user["profile"] = json.loads(user["profile"]) if user["profile"] else {"name": "", "department": "", "position": ""}
+        user["profile"] = json.loads(user["profile"]) if user["profile"] else {"name": "", "department": ""}
     cursor.close()
     connection.close()
     return users
@@ -34,10 +34,8 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     role = data.get("role", "Viewer")
     profile = {
         "name": data.get("name", ""),
-        "department": data.get("department", ""),
-        "position": data.get("position", "")
+        "department": data.get("department", "")
     }
-
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
@@ -70,8 +68,7 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
     role = data.get("role")
     profile = {
         "name": data.get("name", ""),
-        "department": data.get("department", ""),
-        "position": data.get("position", "")
+        "department": data.get("department", "")
     }
 
     connection = get_db_connection()
@@ -145,6 +142,50 @@ async def reset_password(user_id: int, data: dict = Body(...), current_user: dic
     connection.close()
     return {"message": "Password reset successfully"}
 
+# --- Create User ---
+@router.post("/api/users")
+async def create_user(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can create users")
+
+    email = data.get("email")
+    role = data.get("role")
+    name = data.get("name")
+    department = data.get("department")
+    password = data.get("password")
+
+    if not email or not role or not password:
+        raise HTTPException(status_code=400, detail="Email, role, and password are required")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    # check duplicate email
+    cursor.execute("SELECT id FROM users WHERE email=%s", (email,))
+    if cursor.fetchone():
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=400, detail="Email already exists")
+
+    # hash password
+    hashed_password = get_password_hash(password)
+
+    profile = json.dumps({"name": name or "", "department": department or ""})
+
+    cursor.execute(
+        """
+        INSERT INTO users (email, password_hash, role, active, profile)
+        VALUES (%s, %s, %s, %s, %s)
+        """,
+        (email, hashed_password, role, True, profile),
+    )
+    connection.commit()
+
+    new_id = cursor.lastrowid
+    cursor.close()
+    connection.close()
+
+    return {"message": "User created successfully", "id": new_id}
 
 # --- Delete User ---
 @router.delete("/api/users/{user_id}")
@@ -160,15 +201,3 @@ async def delete_user(user_id: int, current_user: dict = Depends(get_current_use
     connection.close()
     return {"message": "User deleted successfully"}
 
-@router.get("/api/auth/me")
-async def get_current_user_info(current_user: dict = Depends(get_current_user)):
-    profile = current_user.get("profile")
-    if isinstance(profile, str):
-        profile = json.loads(profile)
-    return {
-        "id": current_user["id"],
-        "email": current_user["email"],
-        "role": current_user["role"],
-        "profile": profile or {"name": "", "department": "", "position": ""},
-        "active": current_user.get("active", True)
-    }
