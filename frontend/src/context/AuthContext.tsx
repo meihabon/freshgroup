@@ -15,7 +15,7 @@ interface AuthContextType {
   register: (email: string, password: string, profile?: any) => Promise<void>
   loading: boolean
   refreshUser: () => Promise<void>
-  API: AxiosInstance   // 👈 add this
+  API: AxiosInstance
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const response = await API.get("/api//auth/me")
+      const response = await API.get("/auth/me")   // ✅ no /api
       setUser(response.data)
     } catch {
       setUser(null)
@@ -55,9 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await API.post("/api//auth/login", { email, password })
+      const response = await API.post("/auth/login", { email, password }) // ✅ no /api
       const { access_token, user } = response.data
-
       localStorage.setItem("token", access_token)
       setUser(user)
     } catch (error: any) {
@@ -72,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, password: string, profile: any = {}) => {
     try {
-      await API.post("/api//auth/register", { email, password, profile })
+      await API.post("/auth/register", { email, password, profile }) // ✅ no /api
       await refreshUser()
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Registration failed")
@@ -81,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, register, loading, refreshUser, API }} // 👈 added API
+      value={{ user, login, logout, register, loading, refreshUser, API }}
     >
       {children}
     </AuthContext.Provider>
