@@ -1,3 +1,5 @@
+import os
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import ALLOW_ORIGINS
@@ -14,10 +16,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include all routers
+# Include routers
 for module in [auth, users, dashboard, students, clusters, cluster_playground, datasets, reports]:
     app.include_router(module.router)
 
+# Health route (to avoid 404 on root)
+@app.get("/")
+def health():
+    return {"status": "ok", "service": "FreshGroup API"}
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))  # Railway injects $PORT
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
