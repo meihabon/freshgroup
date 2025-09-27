@@ -1,17 +1,15 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api", // 👈 /api prefix stays only here
-  withCredentials: true, // allow cookies if needed
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
+  withCredentials: true,
 });
 
 // Attach JWT token from localStorage
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
@@ -29,8 +27,6 @@ API.interceptors.response.use(
   }
 );
 
-export default API;
-
 /* ---------------- AUTH ---------------- */
 export const login = (email: string, password: string) =>
   API.post("/auth/login", { email, password });
@@ -39,22 +35,20 @@ export const register = (data: any) => API.post("/auth/register", data);
 
 export const logout = () => API.post("/auth/logout");
 
-export const getMe = () => API.get("/auth/me");
+export const getMe = () => API.get("/users/me");
 
-export const updateProfile = (data: any) => API.put("/users/me", data);
+export const updateProfile = (data: { name: string; department: string; position: string }) =>
+  API.put("/users/me", data);
 
-export const changePassword = (data: any) =>
+export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
   API.post("/auth/change-password", data);
-
 
 /* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");
 export const createUser = (data: any) => API.post("/users", data);
-export const updateUser = (userId: number, data: any) =>
-  API.put(`/users/${userId}`, data);
+export const updateUser = (userId: number, data: any) => API.put(`/users/${userId}`, data);
 export const deleteUser = (userId: number) => API.delete(`/users/${userId}`);
-export const resetUserPassword = (userId: number, data: any) =>
-  API.post(`/users/${userId}/reset-password`, data);
+export const resetUserPassword = (userId: number, data: any) => API.post(`/users/${userId}/reset-password`, data);
 
 /* ---------------- DASHBOARD ---------------- */
 export const getDashboardStats = () => API.get("/dashboard/stats");
@@ -71,15 +65,10 @@ export const getClusterPlayground = () => API.get("/clusters/playground");
 /* ---------------- DATASETS ---------------- */
 export const getDatasets = () => API.get("/datasets");
 export const uploadDataset = (formData: FormData) =>
-  API.post("/datasets/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  API.post("/datasets/upload", formData, { headers: { "Content-Type": "multipart/form-data" } });
 export const previewElbow = (formData: FormData) =>
-  API.post("/datasets/elbow", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-export const deleteDataset = (datasetId: number) =>
-  API.delete(`/datasets/${datasetId}`);
+  API.post("/datasets/elbow", formData, { headers: { "Content-Type": "multipart/form-data" } });
+export const deleteDataset = (datasetId: number) => API.delete(`/datasets/${datasetId}`);
 
 /* ---------------- REPORTS ---------------- */
 export const exportReport = (reportType: string) =>

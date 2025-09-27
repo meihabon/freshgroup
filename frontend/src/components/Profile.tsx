@@ -1,109 +1,102 @@
-import React, { useState, useEffect } from "react"
-import { Row, Col, Card, Form, Button, Alert, InputGroup, Spinner } from "react-bootstrap"
-import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react"
-import { useAuth } from "../context/AuthContext"
-import { getMe, updateProfile, changePassword } from "../api"
-
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } from "react-bootstrap";
+import { useAuth } from "../context/AuthContext";
+import { getMe, updateProfile, changePassword } from "../api";
+import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react";
 
 function Profile() {
-  const { user, refreshUser } = useAuth()
-  const [activeTab, setActiveTab] = useState<"profile" | "password">("profile")
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [success, setSuccess] = useState("")
-  const [error, setError] = useState("")
+  const { user, refreshUser } = useAuth();
+  const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-  // Profile form state
   const [profileData, setProfileData] = useState({
     name: "",
     department: "",
     position: ""
-  })
+  });
 
-  // Password form state
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
-  })
+  });
 
-  // Eye toggle states
-  const [showCurrent, setShowCurrent] = useState(false)
-  const [showNew, setShowNew] = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
 
-  // --- Load profile from backend ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await getMe()  
-        const profile = res.data.profile || {}
+        const res = await getMe();
+        const profile = res.data.profile || {};
         setProfileData({
           name: profile.name || "",
           department: profile.department || "",
           position: profile.position || ""
-        })
+        });
       } catch (err) {
-        console.error("Failed to load profile", err)
-        setError("Failed to load profile")
+        console.error(err);
+        setError("Failed to load profile");
       } finally {
-        setInitialLoading(false)
+        setInitialLoading(false);
       }
-    }
-    fetchProfile()
-  }, [])
+    };
+    fetchProfile();
+  }, []);
 
-  // --- Update Profile ---
   const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    setSuccess("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    await updateProfile(profileData)  // ✅ wrapper instead of API.put
-    setSuccess("Profile updated successfully!")
-    await refreshUser()
-  } catch (err: any) {
-    setError(err.response?.data?.detail || "Failed to update profile")
-  } finally {
-      setLoading(false)
+    try {
+      await updateProfile(profileData);
+      setSuccess("Profile updated successfully!");
+      await refreshUser();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to update profile");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // --- Change Password ---
   const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setSuccess("")
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError("New passwords do not match")
-      return
+      setError("New passwords do not match");
+      return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setError("Password must be at least 6 characters long")
-      return
+      setError("Password must be at least 6 characters long");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      await changePassword(passwordData) // ✅ wrapper function
-      setSuccess("Password changed successfully!")
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+      await changePassword(passwordData);
+      setSuccess("Password changed successfully!");
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to change password")
+      setError(err.response?.data?.detail || "Failed to change password");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (initialLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
         <Spinner animation="border" />
       </div>
-    )
+    );
   }
 
   return (
