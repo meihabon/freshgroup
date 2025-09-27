@@ -41,10 +41,11 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/auth/me");
 
-export const updateProfile = (data: any) => API.put("/auth/me", data);
+export const updateProfile = (data: any) => API.put("/users/me", data);
 
 export const changePassword = (data: any) =>
   API.post("/auth/change-password", data);
+
 
 /* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");

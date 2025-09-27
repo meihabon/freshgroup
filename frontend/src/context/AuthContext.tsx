@@ -42,9 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser()
   }, [])
 
+  // ✅ now fetches from /users/me instead of /auth/me
   const refreshUser = async () => {
     try {
-      const response = await API.get("/auth/me")   // ✅ no /api
+      const response = await API.get("/users/me")
       setUser(response.data)
     } catch {
       setUser(null)
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await API.post("/auth/login", { email, password }) // ✅ no /api
+      const response = await API.post("/auth/login", { email, password })
       const { access_token, user } = response.data
       localStorage.setItem("token", access_token)
       setUser(user)
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, password: string, profile: any = {}) => {
     try {
-      await API.post("/auth/register", { email, password, profile }) // ✅ no /api
+      await API.post("/auth/register", { email, password, profile })
       await refreshUser()
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Registration failed")
