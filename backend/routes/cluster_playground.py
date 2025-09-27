@@ -34,7 +34,7 @@ def fetch_students():
 
 
 # Playground clustering endpoint
-@router.get("/api/clusters/playground")
+@router.get("/clusters/playground")
 async def cluster_playground(
     k: int = Query(..., ge=2, le=10),
     current_user: dict = Depends(get_current_user)
@@ -97,7 +97,7 @@ async def cluster_playground(
 
 
 # Export playground clustering results
-@router.get("/api/reports/cluster_playground")
+@router.get("/reports/cluster_playground")
 async def export_cluster_playground(
     k: int = Query(3, ge=2, le=10),
     format: str = Query("pdf"),

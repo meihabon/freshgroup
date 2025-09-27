@@ -34,7 +34,7 @@ function Dashboard() {
     setLoading(true)
     setError('')
     try {
-      const response = await API.get<DashboardStats>('dashboard/stats')
+      const response = await API.get<DashboardStats>('/dashboard/stats')
       setStats(response.data)
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to fetch dashboard statistics')

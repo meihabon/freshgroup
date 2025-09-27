@@ -47,7 +47,7 @@ async def get_all_students_from_db():
 
 
 # === Reports Endpoint ===
-@router.get("/api/reports/{report_type}")
+@router.get("/reports/{report_type}")
 async def export_report(report_type: str, format: str = Query("pdf")):
     students = await get_all_students_from_db()
     if not students:

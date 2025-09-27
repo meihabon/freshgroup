@@ -5,7 +5,7 @@ from dependencies import get_current_user
 
 router = APIRouter()
 
-@router.get("/api/students")
+@router.get("/students")
 async def get_students(
     program: Optional[str] = None,
     sex: Optional[str] = None,

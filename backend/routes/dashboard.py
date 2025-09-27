@@ -4,7 +4,7 @@ from dependencies import get_current_user
 
 router = APIRouter()
 
-@router.get("/api/dashboard/stats")
+@router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     connection = get_db_connection()
     if not connection:

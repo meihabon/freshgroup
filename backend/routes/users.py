@@ -7,7 +7,7 @@ import json
 router = APIRouter()
 
 # --- Get all users ---
-@router.get("/api/users")
+@router.get("/users")
 async def get_users(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can view users")
@@ -24,7 +24,7 @@ async def get_users(current_user: dict = Depends(get_current_user)):
 
 
 # --- Create new user (Admin only) ---
-@router.post("/api/users")
+@router.post("/users")
 async def create_user(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can create users")
@@ -60,7 +60,7 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
 
 
 # --- Update existing user (Admin only) ---
-@router.put("/api/users/{user_id}")
+@router.put("/users/{user_id}")
 async def update_user(user_id: int, data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can update users")
@@ -90,7 +90,7 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 
 
 # --- User changes their own password ---
-@router.post("/api/auth/change-password")
+@router.post("/auth/change-password")
 async def change_password(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
@@ -120,7 +120,7 @@ async def change_password(data: dict = Body(...), current_user: dict = Depends(g
 
 
 # --- Admin resets another user’s password ---
-@router.post("/api/users/{user_id}/reset-password")
+@router.post("/users/{user_id}/reset-password")
 async def reset_password(user_id: int, data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can reset passwords")
@@ -143,7 +143,7 @@ async def reset_password(user_id: int, data: dict = Body(...), current_user: dic
     return {"message": "Password reset successfully"}
 
 # --- Create User ---
-@router.post("/api/users")
+@router.post("/users")
 async def create_user(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can create users")
@@ -188,7 +188,7 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     return {"message": "User created successfully", "id": new_id}
 
 # --- Delete User ---
-@router.delete("/api/users/{user_id}")
+@router.delete("/users/{user_id}")
 async def delete_user(user_id: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can delete users")

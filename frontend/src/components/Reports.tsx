@@ -11,7 +11,7 @@ function Reports() {
     setLoading(true)
     setError("")
     try {
-      const response = await API.get(`reports/${reportType}?format=${format}`, {
+      const response = await API.get(`/reports/${reportType}?format=${format}`, {
         responseType: "blob",
       })
 
@@ -29,6 +29,7 @@ function Reports() {
       setLoading(false)
     }
   }
+
 
   const reports = [
     {

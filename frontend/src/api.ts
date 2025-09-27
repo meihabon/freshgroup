@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
-  withCredentials: true, // allow cookies
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api", // 👈 /api prefix stays only here
+  withCredentials: true, // allow cookies if needed
 });
 
-// Attach JWT token only if backend issues it (optional)
+// Attach JWT token from localStorage
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -33,19 +33,18 @@ export default API;
 
 /* ---------------- AUTH ---------------- */
 export const login = (email: string, password: string) =>
-  API.post("/api/auth/login", { email, password });
+  API.post("/auth/login", { email, password });
 
-export const register = (data: any) => API.post("/api/auth/register", data);
+export const register = (data: any) => API.post("/auth/register", data);
 
-export const logout = () => API.post("/api/auth/logout");
+export const logout = () => API.post("/auth/logout");
 
-export const getMe = () => API.get("/api/auth/me");
+export const getMe = () => API.get("/auth/me");
 
-export const updateProfile = (data: any) =>  
-  API.put("/api/auth/me", data);
+export const updateProfile = (data: any) => API.put("/auth/me", data);
 
 export const changePassword = (data: any) =>
-  API.post("/api/auth/change-password", data);
+  API.post("/auth/change-password", data);
 
 /* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");
@@ -74,7 +73,10 @@ export const uploadDataset = (formData: FormData) =>
   API.post("/datasets/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-export const previewElbow = (data: any) => API.post("/datasets/elbow", data);
+export const previewElbow = (formData: FormData) =>
+  API.post("/datasets/elbow", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 export const deleteDataset = (datasetId: number) =>
   API.delete(`/datasets/${datasetId}`);
 

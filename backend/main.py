@@ -37,7 +37,8 @@ routers = [
     reports,
 ]
 for module in routers:
-    app.include_router(module.router)
+    app.include_router(module.router, prefix="/api")
+
 
 # Root health check route (important for Railway)
 @app.get("/")

@@ -230,7 +230,7 @@ function Clusters() {
 const fetchOfficialClusters = async () => {
   try {
     setLoading(true)
-    const res = await API.get("clusters")
+    const res = await API.get("/clusters")
     setClusterData(res.data)
 
     // ✅ If official k is available, update the state
@@ -249,7 +249,7 @@ const fetchOfficialClusters = async () => {
     try {
       setRunningPlayground(true)
       setError("")
-      const res = await API.get(`clusters/playground?k=${k}`)
+      const res = await API.get(`/clusters/playground?k=${k}`)
       const { students, centroids } = res.data
 
       const clusters: Record<number, Student[]> = {}
@@ -292,7 +292,7 @@ const fetchOfficialClusters = async () => {
       setError("")
       setPairwiseData(null)
       const res = await API.get(
-        `clusters/pairwise?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}`
+        `/clusters/pairwise?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}`
       )
       const { students, centroids, x_name, y_name, x_categories, y_categories, k: serverK } = res.data
 
@@ -585,12 +585,12 @@ const renderClusterSection = (
                   {runningPairwise ? <Spinner size="sm" animation="border" /> : "Run"}
                 </Button>
                 <Button variant="outline-success" onClick={() =>
-                  window.open(`reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=pdf`, "_blank")
+                  window.open(`/reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=pdf`, "_blank")
                 }>
                   📄 Download PDF
                 </Button>
                 <Button variant="outline-primary" onClick={() =>
-                  window.open(`reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=csv`, "_blank")
+                  window.open(`/reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=csv`, "_blank")
                 }>
                   📊 Download CSV
                 </Button>

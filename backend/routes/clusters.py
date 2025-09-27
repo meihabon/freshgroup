@@ -84,7 +84,7 @@ def _pick_feature_columns(df: pd.DataFrame, canonical_features: List[str]) -> Li
 # ------------------------
 # GET OFFICIAL CLUSTERS
 # ------------------------
-@router.get("/api/clusters")
+@router.get("/clusters")
 async def get_clusters(current_user: dict = Depends(get_current_user)):
     connection = get_db_connection()
     if not connection:
@@ -158,7 +158,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
 # ------------------------
 # RE-CLUSTER DATASET
 # ------------------------
-@router.post("/api/clusters/recluster")
+@router.post("/clusters/recluster")
 async def recluster(
     k: int = Query(..., ge=2),
     current_user: dict = Depends(get_current_user)
@@ -250,7 +250,7 @@ async def recluster(
 # ------------------------
 # PAIRWISE CLUSTERING ENDPOINT
 # ------------------------
-@router.get("/api/clusters/pairwise")
+@router.get("/clusters/pairwise")
 async def pairwise_clusters(
     x: str = Query(..., description="Feature name for X axis"),
     y: str = Query(..., description="Feature name for Y axis"),

@@ -55,7 +55,7 @@ function Students() {
 
   const fetchStudents = async () => {
     try {
-      const response = await API.get('students')
+      const response = await API.get('/students')
       setStudents(response.data)
 
       const uniquePrograms = [...new Set(response.data.map((s: Student) => s.program))].sort()

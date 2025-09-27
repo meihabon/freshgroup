@@ -23,7 +23,7 @@ class RegisterRequest(BaseModel):
 # ---------------------------
 # Auth Routes
 # ---------------------------
-@router.post("/api/auth/login")
+@router.post("/auth/login")
 async def login(payload: LoginRequest, response: Response):
     email = payload.email
     password = payload.password
@@ -62,7 +62,7 @@ async def login(payload: LoginRequest, response: Response):
         }
     }
 
-@router.post("/api/auth/register")
+@router.post("/auth/register")
 async def register(payload: RegisterRequest):
     email = payload.email
     password = payload.password
@@ -90,12 +90,12 @@ async def register(payload: RegisterRequest):
 
     return {"message": "User registered successfully"}
 
-@router.post("/api/auth/logout")
+@router.post("/auth/logout")
 async def logout(response: Response):
     response.delete_cookie(key="access_token")
     return {"message": "Logged out successfully"}
 
-@router.get("/api/auth/me")
+@router.get("/auth/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     return {
         "id": current_user["id"],

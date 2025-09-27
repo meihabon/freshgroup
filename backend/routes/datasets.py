@@ -86,7 +86,7 @@ def recommend_k_by_curvature(wcss: List[float], k_min=2) -> int:
 # -----------------------------
 # Elbow Preview
 # -----------------------------
-@router.post("/api/datasets/elbow")
+@router.post("/datasets/elbow")
 async def elbow_preview(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
@@ -128,7 +128,7 @@ async def elbow_preview(
 # -----------------------------
 # Upload Dataset
 # -----------------------------
-@router.post("/api/datasets/upload")
+@router.post("/datasets/upload")
 async def upload_dataset(
     file: UploadFile = File(...),
     k: int | None = None,   # optional k
@@ -223,7 +223,7 @@ async def upload_dataset(
 # -----------------------------
 # Get Dataset History
 # -----------------------------
-@router.get("/api/datasets")
+@router.get("/datasets")
 async def get_datasets(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can view dataset history")
@@ -250,7 +250,7 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
 # -----------------------------
 # Delete Dataset
 # -----------------------------
-@router.delete("/api/datasets/{dataset_id}")
+@router.delete("/datasets/{dataset_id}")
 async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can delete datasets")
