@@ -231,16 +231,17 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute("""
-        SELECT d.*, u.email as uploaded_by_email, 
-               COUNT(s.id) as student_count,
-               c.k as cluster_count
+        SELECT d.id, d.filename, d.upload_date, u.email as uploaded_by_email,
+            COUNT(DISTINCT s.id) AS student_count,
+            MAX(c.k) AS cluster_count
         FROM datasets d
         LEFT JOIN users u ON d.uploaded_by = u.id
         LEFT JOIN students s ON d.id = s.dataset_id
         LEFT JOIN clusters c ON d.id = c.dataset_id
-        GROUP BY d.id
+        GROUP BY d.id, d.filename, d.upload_date, u.email
         ORDER BY d.upload_date DESC
     """)
+
     datasets = cursor.fetchall()
     cursor.close()
     connection.close()
