@@ -79,7 +79,7 @@ function DatasetHistory() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await API.post('datasets/elbow', formData, {
+      const response = await API.post('/datasets/elbow', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
@@ -118,7 +118,7 @@ function DatasetHistory() {
       formData.append('file', selectedFile)
       formData.append('k', clusterCount.toString())
 
-      const response = await API.post('datasets/upload', formData, {
+      const response = await API.post('/datasets/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -143,7 +143,7 @@ function DatasetHistory() {
     }
 
     try {
-      await API.delete(`datasets/${id}`)
+      await API.delete(`/datasets/${id}`)
       setSuccess('Dataset deleted successfully')
       fetchDatasets()
     } catch (error: any) {
