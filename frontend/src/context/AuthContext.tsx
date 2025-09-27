@@ -22,15 +22,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // 👇 Use env var in prod, localhost in dev
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    'https://heroic-rejoicing-production.up.railway.app/api'
+
   useEffect(() => {
     checkAuth()
   }, [])
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/auth/me')
+      const response = await axios.get(`${API_URL}/auth/me`, {
+        withCredentials: true,
+      })
       setUser(response.data)
-    } catch (error) {
+    } catch {
       setUser(null)
     } finally {
       setLoading(false)
@@ -39,8 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password })
-      setUser(response.data.user)
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      )
+      setUser(response.data.user) // adjust if your backend returns differently
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Login failed')
     }
@@ -48,16 +59,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout')
+      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true })
       setUser(null)
     } catch (error) {
       console.error('Logout error:', error)
     }
   }
 
-  const register = async (email: string, password: string, profile: any = {}) => {
+  const register = async (
+    email: string,
+    password: string,
+    profile: any = {}
+  ) => {
     try {
-      await axios.post('/api/auth/register', { email, password, profile })
+      await axios.post(
+        `${API_URL}/auth/register`,
+        { email, password, profile },
+        { withCredentials: true }
+      )
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Registration failed')
     }
