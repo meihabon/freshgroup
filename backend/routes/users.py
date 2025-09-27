@@ -10,10 +10,9 @@ router = APIRouter()
 
 # --- Pydantic model for profile updates ---
 class ProfileUpdate(BaseModel):
-    name: Optional[str] = ""
-    department: Optional[str] = ""
-    position: Optional[str] = ""
-
+    name: str = ""
+    department: str = ""
+    position: str = ""
 
 # --- Get all users (Admin only) ---
 @router.get("/users")
@@ -120,23 +119,19 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 # --- Update current logged-in user's profile ---
 @router.put("/users/me")
 async def update_current_user_profile(
-    data: ProfileUpdate,
+    profile: ProfileUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    profile = data.dict()
-
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
         "UPDATE users SET profile=%s WHERE id=%s",
-        (json.dumps(profile), current_user["id"])
+        (profile.json(), current_user["id"])
     )
     connection.commit()
     cursor.close()
     connection.close()
-
-    return {"message": "Profile updated successfully", "profile": profile}
-
+    return {"message": "Profile updated successfully", "profile": profile.dict()}
 
 # --- Delete User ---
 @router.delete("/users/{user_id}")
