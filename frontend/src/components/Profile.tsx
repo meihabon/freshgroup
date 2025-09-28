@@ -54,22 +54,21 @@ function Profile() {
     setSuccess("");
 
     try {
-      // Build payload: include only non-null, non-undefined, non-empty fields
-      const payload: Record<string, string> = {};
+      // Build payload: only non-empty fields
+      const payload: any = {};
       Object.entries(profileData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== "") {
-          payload[key] = value as string;
+        if (value && value.trim() !== "") {
+          payload[key] = value;
         }
       });
 
-      // If no fields are filled, stop
       if (Object.keys(payload).length === 0) {
         setError("Please fill at least one field to update.");
         setLoading(false);
         return;
       }
 
-      await updateProfile(payload);
+      await updateProfile(payload);   // this now only sends {name, department, position} if filled
       await refreshUser();
       setSuccess("Profile updated successfully!");
     } catch (err: any) {
