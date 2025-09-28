@@ -37,11 +37,11 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/users/me");
 
-export const updateProfile = (data: { name: string; department: string; position: string }) =>
+export const updateProfile = (data: { name?: string; department?: string; position?: string }) =>
   API.put("/users/me", data);
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
-  API.post("/auth/change-password", data);
+  API.post("/users/change-password", data);
 
 /* ---------------- USERS ---------------- */
 export const getUsers = () => API.get("/users");
