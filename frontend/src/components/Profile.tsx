@@ -47,46 +47,36 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
+const handleProfileSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-    try {
-      // Build payload: only include non-empty strings
-      const payload: any = {};
-      Object.entries(profileData).forEach(([key, value]) => {
-        if (typeof value === "string" && value.trim() !== "") {
-          payload[key] = value.trim();
-        }
-      });
-
-      if (Object.keys(payload).length === 0) {
-        setError("Please fill at least one field to update.");
-        setLoading(false);
-        return;
+  try {
+    const payload: Record<string, string> = {};
+    Object.entries(profileData).forEach(([key, value]) => {
+      if (typeof value === "string" && value.trim() !== "") {
+        payload[key] = value.trim();
       }
+    });
 
-      await updateProfile(payload); // ✅ only sends valid fields
-      await refreshUser();
-      setSuccess("Profile updated successfully!");
-    } catch (err: any) {
-      console.error("Update profile error:", err.response?.data);
-
-      const detail = err.response?.data?.detail;
-      if (Array.isArray(detail)) {
-        // FastAPI validation errors come as an array
-        setError(detail.map((d: any) => d.msg).join(", "));
-      } else if (typeof detail === "string") {
-        setError(detail);
-      } else {
-        setError("Failed to update profile");
-      }
-    } finally {
+    if (Object.keys(payload).length === 0) {
+      setError("Please fill at least one field to update.");
       setLoading(false);
+      return;
     }
-  };
+
+    await updateProfile(payload);
+    await refreshUser();
+    setSuccess("Profile updated successfully!");
+  } catch (err: any) {
+    setError(err.response?.data?.detail || "Failed to update profile");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {

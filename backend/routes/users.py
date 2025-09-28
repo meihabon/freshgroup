@@ -173,6 +173,7 @@ async def update_current_user_profile(
     return {"message": "Profile updated successfully", "profile": updated_profile}
 
 
+
 # --- Delete User ---
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: int, current_user: dict = Depends(get_current_user)):
