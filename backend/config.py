@@ -23,5 +23,5 @@ DB_CONFIG = {
 
 ALLOW_ORIGINS = [
     "http://localhost:5173",  # local dev
-    "https://freshgroup-orpin.vercel.app",  # production frontend
+    "https://freshgroup-ispsc.vercel.app",  # production frontend
 ]
