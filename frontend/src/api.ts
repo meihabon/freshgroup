@@ -37,12 +37,12 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/users/me");
 
-export const updateProfile = (data: { name?: string; department?: string; position?: string }) =>
-  API.put("/users/me", Object.fromEntries(
-    Object.entries(data).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
-  ));
-
-
+export const updateProfile = (data: { name?: string; department?: string; position?: string }) => {
+  const payload = Object.fromEntries(
+    Object.entries(data).filter(([_, v]) => typeof v === "string" && v.trim() !== "")
+  );
+  return API.put("/users/me", payload);
+};
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
   API.post("/users/change-password", data);

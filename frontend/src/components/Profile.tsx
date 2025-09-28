@@ -54,11 +54,11 @@ function Profile() {
     setSuccess("");
 
     try {
-      // Build payload: only non-empty fields
+      // Build payload: only include non-empty strings
       const payload: any = {};
       Object.entries(profileData).forEach(([key, value]) => {
-        if (value && value.trim() !== "") {
-          payload[key] = value;
+        if (typeof value === "string" && value.trim() !== "") {
+          payload[key] = value.trim();
         }
       });
 
@@ -68,16 +68,25 @@ function Profile() {
         return;
       }
 
-      await updateProfile(payload);   // this now only sends {name, department, position} if filled
+      await updateProfile(payload); // ✅ only sends valid fields
       await refreshUser();
       setSuccess("Profile updated successfully!");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to update profile");
+      console.error("Update profile error:", err.response?.data);
+
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        // FastAPI validation errors come as an array
+        setError(detail.map((d: any) => d.msg).join(", "));
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError("Failed to update profile");
+      }
     } finally {
       setLoading(false);
     }
   };
-
 
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {

@@ -146,17 +146,21 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 # --- Update current logged-in user's profile ---
 @router.put("/users/me")
 async def update_current_user_profile(
-    profile: ProfileUpdate,
+    profile: ProfileUpdate = Body(...),
     current_user: dict = Depends(get_current_user)
 ):
+    updates = {k: v for k, v in profile.dict().items() if v is not None and v.strip() != ""}
+
+    if not updates:
+        return {"message": "No changes provided", "profile": profile.dict()}
+
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute("SELECT profile FROM users WHERE id=%s", (current_user["id"],))
     row = cursor.fetchone()
-    existing_profile = json.loads(row["profile"]) if row and row["profile"] else {}
+    existing_profile = json.loads(row["profile"]) if row["profile"] else {}
 
-    # merge updates, ignore None
-    updated_profile = {**existing_profile, **{k: v for k, v in profile.dict().items() if v is not None}}
+    updated_profile = {**existing_profile, **updates}
 
     cursor.execute(
         "UPDATE users SET profile=%s WHERE id=%s",
@@ -165,6 +169,7 @@ async def update_current_user_profile(
     connection.commit()
     cursor.close()
     connection.close()
+
     return {"message": "Profile updated successfully", "profile": updated_profile}
 
 
