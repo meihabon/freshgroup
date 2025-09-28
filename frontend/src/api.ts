@@ -38,7 +38,16 @@ export const logout = () => API.post("/auth/logout");
 export const getMe = () => API.get("/users/me");
 
 export const updateProfile = (data: { name?: string; department?: string; position?: string }) =>
-  API.put("/users/me", Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)));
+  API.put(
+    "/users/me",
+    Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+    ),
+    {
+      headers: { "Content-Type": "application/json" }, // 👈 ensure JSON
+    }
+  );
+
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
   API.post("/users/change-password", data);

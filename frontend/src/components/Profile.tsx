@@ -54,16 +54,15 @@ function Profile() {
     setSuccess("");
 
     try {
-      // Build payload: include only non-empty fields
-      const payload: any = {};
-      Object.keys(profileData).forEach((key) => {
-        const value = profileData[key as keyof typeof profileData];
-        if (value !== undefined && value !== "") {
-          payload[key] = value;
+      // Build payload: include only non-null, non-undefined, non-empty fields
+      const payload: Record<string, string> = {};
+      Object.entries(profileData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          payload[key] = value as string;
         }
       });
 
-      // If no fields are filled, don't send request
+      // If no fields are filled, stop
       if (Object.keys(payload).length === 0) {
         setError("Please fill at least one field to update.");
         setLoading(false);
@@ -71,14 +70,15 @@ function Profile() {
       }
 
       await updateProfile(payload);
-      setSuccess("Profile updated successfully!");
       await refreshUser();
+      setSuccess("Profile updated successfully!");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to update profile");
     } finally {
       setLoading(false);
     }
   };
+
 
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
