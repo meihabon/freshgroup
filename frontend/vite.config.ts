@@ -9,5 +9,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist', // default output folder for Vite
+    chunkSizeWarningLimit: 1000,
   },
 });
