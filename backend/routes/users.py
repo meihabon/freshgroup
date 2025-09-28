@@ -30,7 +30,7 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     return users
 
 # --- User changes their own password ---
-@router.post("/api/users/change-password")
+@router.post("/users/change-password")
 async def change_password(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
