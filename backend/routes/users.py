@@ -144,7 +144,7 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 
 
 # --- Update current logged-in user's profile ---
-@router.put("/api/users/me")
+@router.put("/users/me")
 async def update_current_user_profile(
     profile: ProfileUpdate,
     current_user: dict = Depends(get_current_user)
