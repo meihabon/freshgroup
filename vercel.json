@@ -1,7 +1,4 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/frontend/index.html" }
-  ],
   "builds": [
     {
       "src": "frontend/package.json",
@@ -12,5 +9,8 @@
       "src": "backend/main.py",
       "use": "@vercel/python"
     }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
