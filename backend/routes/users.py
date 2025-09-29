@@ -3,7 +3,7 @@ from db import get_db_connection
 from dependencies import get_current_user
 from security import get_password_hash, verify_password
 import json
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from typing import Optional
 
 router = APIRouter()
@@ -12,6 +12,9 @@ class ProfileUpdate(BaseModel):
     name: Optional[str] = None
     department: Optional[str] = None
     position: Optional[str] = None
+
+    class Config:
+        extra = Extra.ignore  # 🚫 ignore unexpected fields
 
 # --- Get all users (Admin only) ---
 @router.get("/users")

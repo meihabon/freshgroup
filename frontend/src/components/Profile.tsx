@@ -62,13 +62,21 @@ function Profile() {
         }
       });
 
+      // ✅ Ensure only allowed keys
+      const allowed = ["name", "department", "position"];
+      const cleanPayload = Object.fromEntries(
+        Object.entries(payload).filter(([k]) => allowed.includes(k))
+      );
+
+      console.log("📤 Clean payload:", cleanPayload);
+      await updateProfile(cleanPayload);
+
+
       if (Object.keys(payload).length === 0) {
         setError("Please fill at least one field to update.");
         setLoading(false);
         return;
       }
-
-      await updateProfile(payload); // ✅ only sends valid fields
       await refreshUser();
       setSuccess("Profile updated successfully!");
     } catch (err: any) {
