@@ -58,8 +58,10 @@ function UserManagement() {
     role: "Viewer",
     name: "",
     department: "",
-    password: "", // for Add User
+    position: "",   
+    password: "",   
   })
+
 
   const [showResetModal, setShowResetModal] = useState(false)
   const [resetUser, setResetUser] = useState<UserType | null>(null)
@@ -90,7 +92,7 @@ function UserManagement() {
 
   const handleShowAdd = () => {
     setEditingUser(null)
-    setForm({ email: "", role: "Viewer", name: "", department: "", password: "" })
+    setForm({ email: "", role: "Viewer", name: "", department: "", position: "", password: "" })
     setShowModal(true)
   }
 
@@ -101,6 +103,7 @@ function UserManagement() {
       role: user.role,
       name: user.profile?.name || "",
       department: user.profile?.department || "",
+      position: user.profile?.position || "",   // 👈 added
       password: "",
     })
     setShowModal(true)
@@ -409,6 +412,9 @@ function UserManagement() {
               <Form.Label>Department</Form.Label>
               <Form.Control type="text" name="department" value={form.department} onChange={handleFormChange} />
             </Form.Group>
+            <Form.Label>Position</Form.Label>
+            <Form.Control
+              type="text" name="position" value={form.position} onChange={handleFormChange} />
             {!editingUser && (
               <Form.Group className="mb-3">
                 <Form.Label>Password</Form.Label>
