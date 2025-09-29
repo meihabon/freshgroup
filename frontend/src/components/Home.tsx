@@ -90,7 +90,7 @@ const Home: React.FC = () => {
                     <li><strong>One-click exports</strong> for CSVs and PDF briefs</li>
                   </ul>
                   <p className="tiny-muted mt-3">
-                    Minimal setup required — just upload your dataset and let FreshGroup process it.
+                    Minimal setup required: just upload your dataset and let FreshGroup process it.
                   </p>
                 </Card.Body>
               </Card>

@@ -10,6 +10,7 @@ import {
   Tab,
   Button,
   Form,
+  Modal,
   Pagination,
 } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
@@ -58,6 +59,7 @@ interface ClusterData {
 function Clusters() {
   const { API } = useAuth()
   const [activeTab, setActiveTab] = useState<string>("official")
+  const [showScatterInfo, setShowScatterInfo] = useState(false)
 
   const [clusterData, setClusterData] = useState<ClusterData | null>(null)
   const [playgroundData, setPlaygroundData] = useState<ClusterData | null>(null)
@@ -345,6 +347,7 @@ const renderClusterSection = (
       <div className="d-flex justify-content-center align-items-center" style={{ height: 400 }}>
         <Spinner animation="border" />
       </div>
+      
     )
   }
 
@@ -365,18 +368,33 @@ const renderClusterSection = (
     const yCategories = isPairwise ? data.y_categories ?? null : null
 
     return (
-      <>
-        <Row>
-          <Col lg={8} className="mb-4">
-            <Card className="h-100">
-              <Card.Header>
+    <>
+      <Row>
+        <Col lg={8} className="mb-4">
+          <Card className="h-100">
+            {/* ✅ Header with scatterplot info button */}
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <div>
                 <h6 className="mb-0 fw-bold">
-                  {isPlayground ? `Playground Clusters (k=${k})` : isPairwise ? `Pairwise Clusters (k=${data.k ?? k})` : "Official Clusters"}
+                  {isPlayground
+                    ? `Playground Clusters (k=${k})`
+                    : isPairwise
+                    ? `Pairwise Clusters (k=${data.k ?? k})`
+                    : "Official Clusters"}
                 </h6>
                 <small className="text-muted">
                   {isPairwise ? `${xTitle} (x) vs ${yTitle} (y)` : "GWA (x) vs Income (y)"}
                 </small>
-              </Card.Header>
+              </div>
+
+              <Button
+                variant="outline-info"
+                size="sm"
+                onClick={() => setShowScatterInfo(true)}
+              >
+                ℹ️ About Scatterplot
+              </Button>
+            </Card.Header>
               <Card.Body>
                 <Plot
                   data={[
@@ -587,12 +605,12 @@ const renderClusterSection = (
                 <Button variant="outline-success" onClick={() =>
                   window.open(`/reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=pdf`, "_blank")
                 }>
-                  📄 Download PDF
+                  Download PDF
                 </Button>
                 <Button variant="outline-primary" onClick={() =>
                   window.open(`/reports/pairwise_clusters?x=${encodeURIComponent(pairX)}&y=${encodeURIComponent(pairY)}&k=${k}&format=csv`, "_blank")
                 }>
-                  📊 Download CSV
+                  Download CSV
                 </Button>
               </div>
             </Card.Body>
@@ -626,6 +644,29 @@ const renderClusterSection = (
           </Card>
           {renderClusterSection(playgroundData, true)}
         </Tab>
+        <Modal show={showScatterInfo} onHide={() => setShowScatterInfo(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Understanding the Scatterplot</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Each <b>dot</b> in the scatterplot represents a student. The dot’s position depends on the 
+            two chosen features (for example, <i>GWA</i> on the X-axis and <i>Income</i> on the Y-axis).
+          </p>
+          <ul>
+            <li><b>Colors:</b> Different colors indicate different clusters (groups of similar students).</li>
+            <li><b>Centroids (C0, C1, ...):</b> These black “X” marks represent the center of each cluster.</li>
+            <li><b>Hover:</b> Move your cursor over a dot to see the student’s details.</li>
+          </ul>
+          <p className="text-muted">
+            In short: clusters group together students who are similar based on the chosen features. 
+            The closer two dots are, the more alike those students are in those attributes.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowScatterInfo(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
 
       </Tabs>
     </div>
