@@ -27,7 +27,15 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     cursor.execute("SELECT id, email, role, active, profile, created_at FROM users ORDER BY created_at DESC")
     users = cursor.fetchall()
     for user in users:
-        user["profile"] = json.loads(user["profile"]) if user["profile"] else {"name": "", "department": ""}
+        if user["profile"]:
+            profile = json.loads(user["profile"])
+            user["profile"] = {
+                "name": profile.get("name", ""),
+                "department": profile.get("department", ""),
+                "position": profile.get("position", "")
+            }
+        else:
+            user["profile"] = {"name": "", "department": "", "position": ""}
     cursor.close()
     connection.close()
     return users
@@ -125,7 +133,8 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
     role = data.get("role")
     profile = {
         "name": data.get("name", ""),
-        "department": data.get("department", "")
+        "department": data.get("department", ""),
+        "position": data.get("position", "")
     }
 
     connection = get_db_connection()

@@ -31,6 +31,7 @@ import { saveAs } from "file-saver"
 interface UserProfile {
   name: string
   department: string
+  position: string
 }
 
 interface UserType {
@@ -344,6 +345,7 @@ function UserManagement() {
                   <th>User</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Position</th>
                   <th>Department</th>
                   <th>Status</th>
                   <th>Created</th>
@@ -362,6 +364,7 @@ function UserManagement() {
                     <td>{u.email}</td>
                     <td><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
                     <td>{u.profile?.department || "N/A"}</td>
+                    <td>{u.profile?.position || "N/A"}</td>   
                     <td>
                       <Badge bg={u.active ? "success" : "secondary"}>
                         {u.active ? "Active" : "Inactive"}
