@@ -37,11 +37,21 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/users/me");
 
-export const updateProfile = (data: { name?: string; department?: string; position?: string }) => {
+export const updateProfile = async (data: { name?: string; department?: string; position?: string }) => {
+  // Filter only valid string fields
   const payload = Object.fromEntries(
     Object.entries(data).filter(([_, v]) => typeof v === "string" && v.trim() !== "")
   );
-  return API.put("/users/me", payload);
+
+  console.log("🔍 updateProfile → PUT /users/me with payload:", payload);
+
+  try {
+    const res = await API.put("/users/me", payload);
+    return res;
+  } catch (err: any) {
+    console.error("❌ updateProfile error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
