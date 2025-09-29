@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from passlib.context import CryptContext
+from fastapi_mail import ConnectionConfig
 
 load_dotenv()  # local dev, Railway ignores this
 
@@ -21,7 +22,16 @@ DB_CONFIG = {
     "autocommit": True,
 }
 
-ALLOW_ORIGINS = [
-    "http://localhost:5173",  # local dev
-    "https://freshgroup-ispsc.vercel.app",  # production frontend
-]
+ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", "").split(",")
+
+
+conf = ConnectionConfig(
+    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
+    MAIL_FROM=os.getenv("MAIL_FROM"),
+    MAIL_PORT=int(os.getenv("MAIL_PORT", 587)),
+    MAIL_SERVER=os.getenv("MAIL_SERVER", "smtp.gmail.com"),
+    MAIL_TLS=True,
+    MAIL_SSL=False,
+    USE_CREDENTIALS=True
+)

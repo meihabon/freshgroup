@@ -645,29 +645,71 @@ const renderClusterSection = (
           {renderClusterSection(playgroundData, true)}
         </Tab>
       </Tabs>
-      <Modal show={showScatterInfo} onHide={() => setShowScatterInfo(false)} size="lg">
+
+      {/* Scatterplot Info Modal */}
+      <Modal show={showScatterInfo} onHide={() => setShowScatterInfo(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Understanding the Scatterplot</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>
             Each <b>dot</b> in the scatterplot represents a student. The dot’s position depends on the 
-            two chosen features (for example, <i>GWA</i> on the X-axis and <i>Income</i> on the Y-axis).
+            two chosen features:
           </p>
           <ul>
-            <li><b>Colors:</b> Different colors indicate different clusters (groups of similar students).</li>
-            <li><b>Centroids (C0, C1, ...):</b> These black “X” marks represent the center of each cluster.</li>
-            <li><b>Hover:</b> Move your cursor over a dot to see the student’s details.</li>
+            {activeTab === "official" && (
+              <li>
+                In <b>Official Clusters</b>, the features are always <b>GWA</b> (academic performance) on the X-axis 
+                and <b>Household Income</b> (socioeconomic background) on the Y-axis.
+              </li>
+            )}
+            {activeTab === "pairwise" && (
+              <li>
+                In <b>Pairwise Mode</b>, you choose the features (currently <b>{pairX}</b> on X and <b>{pairY}</b> on Y).  
+                This lets you see how students group together when compared on these two traits.
+              </li>
+            )}
+            {activeTab === "playground" && (
+              <li>
+                In <b>Playground Mode</b>, the system still uses <b>GWA</b> vs <b>Income</b>, 
+                but you control the number of clusters (<i>k</i>) to test how groups change.
+              </li>
+            )}
           </ul>
+
+          <p className="mt-3"><b>Colors:</b> Each cluster is shown in a unique color. Students in the same cluster are closer to each other in terms of the chosen features.</p>
+
+          <p>
+            <b>Centroids (C0, C1, ...):</b> These are the <u>black “X” marks</u> you see in the scatterplot.  
+            A centroid is the <i>mathematical center</i> of a cluster:
+          </p>
+          <ul>
+            <li>
+              Think of it like the "average student" of that group based on the chosen features.
+            </li>
+            <li>
+              For example, if a centroid is at (GWA=2.5, Income=20,000), that means students in that cluster 
+              usually have an average GWA of 2.5 and an income of about ₱20,000.
+            </li>
+            <li>
+              The centroid is not always an actual student — it’s a calculated point that represents the 
+              <b>center of gravity</b> of the cluster.
+            </li>
+          </ul>
+
           <p className="text-muted">
-            In short: clusters group together students who are similar based on the chosen features. 
-            The closer two dots are, the more alike those students are in those attributes.
+            In short: clusters show groups of similar students, and centroids summarize what the "typical student" 
+            in each group looks like. The closer two students are to the same centroid, the more similar they are 
+            in the chosen dimensions.
           </p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowScatterInfo(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => setShowScatterInfo(false)}>
+            Close
+          </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   )
 }

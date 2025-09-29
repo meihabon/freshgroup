@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Footer from './components/Footer'
 import UserGuide from './components/Help'
 import Home from './components/Home'
+import ResetPassword from './components/ResetPassword'
 // Configure axios defaults
 axios.defaults.baseURL = 'http://localhost:8000'
 axios.defaults.withCredentials = true
@@ -64,6 +65,7 @@ function AppContent() {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/profile" element={<Profile />} />
           <Route path='/help' element={<UserGuide/>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
         </div>
