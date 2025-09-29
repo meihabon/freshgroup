@@ -4,7 +4,7 @@ from db import get_db_connection
 from security import verify_password, get_password_hash, create_access_token
 from dependencies import get_current_user
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
-from config import conf
+from app.config import conf
 from fastapi_mail import FastMail, MessageSchema
 
 from jose import jwt, JWTError
@@ -20,9 +20,7 @@ RESET_SECRET_KEY = SECRET_KEY  # ✅ reuse main secret
 RESET_ALGORITHM = "HS256"
 RESET_TOKEN_EXPIRE_MINUTES = 60
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-RESEND_FROM = os.getenv("RESEND_FROM", "no-reply@example.com")
-resend.api_key = RESEND_API_KEY
+
 # ---------------------------
 # Request Models
 # ---------------------------
