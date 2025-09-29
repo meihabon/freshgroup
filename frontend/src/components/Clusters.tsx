@@ -479,7 +479,7 @@ const renderClusterSection = (
             </Card.Header>
             <Card.Body>
               <div className="mb-3 p-3 bg-light border rounded">
-                <h6 className="fw-bold">📖 Interpretation</h6>
+                <h6 className="fw-bold">Interpretation</h6>
                 <p className="mb-2">{getClusterDescription(data.clusters[selectedCluster], data.x_name, data.y_name, isPairwise).summary}</p>
                 <p className="text-primary">{getClusterDescription(data.clusters[selectedCluster], data.x_name, data.y_name, isPairwise).recommendation}</p>
               </div>
@@ -535,7 +535,7 @@ const renderClusterSection = (
       <h2 className="fw-bold mb-4">Student Clusters</h2>
 
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "official")} className="mb-3">
-        <Tab eventKey="official" title="📂 Official Clusters">
+        <Tab eventKey="official" title="Official Clusters">
           
           <div className="mb-3 p-3 bg-light border rounded">
             <h6 className="fw-bold">ℹ️ Why GWA and Income?</h6>
@@ -554,7 +554,7 @@ const renderClusterSection = (
           {renderClusterSection(clusterData, false)}
         </Tab>
 
-        <Tab eventKey="pairwise" title="🔀 Pairwise Clusters">
+        <Tab eventKey="pairwise" title="Pairwise Clusters">
           <Card className="mb-3">
             <Card.Header><h6 className="mb-0 fw-bold">Pairwise Mode</h6></Card.Header>
             <Card.Body>
@@ -600,7 +600,7 @@ const renderClusterSection = (
           {renderClusterSection(pairwiseData, false, true)}
         </Tab>
         
-        <Tab eventKey="playground" title="🎮 Playground Mode">
+        <Tab eventKey="playground" title="Playground Mode">
           <Card className="mb-3">
             <Card.Header><h6 className="mb-0 fw-bold">Playground Mode</h6></Card.Header>
             <Card.Body>
@@ -619,8 +619,8 @@ const renderClusterSection = (
                 <Button onClick={runPlayground} disabled={runningPlayground}>
                   {runningPlayground ? <Spinner size="sm" animation="border" /> : "Run"}
                 </Button>
-                <Button variant="outline-success" onClick={() => window.open(`reports/cluster_playground?k=${k}&format=pdf`, "_blank")}>📄 Download PDF</Button>
-                <Button variant="outline-primary" onClick={() => window.open(`reports/cluster_playground?k=${k}&format=csv`, "_blank")}>📊 Download CSV</Button>
+                <Button variant="outline-success" onClick={() => window.open(`reports/cluster_playground?k=${k}&format=pdf`, "_blank")}>Download PDF</Button>
+                <Button variant="outline-primary" onClick={() => window.open(`reports/cluster_playground?k=${k}&format=csv`, "_blank")}>Download CSV</Button>
               </div>
             </Card.Body>
           </Card>

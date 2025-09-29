@@ -1,10 +1,8 @@
-// =============================
-// File: Home.tsx
-// =============================
 import React from 'react'
-import { Container, Row, Col, Card, Button } from 'react-bootstrap'
+import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { BookOpen, LayoutDashboard, Users, ShieldCheck, FileBarChart } from 'lucide-react'
 import './Home.css'
 
 const HERO_BG = 'https://www.ispsctagudin.info/library/img/campus.jpg'
@@ -32,9 +30,11 @@ const Home: React.FC = () => {
           </p>
           <div className="mt-4 d-flex gap-3 justify-content-center flex-wrap">
             <Button className="btn-cta" size="lg" onClick={() => navigate('/dashboard')}>
+              <LayoutDashboard size={18} className="me-2" />
               Explore Dashboard
             </Button>
             <Button variant="outline-light" size="lg" onClick={() => navigate('/help')}>
+              <BookOpen size={18} className="me-2" />
               Learn More
             </Button>
           </div>
@@ -58,15 +58,24 @@ const Home: React.FC = () => {
               </p>
               <div className="feature-grid mt-3">
                 <div>
-                  <h6>Immediate Insights</h6>
+                  <h6>
+                    <Badge bg="primary" className="me-2">1</Badge>
+                    Immediate Insights
+                  </h6>
                   <p className="small">Generate meaningful student clusters in less than 10 minutes.</p>
                 </div>
                 <div>
-                  <h6>Actionable Guidance</h6>
+                  <h6>
+                    <Badge bg="success" className="me-2">2</Badge>
+                    Actionable Guidance
+                  </h6>
                   <p className="small">Each cluster comes with suggestions — from counseling to program interventions.</p>
                 </div>
                 <div>
-                  <h6>Institutional Benefit</h6>
+                  <h6>
+                    <Badge bg="warning" text="dark" className="me-2">3</Badge>
+                    Institutional Benefit
+                  </h6>
                   <p className="small">Strengthen governance, compliance, and reputation through data-driven action.</p>
                 </div>
               </div>
@@ -96,8 +105,9 @@ const Home: React.FC = () => {
           <h3 className="section-title text-center mb-4">Core Features That Matter</h3>
           <Row className="g-4 text-center">
             <Col md={4}>
-              <Card className="glass h-100">
+              <Card className="glass h-100 border-primary">
                 <Card.Body>
+                  <LayoutDashboard size={28} className="text-primary mb-2" />
                   <h5>Dashboard</h5>
                   <p className="muted small">
                     A central hub with KPIs, cluster counts, and quick filters. 
@@ -107,8 +117,9 @@ const Home: React.FC = () => {
               </Card>
             </Col>
             <Col md={4}>
-              <Card className="glass h-100">
+              <Card className="glass h-100 border-success">
                 <Card.Body>
+                  <Users size={28} className="text-success mb-2" />
                   <h5>Student Profiles</h5>
                   <p className="muted small">
                     View students by cluster with detailed attributes and recommended interventions 
@@ -118,8 +129,9 @@ const Home: React.FC = () => {
               </Card>
             </Col>
             <Col md={4}>
-              <Card className="glass h-100">
+              <Card className="glass h-100 border-warning">
                 <Card.Body>
+                  <FileBarChart size={28} className="text-warning mb-2" />
                   <h5>Advanced Clustering</h5>
                   <p className="muted small">
                     Built with K-Prototypes for mixed data. Both numerical and categorical attributes 
@@ -131,8 +143,9 @@ const Home: React.FC = () => {
           </Row>
           <Row className="g-4 text-center mt-3">
             <Col md={6}>
-              <Card className="glass h-100">
+              <Card className="glass h-100 border-info">
                 <Card.Body>
+                  <ShieldCheck size={28} className="text-info mb-2" />
                   <h5>Privacy & Security</h5>
                   <p className="muted small">
                     Strict access control with role-based permissions ensures sensitive data 
@@ -142,8 +155,9 @@ const Home: React.FC = () => {
               </Card>
             </Col>
             <Col md={6}>
-              <Card className="glass h-100">
+              <Card className="glass h-100 border-danger">
                 <Card.Body>
+                  <FileBarChart size={28} className="text-danger mb-2" />
                   <h5>Reporting</h5>
                   <p className="muted small">
                     Export polished charts, summaries, and reports in one click — ready for 
@@ -166,7 +180,12 @@ const Home: React.FC = () => {
           </p>
           <div className="d-flex justify-content-center gap-3">
             <Button className="btn-cta lg" onClick={() => navigate('/dashboard')}>
+              <LayoutDashboard size={18} className="me-2" />
               Try FreshGroup Today
+            </Button>
+            <Button variant="outline-secondary" onClick={() => navigate('/contact')}>
+              <BookOpen size={18} className="me-2" />
+              Request a Walkthrough
             </Button>
           </div>
         </Container>
