@@ -98,7 +98,9 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     role = data.get("role", "Viewer")
     profile = {
         "name": data.get("name", ""),
-        "department": data.get("department", "")
+        "department": data.get("department", ""),
+        "position": data.get("position", "") 
+
     }
 
     if not email or not password:

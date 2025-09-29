@@ -170,24 +170,24 @@ function UserManagement() {
     }
   }
 
-  // --- 📊 Download CSV ---
+    // --- 📊 Download CSV ---
   const handleDownloadCSV = () => {
     if (users.length === 0) {
       setError("No users available to download")
       return
     }
-    const header = ["ID", "Email", "Role", "Name", "Department", "Status", "Created"]
+    const header = ["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"] 
     const rows = users.map((u) => [
       u.id,
       u.email,
       u.role,
       u.profile?.name || "",
       u.profile?.department || "",
+      u.profile?.position || "",   
       u.active ? "Active" : "Inactive",
       new Date(u.created_at).toLocaleString(),
     ])
-    const csvContent =
-      [header, ...rows].map((row) => row.join(",")).join("\n")
+    const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n")
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
@@ -197,6 +197,7 @@ function UserManagement() {
     link.click()
     document.body.removeChild(link)
   }
+
 
   // --- 📄 Download PDF ---
   const handleDownloadPDF = () => {
@@ -214,12 +215,13 @@ function UserManagement() {
       u.role,
       u.profile?.name || "",
       u.profile?.department || "",
+      u.profile?.position || "",
       u.active ? "Active" : "Inactive",
       new Date(u.created_at).toLocaleDateString(),
     ])
 
     autoTable(doc, {
-      head: [["ID", "Email", "Role", "Name", "Department", "Status", "Created"]],
+      head: [["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"]],
       body: tableData,
       startY: 20,
       theme: "grid",
@@ -227,6 +229,7 @@ function UserManagement() {
 
     doc.save("users.pdf")
   }
+
 
   // --- 📑 Download Excel ---
   const handleDownloadExcel = () => {
@@ -240,6 +243,7 @@ function UserManagement() {
       Role: u.role,
       Name: u.profile?.name || "",
       Department: u.profile?.department || "",
+      Position: u.profile?.position || "",   // ✅ added
       Status: u.active ? "Active" : "Inactive",
       Created: new Date(u.created_at).toLocaleString(),
     }))
@@ -250,6 +254,7 @@ function UserManagement() {
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" })
     saveAs(blob, "users.xlsx")
   }
+
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -284,7 +289,15 @@ function UserManagement() {
   return (
     <div className="fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold">User Management</h2>
+        {/* Left side: Title + Add User */}
+        <div className="d-flex align-items-center gap-3">
+          <h2 className="fw-bold mb-0">User Management</h2>
+          <Button variant="primary" onClick={handleShowAdd}>
+            <UserPlus size={16} className="me-2" /> Add User
+          </Button>
+        </div>
+
+        {/* Right side: Download buttons */}
         <div className="d-flex gap-2">
           <Button variant="success" onClick={handleDownloadCSV}>
             <Download size={16} className="me-2" /> CSV
@@ -295,11 +308,9 @@ function UserManagement() {
           <Button variant="info" onClick={handleDownloadExcel}>
             <Download size={16} className="me-2" /> Excel
           </Button>
-          <Button variant="primary" onClick={handleShowAdd}>
-            <UserPlus size={16} className="me-2" /> Add User
-          </Button>
         </div>
       </div>
+
 
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
@@ -348,8 +359,8 @@ function UserManagement() {
                   <th>User</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Position</th>
                   <th>Department</th>
+                  <th>Position</th>
                   <th>Status</th>
                   <th>Created</th>
                   <th>Actions</th>
