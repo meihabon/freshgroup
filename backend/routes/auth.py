@@ -20,7 +20,9 @@ RESET_SECRET_KEY = SECRET_KEY  # ✅ reuse main secret
 RESET_ALGORITHM = "HS256"
 RESET_TOKEN_EXPIRE_MINUTES = 60
 
-
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM = os.getenv("RESEND_FROM", "no-reply@example.com")
+resend.api_key = RESEND_API_KEY
 # ---------------------------
 # Request Models
 # ---------------------------
@@ -137,40 +139,40 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 # ---------------------------
 @router.post("/auth/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE email = %s", (payload.email,))
+    # check if user exists
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE email=%s", (payload.email,))
     user = cursor.fetchone()
     cursor.close()
-    connection.close()
+    conn.close()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Create reset token
+    # create reset token
     expire = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
-    token = jwt.encode({"sub": user["email"], "exp": expire}, RESET_SECRET_KEY, algorithm=RESET_ALGORITHM)
+    token = jwt.encode({"sub": payload.email, "exp": expire}, RESET_SECRET_KEY, algorithm=RESET_ALGORITHM)
 
     reset_link = f"https://freshgroup-ispsc.vercel.app/reset-password?token={token}"
 
-    # Send email
-    message = MessageSchema(
-        subject="Password Reset Request",
-        recipients=[payload.email],
-        body=f"""
-        <h3>Password Reset</h3>
-        <p>Hello,</p>
-        <p>Click the link below to reset your password (valid for 1 hour):</p>
-        <a href="{reset_link}">{reset_link}</a>
-        """,
-        subtype="html",
-    )
-
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    # send email with Resend
+    try:
+        await resend.Emails.send({
+            "from": RESEND_FROM,
+            "to": payload.email,
+            "subject": "Password Reset Request",
+            "html": f"""
+                <h3>Password Reset</h3>
+                <p>Hello,</p>
+                <p>Click the link below to reset your password (valid for 1 hour):</p>
+                <a href="{reset_link}">{reset_link}</a>
+            """,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
     return {"message": "Password reset link sent to your email"}
-
 
 @router.post("/auth/reset-password")
 async def reset_password(payload: ResetPasswordRequest):
