@@ -7,6 +7,7 @@ from dependencies import get_current_user
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from config import conf
 from fastapi_mail import FastMail, MessageSchema
+import resend
 
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
