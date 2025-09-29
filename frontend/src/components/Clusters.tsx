@@ -644,7 +644,8 @@ const renderClusterSection = (
           </Card>
           {renderClusterSection(playgroundData, true)}
         </Tab>
-        <Modal show={showScatterInfo} onHide={() => setShowScatterInfo(false)} size="lg">
+      </Tabs>
+      <Modal show={showScatterInfo} onHide={() => setShowScatterInfo(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Understanding the Scatterplot</Modal.Title>
         </Modal.Header>
@@ -667,8 +668,6 @@ const renderClusterSection = (
           <Button variant="secondary" onClick={() => setShowScatterInfo(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
-
-      </Tabs>
     </div>
   )
 }
