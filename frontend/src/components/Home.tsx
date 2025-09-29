@@ -183,10 +183,6 @@ const Home: React.FC = () => {
               <LayoutDashboard size={18} className="me-2" />
               Try FreshGroup Today
             </Button>
-            <Button variant="outline-secondary" onClick={() => navigate('/contact')}>
-              <BookOpen size={18} className="me-2" />
-              Request a Walkthrough
-            </Button>
           </div>
         </Container>
       </footer>
