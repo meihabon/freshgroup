@@ -287,29 +287,28 @@ function UserManagement() {
   }
 
   return (
-    <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        {/* Left side: Title + Add User */}
-        <div className="d-flex align-items-center gap-3">
-          <h2 className="fw-bold mb-0">User Management</h2>
-          <Button variant="primary" onClick={handleShowAdd}>
-            <UserPlus size={16} className="me-2" /> Add User
-          </Button>
-        </div>
-
-        {/* Right side: Download buttons */}
-        <div className="d-flex gap-2">
-          <Button variant="success" onClick={handleDownloadCSV}>
-            <Download size={16} className="me-2" /> CSV
-          </Button>
-          <Button variant="danger" onClick={handleDownloadPDF}>
-            <Download size={16} className="me-2" /> PDF
-          </Button>
-          <Button variant="info" onClick={handleDownloadExcel}>
-            <Download size={16} className="me-2" /> Excel
-          </Button>
-        </div>
+  <div className="fade-in">
+    <div className="d-flex justify-content-between align-items-center mb-4">
+      {/* Left side: Title + Download buttons */}
+      <div className="d-flex align-items-center gap-2">
+        <h2 className="fw-bold mb-0">User Management</h2>
+        <Button variant="success" onClick={handleDownloadCSV}>
+          <Download size={16} className="me-2" /> CSV
+        </Button>
+        <Button variant="danger" onClick={handleDownloadPDF}>
+          <Download size={16} className="me-2" /> PDF
+        </Button>
+        <Button variant="info" onClick={handleDownloadExcel}>
+          <Download size={16} className="me-2" /> Excel
+        </Button>
       </div>
+
+      {/* Right side: Add User */}
+      <Button variant="primary" onClick={handleShowAdd}>
+        <UserPlus size={16} className="me-2" /> Add User
+      </Button>
+    </div>
+
 
 
       {error && <Alert variant="danger">{error}</Alert>}
