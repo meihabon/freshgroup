@@ -260,7 +260,7 @@ function DatasetHistory() {
 
       {/* 🔹 Distinct Template Download Section */}
       <div className="mb-4">
-        <h6 className="fw-bold mb-2">📥 Download Dataset Template:</h6>
+        <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
         <div className="d-flex gap-2">
           <Button variant="success" onClick={handleDownloadTemplateCSV}>
             <Download size={16} className="me-2" /> CSV Template

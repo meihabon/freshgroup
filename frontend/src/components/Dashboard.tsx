@@ -114,7 +114,7 @@ function Dashboard() {
       {/* Justification Section */}
       <Card className="mb-4 shadow-sm border-0">
         <Card.Body>
-          <h5 className="fw-bold mb-3">🎯 Why These Data Are Critical for the Institution</h5>
+          <h5 className="fw-bold mb-3">Why These Data Are Critical for the Institution</h5>
           <p className="text-muted">
             The following indicators were carefully selected because they directly support academic planning, policy-making,
             student support services, and institutional accreditation. Each dataset provides actionable insights that enable
@@ -152,7 +152,7 @@ function Dashboard() {
       </Card>
 
       {/* Key Metrics Section */}
-      <h4 className="fw-bold mb-3">📊 SUMMARY</h4>
+      <h4 className="fw-bold mb-3">SUMMARY</h4>
       <Row className="mb-4">
         <Col md={3} className="mb-3">
           <Card className="h-100 clickable-card" onClick={() => openModal('Sex Breakdown', stats.sex_distribution)}>
@@ -242,7 +242,7 @@ function Dashboard() {
       </Row>
 
       {/* Distribution Charts */}
-      <h4 className="fw-bold mb-3">📈 Distribution Charts</h4>
+      <h4 className="fw-bold mb-3">Distribution Charts</h4>
       <Row>
         {distributionCharts.map((chart, idx) => (
           <Col lg={4} md={6} key={idx} className="mb-4">

@@ -8,7 +8,7 @@ const Help: React.FC = () => {
 
   return (
     <Container className="my-5">
-      <h2 className="mb-4 fw-bold">📖 System Help & User Guide</h2>
+      <h2 className="mb-4 fw-bold">System Help & User Guide</h2>
       <p className="text-muted">
         Welcome to the <b>Student Profiling & Clustering System</b>. This platform is designed to help educational institutions efficiently manage student data, generate actionable insights, and support strategic decision-making.  
         In this guide, we’ll walk you through each section of the system, step by step, so you can fully leverage its features.
@@ -24,7 +24,7 @@ const Help: React.FC = () => {
       <Accordion defaultActiveKey="0" alwaysOpen>
         {/* Dashboard */}
         <Accordion.Item eventKey="0">
-          <Accordion.Header>📊 Dashboard Walkthrough</Accordion.Header>
+          <Accordion.Header>Dashboard Walkthrough</Accordion.Header>
           <Accordion.Body>
             <p>
               The <b>Dashboard</b> is your starting point for understanding overall student performance and demographics.  
@@ -58,7 +58,7 @@ const Help: React.FC = () => {
 
         {/* Students */}
         <Accordion.Item eventKey="1">
-          <Accordion.Header>👩‍🎓 Students Walkthrough</Accordion.Header>
+          <Accordion.Header>Students Walkthrough</Accordion.Header>
           <Accordion.Body>
             <p>
               The <b>Students</b> section is your detailed student database. It allows you to browse, filter, and analyze individual student profiles.
@@ -91,7 +91,7 @@ const Help: React.FC = () => {
 
         {/* Clusters */}
         <Accordion.Item eventKey="2">
-          <Accordion.Header>🧩 Clusters Walkthrough</Accordion.Header>
+          <Accordion.Header>Clusters Walkthrough</Accordion.Header>
           <Accordion.Body>
             <p>
               The <b>Clusters</b> section groups students based on similar characteristics using <b>k-means clustering</b>.  
@@ -125,7 +125,7 @@ const Help: React.FC = () => {
 
         {/* Reports */}
         <Accordion.Item eventKey="3">
-          <Accordion.Header>📑 Reports Walkthrough</Accordion.Header>
+          <Accordion.Header>Reports Walkthrough</Accordion.Header>
           <Accordion.Body>
             <p>
               The <b>Reports</b> section generates structured summaries from your student data.  
@@ -154,7 +154,7 @@ const Help: React.FC = () => {
         {/* Dataset History (Admin only) */}
         {isAdmin && (
           <Accordion.Item eventKey="4">
-            <Accordion.Header>🗂 Dataset History (Admin Only)</Accordion.Header>
+            <Accordion.Header>Dataset History (Admin Only)</Accordion.Header>
             <Accordion.Body>
               <p>
                 Admins manage dataset uploads to ensure clustering and reporting are based on accurate and up-to-date data.
@@ -179,7 +179,7 @@ const Help: React.FC = () => {
 
         {/* Help & Support */}
         <Accordion.Item eventKey="5">
-          <Accordion.Header>🆘 Additional Help & Support</Accordion.Header>
+          <Accordion.Header>Additional Help & Support</Accordion.Header>
           <Accordion.Body>
             <ul>
               <li><b>Page loading issues:</b> Refresh your browser or verify your internet connection.</li>

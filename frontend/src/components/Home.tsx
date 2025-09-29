@@ -168,9 +168,6 @@ const Home: React.FC = () => {
             <Button className="btn-cta lg" onClick={() => navigate('/dashboard')}>
               Try FreshGroup Today
             </Button>
-            <Button variant="outline-secondary" onClick={() => navigate('/contact')}>
-              Request a Walkthrough
-            </Button>
           </div>
         </Container>
       </footer>
