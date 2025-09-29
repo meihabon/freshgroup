@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic import BaseModel
 from db import get_db_connection
