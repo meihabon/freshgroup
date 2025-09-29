@@ -32,10 +32,10 @@ const Home: React.FC = () => {
           </p>
           <div className="mt-4 d-flex gap-3 justify-content-center flex-wrap">
             <Button className="btn-cta" size="lg" onClick={() => navigate('/dashboard')}>
-              🚀 Explore Dashboard
+              Explore Dashboard
             </Button>
             <Button variant="outline-light" size="lg" onClick={() => navigate('/help')}>
-              📖 Learn More
+              Learn More
             </Button>
           </div>
         </Container>
@@ -58,15 +58,15 @@ const Home: React.FC = () => {
               </p>
               <div className="feature-grid mt-3">
                 <div>
-                  <h6>⚡ Immediate Insights</h6>
+                  <h6>Immediate Insights</h6>
                   <p className="small">Generate meaningful student clusters in less than 10 minutes.</p>
                 </div>
                 <div>
-                  <h6>🎯 Actionable Guidance</h6>
+                  <h6>Actionable Guidance</h6>
                   <p className="small">Each cluster comes with suggestions — from counseling to program interventions.</p>
                 </div>
                 <div>
-                  <h6>🏫 Institutional Benefit</h6>
+                  <h6>Institutional Benefit</h6>
                   <p className="small">Strengthen governance, compliance, and reputation through data-driven action.</p>
                 </div>
               </div>
@@ -98,7 +98,7 @@ const Home: React.FC = () => {
             <Col md={4}>
               <Card className="glass h-100">
                 <Card.Body>
-                  <h5>📊 Dashboard</h5>
+                  <h5>Dashboard</h5>
                   <p className="muted small">
                     A central hub with KPIs, cluster counts, and quick filters. 
                     Designed so administrators don’t waste time on spreadsheets.
@@ -109,7 +109,7 @@ const Home: React.FC = () => {
             <Col md={4}>
               <Card className="glass h-100">
                 <Card.Body>
-                  <h5>👩‍🎓 Student Profiles</h5>
+                  <h5>Student Profiles</h5>
                   <p className="muted small">
                     View students by cluster with detailed attributes and recommended interventions 
                     to guide faculty actions.
@@ -120,7 +120,7 @@ const Home: React.FC = () => {
             <Col md={4}>
               <Card className="glass h-100">
                 <Card.Body>
-                  <h5>🧩 Advanced Clustering</h5>
+                  <h5>Advanced Clustering</h5>
                   <p className="muted small">
                     Built with K-Prototypes for mixed data. Both numerical and categorical attributes 
                     are considered for fair, accurate results.
@@ -133,7 +133,7 @@ const Home: React.FC = () => {
             <Col md={6}>
               <Card className="glass h-100">
                 <Card.Body>
-                  <h5>🔒 Privacy & Security</h5>
+                  <h5>Privacy & Security</h5>
                   <p className="muted small">
                     Strict access control with role-based permissions ensures sensitive data 
                     stays protected.
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
             <Col md={6}>
               <Card className="glass h-100">
                 <Card.Body>
-                  <h5>📑 Reporting</h5>
+                  <h5>Reporting</h5>
                   <p className="muted small">
                     Export polished charts, summaries, and reports in one click — ready for 
                     board meetings, accreditation, or funding proposals.
@@ -165,8 +165,12 @@ const Home: React.FC = () => {
             empowering better decisions for students, faculty, and administrators.
           </p>
           <div className="d-flex justify-content-center gap-3">
-            <Button className="btn-cta lg" onClick={() => navigate('/dashboard')}>Try FreshGroup Today</Button>
-            <Button variant="outline-secondary" onClick={() => navigate('/contact')}>Request a Walkthrough</Button>
+            <Button className="btn-cta lg" onClick={() => navigate('/dashboard')}>
+              Try FreshGroup Today
+            </Button>
+            <Button variant="outline-secondary" onClick={() => navigate('/contact')}>
+              Request a Walkthrough
+            </Button>
           </div>
         </Container>
       </footer>
