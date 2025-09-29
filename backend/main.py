@@ -11,6 +11,7 @@ from routes import (
     cluster_playground,
     datasets,
     reports,
+    test_mail,
 )
 
 # Initialize FastAPI app
@@ -35,6 +36,7 @@ routers = [
     cluster_playground,
     datasets,
     reports,
+    test_mail,
 ]
 for module in routers:
     app.include_router(module.router, prefix="/api")
