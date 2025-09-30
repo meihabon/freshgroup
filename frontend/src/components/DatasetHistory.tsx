@@ -298,7 +298,7 @@ function DatasetHistory() {
         </div>
         <small className="text-muted">
           Use this template to prepare your dataset before uploading. Columns must include: 
-          <code> name, sex, program, municipality, income, SHS_type, GWA </code>.
+          <code> firstname, lastname, sex, program, municipality, income, SHS_type, GWA </code>.
         </small>
       </div>
 
