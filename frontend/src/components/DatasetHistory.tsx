@@ -298,7 +298,7 @@ function DatasetHistory() {
         </div>
         <small className="text-muted">
           Use this template to prepare your dataset before uploading. Columns must include: 
-          <code> name, sex, program, municipality, income, SHS_type, GWA </code>.
+          <code> firstname, lastname, sex, program, municipality, income, SHS_type, GWA </code>.
         </small>
       </div>
 
@@ -390,9 +390,17 @@ function DatasetHistory() {
                         )}
                       </td>
                       <td>
-                        <Button variant="outline-danger" size="sm" onClick={() => deleteDataset(dataset.id)}>
-                          <Trash2 size={14} />
-                        </Button>
+                        <div className="d-flex gap-2">
+                          <Button variant="outline-info" size="sm" onClick={() => handlePreview(dataset.id)}>
+                            <Eye size={14} />
+                          </Button>
+                          <Button variant="outline-success" size="sm" onClick={() => handleDownload(dataset.id)}>
+                            <Download size={14} />
+                          </Button>
+                          <Button variant="outline-danger" size="sm" onClick={() => deleteDataset(dataset.id)}>
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -408,86 +416,86 @@ function DatasetHistory() {
         <Modal.Header closeButton>
           <Modal.Title>Upload New Dataset</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Row>
-              {/* Left side: Bigger Elbow Preview */}
-              <Col md={7}>
-                <Card>
-                  <Card.Header>
-                    <strong>Elbow Method Preview</strong>
-                  </Card.Header>
-                  <Card.Body style={{ minHeight: 320 }}>
-                    {elbowLoading ? (
-                      <div className="d-flex justify-content-center align-items-center" style={{ height: 280 }}>
-                        <Spinner animation="border" />
-                      </div>
-                    ) : elbowError ? (
-                      <Alert variant="danger">{elbowError}</Alert>
-                    ) : wcss && wcss.length > 0 ? (
-                      elbowPlot()
-                    ) : (
-                      <div className="text-muted">
-                        Select a CSV/XLSX file to compute an Elbow preview (k=2..10).  
-                        The system will automatically choose the most suitable k.
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
+          <Modal.Body>
+            <Form>
+              <Row>
+                {/* Left side: Bigger Elbow Preview */}
+                <Col md={7}>
+                  <Card>
+                    <Card.Header>
+                      <strong>Elbow Method Preview</strong>
+                    </Card.Header>
+                    <Card.Body style={{ minHeight: 320 }}>
+                      {elbowLoading ? (
+                        <div className="d-flex justify-content-center align-items-center" style={{ height: 280 }}>
+                          <Spinner animation="border" />
+                        </div>
+                      ) : elbowError ? (
+                        <Alert variant="danger">{elbowError}</Alert>
+                      ) : wcss && wcss.length > 0 ? (
+                        elbowPlot()
+                      ) : (
+                        <div className="text-muted">
+                          Select a CSV/XLSX file to compute an Elbow preview (k=2..10).  
+                          The system will automatically choose the most suitable k.
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
 
-                {/* Justification */}
-                <div className="mt-3 p-3 bg-light rounded border">
-                  <h6 className="fw-bold">Why the Elbow Method?</h6>
-                  <p style={{ fontSize: "0.9rem" }}>
-                    The <b>Elbow Method</b> is a technique to determine the optimal number of clusters (k) in a dataset.  
-                    It works by plotting the <b>Within-Cluster Sum of Squares (WCSS)</b> for different values of k.  
-                    At first, adding more clusters reduces WCSS sharply, but after a certain point, the improvements become minimal.  
-                    This point looks like an “elbow” on the chart and usually indicates the most suitable k.  
-                    Our system automatically selects this value for you.
-                  </p>
-                </div>
-              </Col>
+                  {/* Justification */}
+                  <div className="mt-3 p-3 bg-light rounded border">
+                    <h6 className="fw-bold">Why the Elbow Method?</h6>
+                    <p style={{ fontSize: "0.9rem" }}>
+                      The <b>Elbow Method</b> is a technique to determine the optimal number of clusters (k) in a dataset.  
+                      It works by plotting the <b>Within-Cluster Sum of Squares (WCSS)</b> for different values of k.  
+                      At first, adding more clusters reduces WCSS sharply, but after a certain point, the improvements become minimal.  
+                      This point looks like an “elbow” on the chart and usually indicates the most suitable k.  
+                      Our system automatically selects this value for you.
+                    </p>
+                  </div>
+                </Col>
 
-              {/* Right side: File Upload + System K */}
-              <Col md={5}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Select Dataset File</Form.Label>
-                  <Form.Control type="file" accept=".csv,.xlsx" onChange={handleFileSelect} />
+                {/* Right side: File Upload + System K */}
+                <Col md={5}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Select Dataset File</Form.Label>
+                    <Form.Control type="file" accept=".csv,.xlsx" onChange={handleFileSelect} />
+                      <Form.Text className="text-muted">
+                        Supported formats: CSV, Excel (.xlsx). File must include: 
+                        firstname, lastname, sex, program, municipality, income, SHS_type, GWA
+                      </Form.Text>
+                  </Form.Group>
+
+                  {selectedFile && (
+                    <div className="mb-3">
+                      <small className="text-success">
+                        Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </small>
+                    </div>
+                  )}
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Number of Clusters (K)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={clusterCount}
+                      readOnly
+                    />
                     <Form.Text className="text-muted">
-                      Supported formats: CSV, Excel (.xlsx). File must include: 
-                      firstname, lastname, sex, program, municipality, income, SHS_type, GWA
+                      The system has determined this optimal value automatically.
                     </Form.Text>
-                </Form.Group>
+                  </Form.Group>
 
-                {selectedFile && (
-                  <div className="mb-3">
-                    <small className="text-success">
-                      Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                    </small>
-                  </div>
-                )}
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Number of Clusters (K)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={clusterCount}
-                    readOnly
-                  />
-                  <Form.Text className="text-muted">
-                    The system has determined this optimal value automatically.
-                  </Form.Text>
-                </Form.Group>
-
-                {uploadLoading && (
-                  <div className="mb-3">
-                    <ProgressBar animated now={100} label="Processing..." />
-                  </div>
-                )}
-              </Col>
-            </Row>
-          </Form>
-        </Modal.Body>
+                  {uploadLoading && (
+                    <div className="mb-3">
+                      <ProgressBar animated now={100} label="Processing..." />
+                    </div>
+                  )}
+                </Col>
+              </Row>
+            </Form>
+          </Modal.Body>
 
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowUpload(false)}>Cancel</Button>
@@ -504,6 +512,39 @@ function DatasetHistory() {
           </Button>
         </Modal.Footer>
       </Modal>
+        <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Dataset Preview</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {previewRows.length > 0 ? (
+              <div className="table-responsive">
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      {Object.keys(previewRows[0]).map((col) => (
+                        <th key={col}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewRows.map((row, idx) => (
+                      <tr key={idx}>
+                        {Object.values(row).map((val, i) => (
+                          <td key={i}>
+                            {val !== null && val !== undefined ? val.toString() : "—"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-muted">No data available.</p>
+            )}
+          </Modal.Body>
+        </Modal>
     </div>
   )
 }

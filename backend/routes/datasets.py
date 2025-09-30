@@ -133,6 +133,8 @@ async def elbow_preview(
         return {"wcss": wcss, "recommended_k": recommended_k}
 
     except Exception as e:
+            mport traceback
+            traceback.print_exc()  # <-- prints full error with line numbers
         raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
     finally:
         if os.path.exists(file_path):
