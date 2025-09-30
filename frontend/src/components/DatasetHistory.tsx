@@ -514,12 +514,7 @@ function DatasetHistory() {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Modal
-          show={showPreview}
-          onHide={() => setShowPreview(false)}
-          centered
-          style={{ maxWidth: "95%", margin: "auto" }}
-        >
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
         <Modal.Header closeButton className="bg-light">
           <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
         </Modal.Header>
