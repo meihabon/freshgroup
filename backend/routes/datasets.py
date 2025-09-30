@@ -11,7 +11,8 @@ import os, uuid, json
 from datetime import datetime
 from typing import List
 from fastapi.responses import FileResponse
-
+import csv
+import io
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -305,17 +306,40 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
 # Preview Dataset
 # -----------------------------
 @router.get("/datasets/{dataset_id}/preview")
-async def preview_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
+async def preview_dataset(
+    dataset_id: int,
+    page: int = 1,
+    current_user: dict = Depends(get_current_user)
+):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can preview datasets")
 
+    page_size = 20
+    offset = (page - 1) * page_size
+
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM students WHERE dataset_id = %s LIMIT 50", (dataset_id,))
+
+    # total count for pagination
+    cur.execute("SELECT COUNT(*) as total FROM students WHERE dataset_id = %s", (dataset_id,))
+    total = cur.fetchone()["total"]
+
+    cur.execute(
+        "SELECT * FROM students WHERE dataset_id = %s LIMIT %s OFFSET %s",
+        (dataset_id, page_size, offset)
+    )
     rows = cur.fetchall()
+
     cur.close(); conn.close()
 
-    return {"rows": rows}
+    return {
+        "rows": rows,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": (total + page_size - 1) // page_size
+    }
+
 
 # -----------------------------
 # Download Dataset
@@ -327,19 +351,33 @@ async def download_dataset(dataset_id: int, current_user: dict = Depends(get_cur
 
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
+
     cur.execute("SELECT filename FROM datasets WHERE id = %s", (dataset_id,))
     dataset = cur.fetchone()
-    cur.close(); conn.close()
-
     if not dataset:
+        cur.close(); conn.close()
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    # locate the original file if stored, or export from DB
-    file_path = f"uploads/{dataset['filename']}"
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not available")
+    # fetch all students for this dataset
+    cur.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
 
-    return FileResponse(file_path, filename=dataset["filename"])
+    if not rows:
+        raise HTTPException(status_code=404, detail="No students found for this dataset")
+
+    # generate CSV in memory
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=rows[0].keys())
+    writer.writeheader()
+    writer.writerows(rows)
+    output.seek(0)
+
+    return FileResponse(
+        path_or_file=io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        filename=f"{dataset['filename'].rsplit('.',1)[0]}_export.csv"
+    )
 # -----------------------------
 # Delete Dataset
 # -----------------------------
