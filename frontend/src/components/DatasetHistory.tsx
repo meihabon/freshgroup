@@ -33,7 +33,7 @@ function DatasetHistory() {
   const [clusterCount, setClusterCount] = useState(3)
   const [previewRows, setPreviewRows] = useState<any[]>([])
   const [showPreview, setShowPreview] = useState(false)
-
+  const [showAll, setShowAll] = useState(false);
   // Elbow preview state
   const [elbowLoading, setElbowLoading] = useState(false)
   const [elbowError, setElbowError] = useState('')
@@ -514,7 +514,12 @@ function DatasetHistory() {
           </Button>
         </Modal.Footer>
       </Modal>
-        <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
+        <Modal
+          show={showPreview}
+          onHide={() => setShowPreview(false)}
+          size="xl"   // ✅ wider than lg
+          centered
+        >
           <Modal.Header closeButton className="bg-light">
             <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
           </Modal.Header>
@@ -534,9 +539,9 @@ function DatasetHistory() {
                   </thead>
                   <tbody>
                     {previewRows.map((row, idx) => {
-                      // Fade rows after index 6
+                      // ✅ fade rows only if showAll = false
                       let opacity = 1;
-                      if (idx >= 7) {
+                      if (!showAll && idx >= 7) {
                         const fadeFactor = (idx - 7) / (previewRows.length - 7);
                         opacity = Math.max(1 - fadeFactor * 0.8, 0.2);
                       }
@@ -560,8 +565,8 @@ function DatasetHistory() {
                   </tbody>
                 </Table>
 
-                {/* 🔹 Gradient overlay if preview is capped at 15 */}
-                {previewRows.length === 15 && (
+                {/* 🔹 Gradient overlay only if preview is capped */}
+                {!showAll && previewRows.length === 15 && (
                   <div
                     style={{
                       position: "absolute",
@@ -582,12 +587,25 @@ function DatasetHistory() {
             )}
           </Modal.Body>
 
-          <Modal.Footer>
+          <Modal.Footer className="d-flex justify-content-between">
+            {/* Left side: Show All / Collapse toggle */}
+            {previewRows.length === 15 && (
+              <Button
+                variant={showAll ? "outline-primary" : "primary"}
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? "Collapse Preview" : "Show All Rows"}
+              </Button>
+            )}
+
+            {/* Right side: Close */}
             <Button variant="secondary" onClick={() => setShowPreview(false)}>
               Close
             </Button>
           </Modal.Footer>
         </Modal>
+
+
     </div>
   )
 }
