@@ -308,37 +308,24 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
 @router.get("/datasets/{dataset_id}/preview")
 async def preview_dataset(
     dataset_id: int,
-    page: int = 1,
     current_user: dict = Depends(get_current_user)
 ):
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can preview datasets")
 
-    page_size = 20
-    offset = (page - 1) * page_size
-
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
 
-    # total count for pagination
-    cur.execute("SELECT COUNT(*) as total FROM students WHERE dataset_id = %s", (dataset_id,))
-    total = cur.fetchone()["total"]
-
     cur.execute(
-        "SELECT * FROM students WHERE dataset_id = %s LIMIT %s OFFSET %s",
-        (dataset_id, page_size, offset)
+        "SELECT * FROM students WHERE dataset_id = %s LIMIT 10",
+        (dataset_id,)
     )
     rows = cur.fetchall()
 
-    cur.close(); conn.close()
+    cur.close()
+    conn.close()
 
-    return {
-        "rows": rows,
-        "page": page,
-        "page_size": page_size,
-        "total": total,
-        "total_pages": (total + page_size - 1) // page_size
-    }
+    return {"rows": rows}
 
 
 # -----------------------------
