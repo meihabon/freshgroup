@@ -301,7 +301,45 @@ async def get_datasets(current_user: dict = Depends(get_current_user)):
     connection.close()
     return datasets
 
+# -----------------------------
+# Preview Dataset
+# -----------------------------
+@router.get("/datasets/{dataset_id}/preview")
+async def preview_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can preview datasets")
 
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM students WHERE dataset_id = %s LIMIT 50", (dataset_id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+
+    return {"rows": rows}
+
+# -----------------------------
+# Download Dataset
+# -----------------------------
+@router.get("/datasets/{dataset_id}/download")
+async def download_dataset(dataset_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can download datasets")
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT filename FROM datasets WHERE id = %s", (dataset_id,))
+    dataset = cur.fetchone()
+    cur.close(); conn.close()
+
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # locate the original file if stored, or export from DB
+    file_path = f"uploads/{dataset['filename']}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not available")
+
+    return FileResponse(file_path, filename=dataset["filename"])
 # -----------------------------
 # Delete Dataset
 # -----------------------------
