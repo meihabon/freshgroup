@@ -10,7 +10,7 @@ import pandas as pd
 import os, uuid, json
 from datetime import datetime
 from typing import List
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 import csv
 import io
 router = APIRouter()
@@ -373,10 +373,13 @@ async def download_dataset(dataset_id: int, current_user: dict = Depends(get_cur
     writer.writerows(rows)
     output.seek(0)
 
-    return FileResponse(
-        path_or_file=io.BytesIO(output.getvalue().encode("utf-8")),
+    # return as streaming response
+    return StreamingResponse(
+        iter([output.getvalue()]),
         media_type="text/csv",
-        filename=f"{dataset['filename'].rsplit('.',1)[0]}_export.csv"
+        headers={
+            "Content-Disposition": f"attachment; filename={dataset['filename'].rsplit('.',1)[0]}_export.csv"
+        }
     )
 # -----------------------------
 # Delete Dataset

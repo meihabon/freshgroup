@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext'
 import Plot from 'react-plotly.js'
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 interface Dataset {
   id: number
@@ -512,26 +514,30 @@ function DatasetHistory() {
           </Button>
         </Modal.Footer>
       </Modal>
-        <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg">
-          <Modal.Header closeButton>
-            <Modal.Title>Dataset Preview</Modal.Title>
+        <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
+          <Modal.Header closeButton className="bg-light">
+            <Modal.Title className="fw-bold">📊 Dataset Preview</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {previewRows.length > 0 ? (
               <div className="table-responsive">
-                <Table striped bordered hover>
-                  <thead>
+                <Table striped bordered hover size="sm" className="align-middle mb-0">
+                  <thead className="table-dark">
                     <tr>
                       {Object.keys(previewRows[0]).map((col) => (
-                        <th key={col}>{col}</th>
+                        <th key={col} className="text-center">{col}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {previewRows.map((row, idx) => (
-                      <tr key={idx}>
+                      <tr
+                        key={idx}
+                        className={`fade ${idx > 10 ? "opacity-50" : "show"}`} 
+                        style={{ transition: "opacity 0.6s ease" }}
+                      >
                         {Object.values(row).map((val, i) => (
-                          <td key={i}>
+                          <td key={i} className="text-center">
                             {val !== null && val !== undefined ? val.toString() : "—"}
                           </td>
                         ))}
@@ -539,12 +545,33 @@ function DatasetHistory() {
                     ))}
                   </tbody>
                 </Table>
+
+                {/* 🔹 Fading gradient at bottom to indicate more data */}
+                {previewRows.length > 15 && (
+                  <div
+                    style={{
+                      position: "relative",
+                      height: "40px",
+                      marginTop: "-40px",
+                      background:
+                        "linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))"
+                    }}
+                  />
+                )}
               </div>
             ) : (
-              <p className="text-muted">No data available.</p>
+              <div className="text-center py-4">
+                <p className="text-muted mb-0">No data available for preview.</p>
+              </div>
             )}
           </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowPreview(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
         </Modal>
+
     </div>
   )
 }
