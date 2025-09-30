@@ -212,7 +212,7 @@ async def upload_dataset(
                 str(row.get('municipality') or "Unknown"),
                 float(row.get('income')) if pd.notna(row.get('income')) else None,
                 str(row.get('shs_type') or "Unknown"),
-                float(row.get('income')) if pd.notna(row.get('income')) else None,
+                float(row.get('gwa')) if pd.notna(row.get('gwa')) else None,
                 str(row.get('Honors') or "Unknown"),
                 str(row.get('IncomeCategory') or "Unknown"),
                 dataset_id
