@@ -1,16 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-import io, csv, json
+import io, csv
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
 from dependencies import get_current_user
-
 from db import get_db_connection
 
 router = APIRouter()
@@ -134,9 +133,9 @@ async def export_cluster_playground(
         for c, v in cluster_counts.items():
             writer.writerow([f"Cluster {c}", v])
         writer.writerow([])
-        writer.writerow(["Name", "GWA", "Income", "Cluster"])
+        writer.writerow(["Firstname", "Lastname", "GWA", "Income", "Cluster"])
         for _, row in df.iterrows():
-            writer.writerow([row["name"], row["GWA"], row["income"], row["Cluster"]])
+            writer.writerow([row["firstname"], row["lastname"], row["GWA"], row["income"], row["Cluster"]])
         return StreamingResponse(
             io.BytesIO(buffer.getvalue().encode()),
             media_type="text/csv",
@@ -162,13 +161,12 @@ async def export_cluster_playground(
     fig.savefig(img_buf, format="png", bbox_inches="tight")
     plt.close(fig)
     img_buf.seek(0)
-    from reportlab.platypus import Image
     story.append(Image(img_buf, width=5*inch, height=3*inch))
     story.append(Spacer(1, 20))
 
     # Students table
-    table_data = [["Name", "Program", "Municipality", "Income", "Income Category", "SHS Type", "GWA", "Honors", "Cluster"]] + \
-        df[["name", "program", "municipality", "income", "IncomeCategory", "SHS_type", "GWA", "Honors", "Cluster"]].values.tolist()
+    table_data = [["Firstname", "Lastname", "Program", "Municipality", "Income", "Income Category", "SHS Type", "GWA", "Honors", "Cluster"]] + \
+        df[["firstname", "lastname", "program", "municipality", "income", "IncomeCategory", "SHS_type", "GWA", "Honors", "Cluster"]].values.tolist()
     table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.grey),

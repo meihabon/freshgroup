@@ -21,7 +21,8 @@ import Plot from "react-plotly.js"
  */
 interface Student {
   id: number
-  name: string
+  firstname: string
+  lastname: string
   sex?: string
   program?: string
   municipality?: string
@@ -36,6 +37,7 @@ interface Student {
   pair_x_label?: string | null
   pair_y_label?: string | null
 }
+
 
 interface ClusterData {
   clusters: Record<number, Student[]>
@@ -262,7 +264,8 @@ const fetchOfficialClusters = async () => {
         if (!clusters[cid]) clusters[cid] = []
         clusters[cid].push({
           id: s.id ?? 0,
-          name: s.name,
+          firstname: s.firstname,
+          lastname: s.lastname,
           sex: s.sex,
           program: s.program,
           municipality: s.municipality,
@@ -276,7 +279,7 @@ const fetchOfficialClusters = async () => {
         plot_data.x.push(s.GWA ?? 0)
         plot_data.y.push(s.income ?? 0)
         plot_data.colors.push(cid)
-        plot_data.text.push(`${s.name}<br>GWA: ${s.GWA}<br>Income: ₱${s.income}`)
+        plot_data.text.push(`${s.firstname} ${s.lastname}<br>GWA: ${s.GWA}<br>Income: ₱${s.income}`)
       })
 
       setPlaygroundData({ clusters, plot_data, centroids })
@@ -306,7 +309,8 @@ const fetchOfficialClusters = async () => {
         if (!clusters[cid]) clusters[cid] = []
         clusters[cid].push({
           id: s.id ?? 0,
-          name: s.name,
+          firstname: s.firstname,
+          lastname: s.lastname,
           sex: s.sex,
           program: s.program,
           municipality: s.municipality,
@@ -325,7 +329,7 @@ const fetchOfficialClusters = async () => {
         plot_data.x.push(s.pair_x ?? 0)
         plot_data.y.push(s.pair_y ?? 0)
         plot_data.colors.push(cid)
-        plot_data.text.push(`${s.name}<br>${x_name}: ${s.pair_x_label ?? s.pair_x}<br>${y_name}: ${s.pair_y_label ?? s.pair_y}`)
+        plot_data.text.push(`${s.firstname} ${s.lastname}<br>${x_name}: ${s.pair_x_label ?? s.pair_x}<br>${y_name}: ${s.pair_y_label ?? s.pair_y}`)
       })
 
       setPairwiseData({ clusters, plot_data, centroids, x_name, y_name, x_categories, y_categories, k: serverK})
@@ -408,7 +412,7 @@ const renderClusterSection = (
                         name: `Cluster ${clusterId}`,
                         text: students.map(
                           (s: any) =>
-                            `${s.name}<br>${isPairwise ? xTitle : "GWA"}: ${
+                            `${s.firstname} ${s.lastname}<br>${isPairwise ? xTitle : "GWA"}: ${
                               isPairwise ? s.pair_x_label ?? s.pair_x : s.GWA
                             }<br>${isPairwise ? yTitle : "Income"}: ${
                               isPairwise ? s.pair_y_label ?? s.pair_y : s.income
@@ -521,7 +525,8 @@ const renderClusterSection = (
                       .slice((currentPage - 1) * studentsPerPage, currentPage * studentsPerPage)
                       .map((s) => (
                         <tr key={s.id}>
-                          <td>{s.name}</td>
+                          <td>{s.firstname}</td>
+                          <td>{s.lastname}</td>
                           <td>{s.program}</td>
                           <td>{s.municipality}</td>
                           <td>{s.GWA}</td>

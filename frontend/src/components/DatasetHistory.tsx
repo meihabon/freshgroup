@@ -157,12 +157,12 @@ function DatasetHistory() {
 
   // --- 📄 Download Dataset Template (CSV) ---
   const handleDownloadTemplateCSV = () => {
-    const header = ["name", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
+    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
     const rows = [
-      ["Juan Dela Cruz", "Male", "BSIT", "Tagudin", "15000", "Academic", "85"],
-      ["Maria Santos", "Female", "BSBA", "Sta. Cruz", "8000", "TVL", "90"],
+      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", "15000", "Academic", "85"],
+      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", "8000", "TVL", "90"],
     ]
-
+      
     const csvContent =
       [header, ...rows]
         .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -426,10 +426,10 @@ function DatasetHistory() {
         <Form.Group className="mb-3">
           <Form.Label>Select Dataset File</Form.Label>
           <Form.Control type="file" accept=".csv,.xlsx" onChange={handleFileSelect} />
-          <Form.Text className="text-muted">
-            Supported formats: CSV, Excel (.xlsx). File must include: 
-            name, sex, program, municipality, income, SHS_type, GWA
-          </Form.Text>
+            <Form.Text className="text-muted">
+              Supported formats: CSV, Excel (.xlsx). File must include: 
+              firstname, lastname, sex, program, municipality, income, SHS_type, GWA
+            </Form.Text>
         </Form.Group>
 
         {selectedFile && (

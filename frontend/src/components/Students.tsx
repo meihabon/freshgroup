@@ -8,7 +8,8 @@ import { useAuth } from "../context/AuthContext"
 
 interface Student {
   id: number
-  name: string
+  firstname: string
+  lastname: string
   sex: 'Male' | 'Female'
   program: string
   municipality: string
@@ -78,9 +79,10 @@ function Students() {
 
     if (searchTerm) {
       filtered = filtered.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+        `${student.firstname} ${student.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
+
     if (programFilter) filtered = filtered.filter(s => s.program === programFilter)
     if (sexFilter) filtered = filtered.filter(s => s.sex === sexFilter)
     if (municipalityFilter) filtered = filtered.filter(s => s.municipality === municipalityFilter)
@@ -102,12 +104,25 @@ function Students() {
   }
 
   const exportToCSV = () => {
-    const headers = ['Name', 'Sex', 'Program', 'Municipality', 'Income', 'SHS Type', 'GWA', 'Honors', 'Income Category']
+    const headers = [
+      'firstname',
+      'lastname',
+      'sex',
+      'program',
+      'municipality',
+      'income',
+      'SHS_type',
+      'GWA',
+      'Honors',
+      'IncomeCategory'
+    ]
+
     const csvContent = [
       headers.join(','),
       ...filteredStudents.map(student =>
         [
-          student.name,
+          student.firstname,
+          student.lastname,
           student.sex,
           student.program,
           student.municipality,
@@ -322,13 +337,14 @@ function Students() {
             <Table striped hover className="mb-0">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
                   <th>Sex</th>
                   <th>Program</th>
                   <th>Municipality</th>
                   <th>Income</th>
-                  <th>SHS Type</th>
-                  <th>GWA</th>
+                  <th>Senior High School Type</th>
+                  <th>General Weighted Average (GWA)</th>
                   <th>Honors</th>
                   <th>Income Category</th>
                 </tr>
@@ -336,7 +352,8 @@ function Students() {
               <tbody>
                 {currentStudents.map((student) => (
                   <tr key={student.id}>
-                    <td className="fw-semibold">{student.name}</td>
+                    <td className="fw-semibold">{student.firstname}</td>
+                    <td className="fw-semibold">{student.lastname}</td>
                     <td>{student.sex}</td>
                     <td>{student.program}</td>
                     <td>{student.municipality}</td>
@@ -356,6 +373,7 @@ function Students() {
                   </tr>
                 ))}
               </tbody>
+
             </Table>
           </div>
 

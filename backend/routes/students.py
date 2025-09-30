@@ -32,6 +32,7 @@ async def get_students(
 
     query = "SELECT * FROM students WHERE dataset_id = %s"
     params = [dataset_id]
+
     if program:
         query += " AND program = %s"
         params.append(program)
@@ -51,8 +52,9 @@ async def get_students(
         query += " AND Honors = %s"
         params.append(honors)
     if search:
-        query += " AND name LIKE %s"
-        params.append(f"%{search}%")
+        # ✅ search both firstname and lastname
+        query += " AND (firstname LIKE %s OR lastname LIKE %s)"
+        params.extend([f"%{search}%", f"%{search}%"])
 
     cursor.execute(query, params)
     students = cursor.fetchall()

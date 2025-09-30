@@ -18,6 +18,8 @@ os.makedirs("uploads", exist_ok=True)
 def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.columns = df.columns.str.strip().str.lower()
+
+    # Map common variations
     col_map = {
         "sex": "sex", "gender": "sex",
         "program": "program", "course": "program",
@@ -25,27 +27,38 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         "income": "income", "family income": "income",
         "shs_type": "shs_type", "strand": "shs_type",
         "gwa": "gwa", "general weighted average": "gwa",
+        "firstname": "firstname", "first name": "firstname", "fname": "firstname",
+        "lastname": "lastname", "last name": "lastname", "surname": "lastname", "lname": "lastname",
         "name": "name", "fullname": "name", "student name": "name"
     }
     df = df.rename(columns={col: col_map[col] for col in df.columns if col in col_map})
 
-    required_cols = ['name', 'sex', 'program', 'municipality', 'income', 'shs_type', 'gwa']
+    # ✅ Handle case: dataset has only `name` instead of firstname/lastname
+    if "name" in df.columns and ("firstname" not in df.columns or "lastname" not in df.columns):
+        name_split = df["name"].astype(str).str.strip().str.split(" ", n=1, expand=True)
+        df["firstname"] = name_split[0]
+        df["lastname"] = name_split[1] if name_split.shape[1] > 1 else ""
+
+    # Ensure required columns exist
+    required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = None
 
-    df['Honors'] = df.apply(classify_honors, axis=1)
-    df['IncomeCategory'] = df['income'].apply(classify_income)
+    # Derive Honors & IncomeCategory
+    df["Honors"] = df.apply(classify_honors, axis=1)
+    df["IncomeCategory"] = df["income"].apply(classify_income)
 
-    df['gwa'] = pd.to_numeric(df['gwa'], errors='coerce').fillna(0)
-    df['income'] = pd.to_numeric(df['income'], errors='coerce').fillna(0)
+    # Clean numerics
+    df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce").fillna(0)
+    df["income"] = pd.to_numeric(df["income"], errors="coerce").fillna(0)
 
-    categorical_cols = ['sex', 'program', 'municipality', 'shs_type']
+    # Encode categoricals
+    categorical_cols = ["sex", "program", "municipality", "shs_type"]
     for col in categorical_cols:
         enc_col = f"{col}_enc"
         try:
             le = LabelEncoder()
-            # ensure no None or empty strings
             df[col] = df[col].fillna("Unknown").replace("", "Unknown")
             df[enc_col] = le.fit_transform(df[col].astype(str))
         except Exception:
@@ -56,7 +69,6 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
                 )
             }
             df[enc_col] = df[col].astype(str).map(uniques)
-
 
     return df
 
@@ -190,18 +202,27 @@ async def upload_dataset(
 
         for _, row in df.iterrows():
             cursor.execute("""
-                INSERT INTO students (name, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                (row['name'] or "Unknown"), (row['sex'] or "Unknown"), (row['program'] or "Unknown"), (row['municipality'] or "Unknown"),
-                (row['income'] if row['income'] else 0), (row['shs_type'] or "Unknown"), (row['gwa'] if row['gwa'] else 0), (row['Honors'] or "Unknown"),
-                (row['IncomeCategory'] or "Unknown"), dataset_id
+                str(row.get('firstname') or "Unknown"),
+                str(row.get('lastname') or "Unknown"),
+                str(row.get('sex') or "Unknown"),
+                str(row.get('program') or "Unknown"),
+                str(row.get('municipality') or "Unknown"),
+                float(row.get('income') or 0),
+                str(row.get('shs_type') or "Unknown"),
+                float(row.get('gwa') or 0),
+                str(row.get('Honors') or "Unknown"),
+                str(row.get('IncomeCategory') or "Unknown"),
+                dataset_id
             ))
             student_id = cursor.lastrowid
             cursor.execute(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
                 (student_id, cluster_id, int(row['Cluster']))
             )
+
 
         connection.commit()
         cursor.close()

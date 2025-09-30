@@ -120,7 +120,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         "y": [s.get("income", 0) for s in students],
         "colors": [s.get("cluster_number", 0) for s in students],
         "text": [
-            f"{s.get('name','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
+            f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
             f"Income: {s.get('IncomeCategory','-')}<br>Honors: {s.get('Honors','-')}<br>SHS: {s.get('SHS_type','-')}"
             for s in students
         ]
