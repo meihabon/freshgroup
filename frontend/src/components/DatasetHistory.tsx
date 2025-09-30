@@ -518,41 +518,57 @@ function DatasetHistory() {
           <Modal.Header closeButton className="bg-light">
             <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
           </Modal.Header>
+
           <Modal.Body>
             {previewRows.length > 0 ? (
-              <div className="table-responsive">
+              <div className="table-responsive position-relative">
                 <Table striped bordered hover size="sm" className="align-middle mb-0">
                   <thead className="table-dark">
                     <tr>
                       {Object.keys(previewRows[0]).map((col) => (
-                        <th key={col} className="text-center">{col}</th>
+                        <th key={col} className="text-center">
+                          {col}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {previewRows.map((row, idx) => (
-                      <tr
-                        key={idx}
-                        className={`fade ${idx > 10 ? "opacity-50" : "show"}`} 
-                        style={{ transition: "opacity 0.6s ease" }}
-                      >
-                        {Object.values(row).map((val, i) => (
-                          <td key={i} className="text-center">
-                            {val !== null && val !== undefined ? val.toString() : "—"}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
+                    {previewRows.map((row, idx) => {
+                      // Fade rows after index 6
+                      let opacity = 1;
+                      if (idx >= 7) {
+                        const fadeFactor = (idx - 7) / (previewRows.length - 7);
+                        opacity = Math.max(1 - fadeFactor * 0.8, 0.2);
+                      }
+
+                      return (
+                        <tr
+                          key={idx}
+                          style={{
+                            opacity,
+                            transition: "opacity 0.6s ease"
+                          }}
+                        >
+                          {Object.values(row).map((val, i) => (
+                            <td key={i} className="text-center">
+                              {val !== null && val !== undefined ? val.toString() : "—"}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </Table>
 
-                {/* 🔹 Fading gradient at bottom to indicate more data */}
-                {previewRows.length > 15 && (
+                {/* 🔹 Gradient overlay if preview is capped at 15 */}
+                {previewRows.length === 15 && (
                   <div
                     style={{
-                      position: "relative",
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
                       height: "40px",
-                      marginTop: "-40px",
                       background:
                         "linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))"
                     }}
@@ -565,13 +581,13 @@ function DatasetHistory() {
               </div>
             )}
           </Modal.Body>
+
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowPreview(false)}>
               Close
             </Button>
           </Modal.Footer>
         </Modal>
-
     </div>
   )
 }

@@ -317,7 +317,7 @@ async def preview_dataset(
     cur = conn.cursor(dictionary=True)
 
     cur.execute(
-        "SELECT * FROM students WHERE dataset_id = %s LIMIT 10",
+        "SELECT * FROM students WHERE dataset_id = %s LIMIT 15",
         (dataset_id,)
     )
     rows = cur.fetchall()
