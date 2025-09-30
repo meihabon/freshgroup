@@ -516,7 +516,7 @@ function DatasetHistory() {
       </Modal>
         <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
           <Modal.Header closeButton className="bg-light">
-            <Modal.Title className="fw-bold">📊 Dataset Preview</Modal.Title>
+            <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {previewRows.length > 0 ? (
