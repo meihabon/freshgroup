@@ -1,3 +1,5 @@
+import pandas as pd
+
 def classify_honors(row):
     gwa = row.get('gwa')
 
