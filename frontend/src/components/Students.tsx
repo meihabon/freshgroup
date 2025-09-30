@@ -104,6 +104,7 @@ function Students() {
   }
 
   const exportToCSV = () => {
+   
     const headers = [
       'firstname',
       'lastname',
@@ -113,8 +114,6 @@ function Students() {
       'income',
       'SHS_type',
       'GWA',
-      'Honors',
-      'IncomeCategory'
     ]
 
     const csvContent = [
@@ -129,8 +128,6 @@ function Students() {
           student.income,
           student.SHS_type,
           student.GWA,
-          student.Honors,
-          student.IncomeCategory
         ].join(',')
       )
     ].join('\n')
@@ -142,6 +139,7 @@ function Students() {
     a.download = 'students.csv'
     a.click()
   }
+
 
   const getHonorsBadgeVariant = (honors: string) => {
     switch (honors) {
