@@ -1,4 +1,5 @@
 # datasets.py
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
@@ -6,11 +7,12 @@ from utils import classify_honors, classify_income
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
-import pandas as pd
+from pandas import isna, to_numeric
 import os, uuid, json
 from datetime import datetime
 from typing import List
 from fastapi.responses import FileResponse
+
 
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
