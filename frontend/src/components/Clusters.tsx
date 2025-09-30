@@ -510,7 +510,8 @@ const renderClusterSection = (
                 <Table striped hover responsive>
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
                       <th>Program</th>
                       <th>Municipality</th>
                       <th>GWA</th>
