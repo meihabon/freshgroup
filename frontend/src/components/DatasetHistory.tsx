@@ -33,7 +33,7 @@ function DatasetHistory() {
   const [clusterCount, setClusterCount] = useState(3)
   const [previewRows, setPreviewRows] = useState<any[]>([])
   const [showPreview, setShowPreview] = useState(false)
-  const [showAll, setShowAll] = useState(false);
+
   // Elbow preview state
   const [elbowLoading, setElbowLoading] = useState(false)
   const [elbowError, setElbowError] = useState('')
@@ -514,96 +514,85 @@ function DatasetHistory() {
           </Button>
         </Modal.Footer>
       </Modal>
-        <Modal
+      <Modal
           show={showPreview}
           onHide={() => setShowPreview(false)}
-          size="xl"   // ✅ wider than lg
           centered
+          style={{ maxWidth: "95%", margin: "auto" }}
         >
-          <Modal.Header closeButton className="bg-light">
-            <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
-          </Modal.Header>
+        <Modal.Header closeButton className="bg-light">
+          <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>
+        </Modal.Header>
 
-          <Modal.Body>
-            {previewRows.length > 0 ? (
-              <div className="table-responsive position-relative">
-                <Table striped bordered hover size="sm" className="align-middle mb-0">
-                  <thead className="table-dark">
-                    <tr>
-                      {Object.keys(previewRows[0]).map((col) => (
-                        <th key={col} className="text-center">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewRows.map((row, idx) => {
-                      // ✅ fade rows only if showAll = false
-                      let opacity = 1;
-                      if (!showAll && idx >= 7) {
-                        const fadeFactor = (idx - 7) / (previewRows.length - 7);
-                        opacity = Math.max(1 - fadeFactor * 0.8, 0.2);
-                      }
+        <Modal.Body>
+          {previewRows.length > 0 ? (
+            <div className="table-responsive position-relative">
+              <Table striped bordered hover size="sm" className="align-middle mb-0">
+                <thead className="table-dark">
+                  <tr>
+                    {Object.keys(previewRows[0]).map((col) => (
+                      <th key={col} className="text-center">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewRows.map((row, idx) => {
+                    // Fade rows after index 6
+                    let opacity = 1;
+                    if (idx >= 7) {
+                      const fadeFactor = (idx - 7) / (previewRows.length - 7);
+                      opacity = Math.max(1 - fadeFactor * 0.8, 0.2);
+                    }
 
-                      return (
-                        <tr
-                          key={idx}
-                          style={{
-                            opacity,
-                            transition: "opacity 0.6s ease"
-                          }}
-                        >
-                          {Object.values(row).map((val, i) => (
-                            <td key={i} className="text-center">
-                              {val !== null && val !== undefined ? val.toString() : "—"}
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
+                    return (
+                      <tr
+                        key={idx}
+                        style={{
+                          opacity,
+                          transition: "opacity 0.6s ease"
+                        }}
+                      >
+                        {Object.values(row).map((val, i) => (
+                          <td key={i} className="text-center">
+                            {val !== null && val !== undefined ? val.toString() : "—"}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
 
-                {/* 🔹 Gradient overlay only if preview is capped */}
-                {!showAll && previewRows.length === 15 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: "40px",
-                      background:
-                        "linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))"
-                    }}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted mb-0">No data available for preview.</p>
-              </div>
-            )}
-          </Modal.Body>
+              {/* 🔹 Gradient overlay if preview is capped at 15 */}
+              {previewRows.length === 15 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "40px",
+                    background:
+                      "linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))"
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-muted mb-0">No data available for preview.</p>
+            </div>
+          )}
+        </Modal.Body>
 
-          <Modal.Footer className="d-flex justify-content-between">
-            {/* Left side: Show All / Collapse toggle */}
-            {previewRows.length === 15 && (
-              <Button
-                variant={showAll ? "outline-primary" : "primary"}
-                onClick={() => setShowAll(!showAll)}
-              >
-                {showAll ? "Collapse Preview" : "Show All Rows"}
-              </Button>
-            )}
-
-            {/* Right side: Close */}
-            <Button variant="secondary" onClick={() => setShowPreview(false)}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
 
     </div>
