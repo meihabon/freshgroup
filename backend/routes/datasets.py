@@ -50,8 +50,8 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     df["IncomeCategory"] = df["income"].apply(classify_income)
 
     # Clean numerics
-    df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce").fillna(0)
-    df["income"] = pd.to_numeric(df["income"], errors="coerce").fillna(0)
+    df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce")
+    df["income"] = pd.to_numeric(df["income"], errors="coerce")
 
     # Encode categoricals
     categorical_cols = ["sex", "program", "municipality", "shs_type"]
@@ -210,9 +210,9 @@ async def upload_dataset(
                 str(row.get('sex') or "Unknown"),
                 str(row.get('program') or "Unknown"),
                 str(row.get('municipality') or "Unknown"),
-                float(row.get('income') or 0),
+                float(row.get('income')) if pd.notna(row.get('income')) else None,
                 str(row.get('shs_type') or "Unknown"),
-                float(row.get('gwa') or 0),
+                float(row.get('income')) if pd.notna(row.get('income')) else None,
                 str(row.get('Honors') or "Unknown"),
                 str(row.get('IncomeCategory') or "Unknown"),
                 dataset_id
