@@ -318,7 +318,8 @@ async def pairwise_clusters(
     for _, row in df.iterrows():
         students_out.append({
             "id": int(row.get("id", 0)),
-            "name": row.get("name"),
+            "firstname": row.get("firstname"),
+            "lastname": row.get("lastname"),
             "sex": row.get("sex"),
             "program": row.get("program"),
             "municipality": row.get("municipality"),
@@ -332,8 +333,8 @@ async def pairwise_clusters(
             "pair_y": float(row[y_col]),
             "pair_x_label": str(row.get(x_canon)) if row.get(x_canon) is not None else str(row.get(x_col)),
             "pair_y_label": str(row.get(y_canon)) if row.get(y_canon) is not None else str(row.get(y_col)),
-
         })
+
 
     return {
         "students": students_out,

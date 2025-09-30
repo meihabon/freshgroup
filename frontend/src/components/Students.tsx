@@ -373,7 +373,6 @@ function Students() {
                   </tr>
                 ))}
               </tbody>
-
             </Table>
           </div>
 
