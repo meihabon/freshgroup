@@ -201,22 +201,52 @@ async def upload_dataset(
         cluster_id = cursor.lastrowid
 
         for _, row in df.iterrows():
+            # Handle text fields (if blank/N/A → "Incomplete")
+            def safe_text(val):
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+                    return "Incomplete"
+                return str(val).strip()
+
+            # Handle numeric fields (if blank/N/A → -1)
+            def safe_num(val):
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+                    return -1
+                try:
+                    return float(val)
+                except Exception:
+                    return -1
+
+            firstname = safe_text(row.get('firstname'))
+            lastname = safe_text(row.get('lastname'))
+            sex = safe_text(row.get('sex'))
+            program = safe_text(row.get('program'))
+            municipality = safe_text(row.get('municipality'))
+            shs_type = safe_text(row.get('shs_type'))
+
+            income_val = safe_num(row.get('income'))
+            gwa_val = safe_num(row.get('gwa'))
+
+            honors = safe_text(row.get('Honors'))
+            income_category = safe_text(row.get('IncomeCategory'))
+
             cursor.execute("""
                 INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                str(row.get('firstname') or "Unknown"),
-                str(row.get('lastname') or "Unknown"),
-                str(row.get('sex') or "Unknown"),
-                str(row.get('program') or "Unknown"),
-                str(row.get('municipality') or "Unknown"),
-                float(row.get('income')) if pd.notna(row.get('income')) else None,
-                str(row.get('shs_type') or "Unknown"),
-                float(row.get('gwa')) if pd.notna(row.get('gwa')) else None,
-                str(row.get('Honors') or "Unknown"),
-                str(row.get('IncomeCategory') or "Unknown"),
+                firstname,
+                lastname,
+                sex,
+                program,
+                municipality,
+                income_val,
+                shs_type,
+                gwa_val,
+                honors,
+                income_category,
                 dataset_id
             ))
+
+
             student_id = cursor.lastrowid
             cursor.execute(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",

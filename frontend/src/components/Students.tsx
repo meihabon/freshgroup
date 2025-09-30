@@ -10,7 +10,7 @@ interface Student {
   id: number
   firstname: string
   lastname: string
-  sex: 'Male' | 'Female'
+  sex: 'Male' | 'Female' | 'Incomplete' | null
   program: string
   municipality: string
   income: number
@@ -350,45 +350,81 @@ function Students() {
                 <tbody>
                   {currentStudents.map((student) => (
                     <tr key={student.id}>
-                      <td className="fw-semibold">{student.firstname || <Badge bg="danger">No First Name</Badge>}</td>
-                      <td className="fw-semibold">{student.lastname || <Badge bg="danger">No Last Name</Badge>}</td>
-                      <td>{student.sex || <Badge bg="danger">No Sex</Badge>}</td>
-                      <td>{student.program || <Badge bg="danger">No Program</Badge>}</td>
-                      <td>{student.municipality || <Badge bg="danger">No Municipality</Badge>}</td>
-                      
+                      {/* Firstname */}
+                      <td className="fw-semibold">
+                        {student.firstname && student.firstname !== "Incomplete"
+                          ? student.firstname
+                          : <Badge bg="danger">No First Name</Badge>}
+                      </td>
+
+                      {/* Lastname */}
+                      <td className="fw-semibold">
+                        {student.lastname && student.lastname !== "Incomplete"
+                          ? student.lastname
+                          : <Badge bg="danger">No Last Name</Badge>}
+                      </td>
+
+                      {/* Sex */}
+                      <td>
+                        {student.sex && student.sex !== "Incomplete"
+                          ? student.sex
+                          : <Badge bg="danger">No Sex</Badge>}
+                      </td>
+
+                      {/* Program */}
+                      <td>
+                        {student.program && student.program !== "Incomplete"
+                          ? student.program
+                          : <Badge bg="danger">No Program</Badge>}
+                      </td>
+
+                      {/* Municipality */}
+                      <td>
+                        {student.municipality && student.municipality !== "Incomplete"
+                          ? student.municipality
+                          : <Badge bg="danger">No Municipality</Badge>}
+                      </td>
+
                       {/* Income */}
                       <td>
-                        {student.income
-                          ? `₱${student.income.toLocaleString()}`
-                          : <Badge bg="danger">No Income Entered</Badge>}
+                        {student.income === -1 || student.income === null
+                          ? <Badge bg="danger">No Income Entered</Badge>
+                          : `₱${student.income.toLocaleString()}`}
                       </td>
-                      
+
                       {/* SHS Type */}
-                      <td>{student.SHS_type || <Badge bg="danger">No SHS Type</Badge>}</td>
-                      
+                      <td>
+                        {student.SHS_type && student.SHS_type !== "Incomplete"
+                          ? student.SHS_type
+                          : <Badge bg="danger">No SHS Type</Badge>}
+                      </td>
+
                       {/* GWA */}
                       <td>
-                        {student.GWA
-                          ? student.GWA
-                          : <Badge bg="danger">No GWA Entered</Badge>}
+                        {student.GWA === -1 || student.GWA === null
+                          ? <Badge bg="danger">No GWA Entered</Badge>
+                          : student.GWA}
                       </td>
-                      
+
                       {/* Honors */}
                       <td>
                         <Badge bg={getHonorsBadgeVariant(student.Honors)}>
-                          {student.Honors}
+                          {student.Honors && student.Honors !== "Incomplete" ? student.Honors : "No Honors"}
                         </Badge>
                       </td>
-                      
+
                       {/* Income Category */}
                       <td>
                         <Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>
-                          {student.IncomeCategory}
+                          {student.IncomeCategory && student.IncomeCategory !== "Incomplete"
+                            ? student.IncomeCategory
+                            : "No Income Category"}
                         </Badge>
                       </td>
                     </tr>
                   ))}
                 </tbody>
+
 
             </Table>
           </div>
