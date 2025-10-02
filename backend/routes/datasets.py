@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
-from utils import classify_honors, classify_income, 
+from utils import classify_honors, classify_income, normalize_student_record_db, normalize_student_record_display
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
