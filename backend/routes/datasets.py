@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
+from utils import classify_honors, classify_income
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -12,22 +13,13 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
-from utils import classify_honors, classify_income, classify_location, encode_features, describe_cluster
-from sklearn.metrics import silhouette_score
-
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
 # --- Helper: Normalize & Prepare DataFrame ---
 def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
-    # Lowercase + strip spaces
+    df = df.copy()
     df.columns = df.columns.str.strip().str.lower()
-
-    # Ensure required columns exist
-    required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
-    for col in required_cols:
-        if col not in df.columns:
-            df[col] = None
 
     # Map common variations
     col_map = {
@@ -58,7 +50,6 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     # Derive Honors & IncomeCategory
     df["Honors"] = df.apply(classify_honors, axis=1)
     df["IncomeCategory"] = df["income"].apply(classify_income)
-    df["LocationCategory"] = df["municipality"].apply(classify_location)
 
     # Clean numerics
     df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce")
@@ -84,10 +75,10 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # --- Elbow Helper Functions ---
-def compute_wcss_for_range(X_scaled, k_min=2, k_max=15) -> List[float]:
+def compute_wcss_for_range(X_scaled, k_min=2, k_max=10) -> List[float]:
     wcss = []
     for k in range(k_min, k_max + 1):
-        kmeans = KMeans(n_clusters=k, random_state=42, n_init=20, max_iter=500)
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
         kmeans.fit(X_scaled)
         wcss.append(float(kmeans.inertia_))
     return wcss
@@ -106,8 +97,9 @@ def recommend_k_by_curvature(wcss: List[float], k_min=2) -> int:
         pass
     return max(2, min(5, len(wcss) // 2))  # fallback default
 
-
-
+# -----------------------------
+# Elbow Preview
+# -----------------------------
 @router.post("/datasets/elbow")
 async def elbow_preview(
     file: UploadFile = File(...),
@@ -116,7 +108,7 @@ async def elbow_preview(
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can compute elbow preview")
 
-    if not file.filename.endswith((".csv", ".xlsx")):
+    if not file.filename.endswith(('.csv', '.xlsx')):
         raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
 
     file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
@@ -125,89 +117,75 @@ async def elbow_preview(
             buffer.write(await file.read())
 
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path, low_memory=False)
+            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
         else:
             df = pd.read_excel(file_path)
 
-        # Normalize headers + safe fill
         df = normalize_and_prepare_df(df)
-        if 'encode_features' in globals():
-            df = encode_features(df)
 
-        # Feature selection: use all numeric and encoded features for best clustering
-        feature_cols = [
-            c for c in df.columns if (
-                c in ["gwa", "income", "sex_code", "shs_code", "location_code"]
-                or c.startswith("program_")
-            )
-        ]
-        # Remove columns with all NaN or constant value
-        feature_cols = [c for c in feature_cols if df[c].nunique(dropna=True) > 1]
-
-        X = df[feature_cols].fillna(0)
+        features = ['gwa', 'income']
+        X = df[features].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        # Compute elbow with more k values for better accuracy
-        k_min, k_max = 2, min(15, max(5, len(df)//2))
-        wcss = compute_wcss_for_range(X_scaled, k_min=k_min, k_max=k_max)
-        recommended_k = recommend_k_by_curvature(wcss, k_min=k_min) or 3
-        k_values = list(range(k_min, k_min + len(wcss)))
+        wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
+        recommended_k = recommend_k_by_curvature(wcss)
 
-        # Silhouette analysis
-        silhouette_scores = []
-        for k in k_values:
-            try:
-                kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-                labels = kmeans.fit_predict(X_scaled)
-                score = silhouette_score(X_scaled, labels)
-                silhouette_scores.append(score)
-            except Exception:
-                silhouette_scores.append(-1)
-        silhouette_k = int((silhouette_scores.index(max(silhouette_scores)) + k_min)) if silhouette_scores else recommended_k
+        return {"wcss": wcss, "recommended_k": recommended_k}
 
-        return {
-            "wcss": wcss,
-            "k_values": k_values,
-            "recommended_k": recommended_k,
-            "silhouette_scores": silhouette_scores,
-            "silhouette_k": silhouette_k
-        }
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        traceback.print_exc()  # <-- prints full error with line numbers
         raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+# -----------------------------
+# Upload Dataset
+# -----------------------------
+@router.post("/datasets/upload")
+async def upload_dataset(
+    file: UploadFile = File(...),
+    k: int | None = None,   # optional k
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can upload datasets")
+
+    if not file.filename.endswith(('.csv', '.xlsx')):
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+
+    file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    try:
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path, low_memory=False)
+            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
         else:
             df = pd.read_excel(file_path)
 
-        # Normalize + enrich
         df = normalize_and_prepare_df(df)
-        df = encode_features(df)
 
-        # Features
-        feature_cols = ["gwa", "income", "sex_code", "shs_code", "location_code"] + \
-                       [c for c in df.columns if c.startswith("program_")]
-
-        X = df[feature_cols].fillna(0)
+        features = ['gwa', 'income']
+        X = df[features].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        # Auto-select k if not provided
+        # auto-select k if not provided
         if k is None:
             wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
-            k = recommend_k_by_curvature(wcss) or 3
+            k = recommend_k_by_curvature(wcss)
 
-        # Run clustering
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        df["Cluster"] = kmeans.fit_predict(X_scaled).astype(int)
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
 
-        # Inverse centroids (only gwa + income kept)
         all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
+    # Keep only GWA (index 0) and income (index 1)
         centroids = [[c[0], c[1]] for c in all_centroids]
 
-        # Save in DB (datasets, clusters, students, student_cluster)
         connection = get_db_connection()
         if not connection:
             os.remove(file_path)
@@ -226,44 +204,59 @@ async def elbow_preview(
         )
         cluster_id = cursor.lastrowid
 
-        # Insert students
         for _, row in df.iterrows():
+            # Handle text fields (if blank/N/A → "Incomplete")
             def safe_text(val):
-                if pd.isna(val) or str(val).strip() in ["", "n/a", "na", "none"]:
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return "Incomplete"
                 return str(val).strip()
 
+            # Handle numeric fields (if blank/N/A → -1)
             def safe_num(val):
-                if pd.isna(val) or str(val).strip() in ["", "n/a", "na", "none"]:
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return -1
                 try:
                     return float(val)
                 except Exception:
                     return -1
 
+            firstname = safe_text(row.get('firstname'))
+            lastname = safe_text(row.get('lastname'))
+            sex = safe_text(row.get('sex'))
+            program = safe_text(row.get('program'))
+            municipality = safe_text(row.get('municipality'))
+            shs_type = safe_text(row.get('shs_type'))
+
+            income_val = safe_num(row.get('income'))
+            gwa_val = safe_num(row.get('gwa'))
+
+            honors = safe_text(row.get('Honors'))
+            income_category = safe_text(row.get('IncomeCategory'))
+
             cursor.execute("""
-                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, LocationCategory, dataset_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                safe_text(row.get("firstname")),
-                safe_text(row.get("lastname")),
-                safe_text(row.get("sex")),
-                safe_text(row.get("program")),
-                safe_text(row.get("municipality")),
-                safe_num(row.get("income")),
-                safe_text(row.get("shs_type")),
-                safe_num(row.get("gwa")),
-                safe_text(row.get("Honors")),
-                safe_text(row.get("IncomeCategory")),
-                safe_text(row.get("LocationCategory")),
+                firstname,
+                lastname,
+                sex,
+                program,
+                municipality,
+                income_val,
+                shs_type,
+                gwa_val,
+                honors,
+                income_category,
                 dataset_id
             ))
+
 
             student_id = cursor.lastrowid
             cursor.execute(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (student_id, cluster_id, int(row["Cluster"]))
+                (student_id, cluster_id, int(row['Cluster']))
             )
+
 
         connection.commit()
         cursor.close()
@@ -281,7 +274,6 @@ async def elbow_preview(
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=f"Error processing dataset: {str(e)}")
-
 
 # -----------------------------
 # Get Dataset History

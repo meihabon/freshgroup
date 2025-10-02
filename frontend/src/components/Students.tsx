@@ -18,7 +18,6 @@ interface Student {
   GWA: number
   Honors: string
   IncomeCategory: string
-  LocationCategory: string
 }
 
 function Students() {
@@ -117,7 +116,6 @@ function Students() {
       'GWA',
       'Honors',
       'IncomeCategory',
-      'LocationCategory',
     ]
 
     const csvContent = [
@@ -134,7 +132,6 @@ function Students() {
           student.GWA,
           student.Honors,
           student.IncomeCategory, 
-          student.LocationCategory, 
         ].join(',')
       )
     ].join('\n')
@@ -343,7 +340,6 @@ function Students() {
                   <th>General Weighted Average (GWA)</th>
                   <th>Honors</th>
                   <th>Income Category</th>
-                  <th>Location Category</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -419,13 +415,6 @@ function Students() {
                           {student.IncomeCategory && student.IncomeCategory !== "Incomplete"
                             ? student.IncomeCategory
                             : "No Income Category"}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg="secondary">
-                          {student.LocationCategory && student.LocationCategory !== "Incomplete"
-                            ? student.LocationCategory
-                            : "No Location Category"}
                         </Badge>
                       </td>
                       <td>
@@ -601,12 +590,7 @@ function Students() {
                 <Form.Label>Income Category (System Computed)</Form.Label>
                 <Form.Control type="text" value={selectedStudent.IncomeCategory} disabled />
               </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Location Category (System Computed)</Form.Label>
-                <Form.Control type="text" value={selectedStudent.LocationCategory} disabled />
-              </Form.Group>
             </Form>
-            
           )}
         </Modal.Body>
         <Modal.Footer>

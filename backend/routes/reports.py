@@ -1,3 +1,4 @@
+# reports.py
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from db import get_db_connection
@@ -7,7 +8,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
-from utils import classify_location 
 
 router = APIRouter()
 
@@ -43,13 +43,7 @@ async def get_all_students_from_db():
     students = cursor.fetchall()
     cursor.close()
     connection.close()
-
-    # ✅ Add LocationCategory to every student
-    for s in students:
-        s["LocationCategory"] = classify_location(s.get("municipality"))
-
     return students
-
 
 # === Reports Endpoint ===
 @router.get("/reports/{report_type}")
@@ -58,18 +52,19 @@ async def export_report(report_type: str, format: str = Query("pdf")):
     if not students:
         raise HTTPException(status_code=404, detail="No student data found")
 
+    # ===== Define report types =====
     summary_data, student_headers, student_rows, show_charts, recommendations = {}, [], [], False, ""
 
     if report_type == "dashboard_summary":
         title = "Dashboard Summary Report"
         total_students = len(students)
 
-        sex_counts, program_counts, municipality_counts, location_counts, income_counts, shs_counts, honors_counts = {}, {}, {}, {}, {}, {}, {}
+        # Count categories
+        sex_counts, program_counts, municipality_counts, income_counts, shs_counts, honors_counts = {}, {}, {}, {}, {}, {}
         for s in students:
             sex_counts[s["sex"]] = sex_counts.get(s["sex"], 0) + 1
             program_counts[s["program"]] = program_counts.get(s["program"], 0) + 1
             municipality_counts[s["municipality"]] = municipality_counts.get(s["municipality"], 0) + 1
-            location_counts[s["LocationCategory"]] = location_counts.get(s["LocationCategory"], 0) + 1
             income_counts[s["IncomeCategory"]] = income_counts.get(s["IncomeCategory"], 0) + 1
             shs_counts[s["SHS_type"]] = shs_counts.get(s["SHS_type"], 0) + 1
             honors_counts[s["Honors"]] = honors_counts.get(s["Honors"], 0) + 1
@@ -80,39 +75,25 @@ async def export_report(report_type: str, format: str = Query("pdf")):
             "Most Common Sex": most_common(sex_counts),
             "Most Common Program": most_common(program_counts),
             "Most Common Municipality": most_common(municipality_counts),
-            "Most Common Location": most_common(location_counts),   # ✅ NEW
             "Most Common Income Category": most_common(income_counts),
             "Most Common SHS Type": most_common(shs_counts),
             "Most Common Honors": most_common(honors_counts),
         }
 
-        student_headers = ["Firstname", "Lastname", "Sex", "Program", "Municipality", "Location",
-                           "Income", "SHS Type", "GWA", "Honors", "IncomeCategory"]
+        student_headers = ["Firstname", "Lastname", "Sex", "Program", "Municipality", "Income", "SHS Type", "GWA", "Honors", "IncomeCategory"]
         student_rows = [
-            [s["firstname"], s["lastname"], s["sex"], s["program"], s["municipality"], s["LocationCategory"],
-             str(s["income"]), s["SHS_type"], str(s["GWA"]), s["Honors"], s["IncomeCategory"]]
+            [s["firstname"], s["lastname"], s["sex"], s["program"], s["municipality"], str(s["income"]), s["SHS_type"], str(s["GWA"]), s["Honors"], s["IncomeCategory"]]
             for s in students
         ]
-
         show_charts = {
             "Sex Distribution": sex_counts,
             "Program Distribution": program_counts,
             "Municipality Distribution": municipality_counts,
-            "Location Distribution": location_counts,  # ✅ NEW
             "Income Distribution": income_counts,
             "SHS Type Distribution": shs_counts,
             "Honors Distribution": honors_counts,
         }
-        recommendations = "These insights guide scholarship allocation (income), curriculum planning (programs), student support (sex, SHS type, municipality, location)."
-
-    elif report_type == "location_report":   # ✅ NEW REPORT
-        title = "Location Report"
-        summary_data = {}
-        for s in students:
-            summary_data[s["LocationCategory"]] = summary_data.get(s["LocationCategory"], 0) + 1
-        student_headers = ["Firstname", "Lastname", "Municipality", "Location"]
-        student_rows = [[s["firstname"], s["lastname"], s["municipality"], s["LocationCategory"]] for s in students]
-        recommendations = "This report shows distribution of students from upland vs lowland municipalities. Useful for targeted outreach and community engagement."
+        recommendations = "These insights help guide scholarship allocation (income), curriculum planning (programs), and student support initiatives (sex, SHS type, municipality)."
 
     elif report_type == "income_analysis":
         title = "Income Analysis Report"

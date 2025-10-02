@@ -31,54 +31,38 @@ function Reports() {
   }
 
 
-const reports = [
-  {
-    key: "dashboard_summary",
-    title: "Dashboard Summary",
-    description: "A complete overview of the dataset including charts, statistics, and the full student list.",
-  },
-  {
-    key: "income_analysis",
-    title: "Income Analysis",
-    description: "Focuses on income levels and categories across students, with distributions and trends.",
-  },
-  {
-    key: "honors_report",
-    title: "Honors Report",
-    description: "Highlights honors classifications alongside GWA scores, with summary statistics.",
-  },
-  {
-    key: "municipality_report",
-    title: "Municipality Report",
-    description: "Breakdown of students by municipality, showing geographic distribution and trends.",
-  },
-  {
-    key: "shs_report",
-    title: "Senior High School Background",
-    description: "Looks at SHS strands (STEM, ABM, HUMSS, TVL) with student counts and performance comparisons.",
-  },
-  {
-    key: "location_report",
-    title: "Location Category Report",
-    description: "Analyzes upland, lowland, and coastal distributions, showing how geography influences academic and income trends.",
-  },
-  {
-    key: "cluster_analysis",
-    title: "Cluster Analysis",
-    description: "Exports official clusters (GWA vs. Income) with assigned groups and statistical insights.",
-  },
-  {
-    key: "pairwise_clusters",
-    title: "Pairwise Clusters",
-    description: "Exports clustering results based on two selected features, with profiles and comparisons.",
-  },
-  {
-    key: "playground_clusters",
-    title: "Playground Clusters",
-    description: "Exports clusters with user-defined K, for exploratory analysis.",
-  },
-]
-
+  const reports = [
+    {
+      key: "dashboard_summary",
+      title: "Dashboard Summary",
+      description: "A complete overview of the dataset including charts, statistics, and the full student list.",
+    },
+    {
+      key: "income_analysis",
+      title: "Income Analysis",
+      description: "Focuses on income levels and categories across students, with distributions and trends.",
+    },
+    {
+      key: "honors_report",
+      title: "Honors Report",
+      description: "Highlights honors classifications alongside GWA scores, with summary statistics.",
+    },
+    {
+      key: "municipality_report",
+      title: "Municipality Report",
+      description: "Breakdown of students by municipality, showing geographic distribution and trends.",
+    },
+    {
+      key: "shs_report",
+      title: "Senior High School Background",
+      description: "Looks at SHS strands (STEM, ABM, HUMSS, TVL) with student counts and performance comparisons.",
+    },
+    {
+      key: "cluster_analysis",
+      title: "Cluster Analysis",
+      description: "Exports official clusters (GWA vs. Income) with assigned groups and statistical insights.",
+    },
+  ]
 
   return (
     <div className="fade-in">

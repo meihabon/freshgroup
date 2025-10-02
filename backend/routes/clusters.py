@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import json
 from typing import List, Dict
-from utils import encode_features, describe_cluster, classify_location
+
 router = APIRouter()
 
 
@@ -102,7 +102,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     if not cluster_info or not cluster_info.get("cluster_id"):
         cursor.close()
         connection.close()
-        return {"clusters": {}, "plot_data": {}, "centroids": [], "cluster_labels": {}}
+        return {"clusters": {}, "plot_data": {}, "centroids": []}
 
     cursor.execute("""
         SELECT s.*, sc.cluster_number
@@ -115,88 +115,45 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
 
-    # Add LocationCategory (safe)
-    for s in students:
-        s["LocationCategory"] = classify_location(s.get("municipality"))
-
-    # Convert to DataFrame for cluster description
-    df = pd.DataFrame(students)
-
-    # ensure lowercase consistent columns if some rows used uppercase
-    # (map common uppercase keys to lowercase)
-    if "GWA" in df.columns and "gwa" not in df.columns:
-        df["gwa"] = df["GWA"]
-    # same for SHS_type / shs_type if needed
-    if "SHS_type" in df.columns and "shs_type" not in df.columns:
-        df["shs_type"] = df["SHS_type"]
-
-    # Optionally enrich / ensure derived features exist
-    # (encode_features will add LocationCategory, IncomeCategory, Honors, program dummies)
-    try:
-        df = encode_features(df)
-    except Exception:
-        # fallback: continue with whatever is present
-        pass
-
-    # Ensure there's a numeric Cluster column used by describe_cluster
-    if "cluster_number" in df.columns:
-        df["Cluster"] = df["cluster_number"].astype(int)
-    else:
-        df["Cluster"] = df.get("Cluster", pd.Series([-1]*len(df))).astype(int)
-
-    # Build descriptive labels using describe_cluster (which expects df["Cluster"])
-    cluster_labels = {}
-    if not df.empty:
-        for c in sorted(df["Cluster"].unique()):
-            cluster_labels[int(c)] = describe_cluster(df, int(c))
-            df.loc[df["Cluster"] == c, "ClusterLabel"] = cluster_labels[int(c)]
-
-    # Update students list with labels
-    students = df.to_dict(orient="records")
-
-    # Plot data (use lowercase 'gwa')
     plot_data = {
-        "x": [s.get("gwa", 0) for s in students],
+        "x": [s.get("GWA", 0) for s in students],
         "y": [s.get("income", 0) for s in students],
         "colors": [s.get("cluster_number", 0) for s in students],
         "text": [
-            f"{s.get('firstname','')} {s.get('lastname','')}<br>"
-            f"Program: {s.get('program','-')}<br>"
-            f"Municipality: {s.get('municipality','-')}<br>"
-            f"Location: {s.get('LocationCategory','-')}<br>"
-            f"Income: {s.get('IncomeCategory','-')}<br>"
-            f"Honors: {s.get('Honors','-')}<br>"
-            f"SHS: {s.get('shs_type','-')}<br>"
-            f"Cluster: {s.get('ClusterLabel','-')}"
+            f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
+            f"Income: {s.get('IncomeCategory','-')}<br>Honors: {s.get('Honors','-')}<br>SHS: {s.get('SHS_type','-')}"
             for s in students
         ]
     }
 
-    # Group students by cluster number (keep numeric keys)
     clusters: Dict[int, List[dict]] = {}
-    for s in students:
-        cnum = int(s.get("cluster_number", s.get("Cluster", -1)))
-        clusters.setdefault(cnum, []).append(s)
+    for student in students:
+        cnum = int(student.get("cluster_number", 0))
+        # ✅ enforce integer cluster IDs in the student dict itself
+        student["cluster_number"] = cnum
+        clusters.setdefault(cnum, []).append(student)
 
-    # Centroids (keep GWA + income)
     centroids = []
     if cluster_info.get("centroids"):
         try:
             parsed = json.loads(cluster_info["centroids"])
+            # parsed is list of full feature centroids [gwa, income, sex_enc, program_enc, ...]
             for c in parsed:
                 if len(c) >= 2:
-                    centroids.append([float(c[0]), float(c[1])])  # GWA + Income
+                    centroids.append([float(c[0]), float(c[1])])  # only GWA (x) and Income (y)
         except Exception as exc:
             print("Error parsing centroids:", exc)
             centroids = []
 
-    return {
-        "clusters": clusters,
-        "plot_data": plot_data,
-        "centroids": centroids,
-        "k": cluster_info["k"],
-        "cluster_labels": cluster_labels
-    }
+
+        return {
+            "clusters": clusters,
+            "plot_data": plot_data,
+            "centroids": centroids,
+            "k": cluster_info["k"],   # ✅ send official k to frontend
+        }
+
+
 
 # ------------------------
 # RE-CLUSTER DATASET
@@ -222,32 +179,34 @@ async def recluster(
 
     cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
     students = cursor.fetchall()
-    cursor.close(); connection.close()
-
     if not students:
+        cursor.close(); connection.close()
         raise HTTPException(status_code=404, detail="No students found for latest dataset")
+
     if k > len(students):
+        cursor.close(); connection.close()
         raise HTTPException(status_code=400, detail="k cannot be greater than number of students")
 
-    # --- Encode features ---
     df = pd.DataFrame(students)
-    df = encode_features(df)
+    df = normalize_dataframe_columns(df)
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
-    feature_cols = ["gwa", "income", "sex_code", "shs_code", "location_code"] + \
-                   [c for c in df.columns if c.startswith("program_")]
+    canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
+    feature_cols = _pick_feature_columns(df, canonical_features)
+    if not feature_cols:
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="No usable features for clustering")
 
     X = df[feature_cols].fillna(0).astype(float)
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # --- KMeans ---
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     preds = kmeans.fit_predict(X_scaled)
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
-    df["Cluster"] = preds
-    cluster_labels = {c: describe_cluster(df, c) for c in sorted(df["Cluster"].unique())}
-    df["ClusterLabel"] = df["Cluster"].map(cluster_labels)
+    cursor.close(); connection.close()
 
     if role == "Admin":
         conn2 = get_db_connection()
@@ -255,36 +214,34 @@ async def recluster(
             raise HTTPException(status_code=500, detail="Database connection failed")
         c2 = conn2.cursor(dictionary=True)
 
-        # Clean old clusters
         c2.execute("SELECT id FROM clusters WHERE dataset_id = %s", (dataset_id,))
         olds = c2.fetchall() or []
         for oc in olds:
             c2.execute("DELETE FROM student_cluster WHERE cluster_id = %s", (oc["id"],))
         c2.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
 
-        # Save new cluster info
         c2.execute("INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
                    (dataset_id, k, json.dumps(centroids)))
         new_cluster_id = c2.lastrowid
 
-        for idx, row in df.iterrows():
-            c2.execute(
-                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (int(row["id"]), new_cluster_id, int(row["Cluster"]))
-            )
+        for idx, row in enumerate(students):
+            student_id = int(row["id"])
+            c2.execute("INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                       (student_id, new_cluster_id, int(preds[idx])))
 
         conn2.commit()
         c2.close(); conn2.close()
-        return {"message": f"Official dataset re-clustered with k={k}", "cluster_labels": cluster_labels}
+
+        return {"message": f"Official dataset re-clustered with k={k}"}
 
     elif role == "Viewer":
-        students_out = df.to_dict(orient="records")
-        return {
-            "message": f"Preview clustering with k={k} (not saved)",
-            "students": students_out,
-            "centroids": centroids,
-            "cluster_labels": cluster_labels
-        }
+        out_students = []
+        for idx, s in enumerate(students):
+            s_copy = dict(s)
+            s_copy["Cluster"] = int(preds[idx])
+            out_students.append(s_copy)
+
+        return {"message": f"Preview clustering with k={k} (not saved)", "students": out_students, "centroids": centroids}
 
     else:
         raise HTTPException(status_code=403, detail="Unauthorized role")
@@ -335,10 +292,6 @@ async def pairwise_clusters(
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
-    # ✅ Add LocationCategory using your utils
-    from utils import classify_location, describe_cluster
-    df["LocationCategory"] = df["municipality"].apply(classify_location)
-
     def actual_col(canon: str) -> str:
         if canon in {"sex", "program", "municipality", "shs_type"}:
             return f"{canon}_enc" if f"{canon}_enc" in df.columns else canon
@@ -361,11 +314,6 @@ async def pairwise_clusters(
 
     df["Cluster"] = preds
 
-    # ✅ Generate descriptive cluster labels
-    cluster_labels = {c: describe_cluster(df, c) for c in sorted(df["Cluster"].unique())}
-    df["ClusterLabel"] = df["Cluster"].map(cluster_labels)
-
-    # Students out
     students_out = []
     for _, row in df.iterrows():
         students_out.append({
@@ -375,38 +323,18 @@ async def pairwise_clusters(
             "sex": row.get("sex"),
             "program": row.get("program"),
             "municipality": row.get("municipality"),
-            "location": row.get("LocationCategory"),  # ✅ added location
             "income": float(row.get("income") or 0),
-            "IncomeCategory": row.get("IncomeCategory"),
             "SHS_type": row.get("shs_type"),
             "GWA": float(row.get("gwa") or 0),
             "Honors": row.get("Honors"),
+            "IncomeCategory": row.get("IncomeCategory"),
             "Cluster": int(row["Cluster"]),
-            "ClusterLabel": row["ClusterLabel"],  # ✅ descriptive cluster name
             "pair_x": float(row[x_col]),
             "pair_y": float(row[y_col]),
             "pair_x_label": str(row.get(x_canon)) if row.get(x_canon) is not None else str(row.get(x_col)),
             "pair_y_label": str(row.get(y_canon)) if row.get(y_canon) is not None else str(row.get(y_col)),
         })
 
-    # ✅ Plot data with location included
-    plot_data = {
-        "x": df[x_col].tolist(),
-        "y": df[y_col].tolist(),
-        "colors": df["Cluster"].tolist(),
-        "labels": df["ClusterLabel"].tolist(),
-        "locations": df["LocationCategory"].tolist(),  # ✅ included
-        "text": [
-            f"{r.get('firstname','')} {r.get('lastname','')}<br>"
-            f"Program: {r.get('program','-')}<br>"
-            f"Municipality: {r.get('municipality','-')}<br>"
-            f"Location: {r.get('LocationCategory','-')}<br>"
-            f"Income: {r.get('IncomeCategory','-')}<br>"
-            f"Honors: {r.get('Honors','-')}<br>"
-            f"SHS: {r.get('shs_type','-')}"
-            for _, r in df.iterrows()
-        ]
-    }
 
     return {
         "students": students_out,
@@ -414,7 +342,6 @@ async def pairwise_clusters(
         "x_name": x_canon,
         "y_name": y_canon,
         "k": k,
-        "plot_data": plot_data,
         "x_categories": df[x_canon].unique().tolist() if x_canon in {"sex","program","municipality","shs_type"} else None,
         "y_categories": df[y_canon].unique().tolist() if y_canon in {"sex","program","municipality","shs_type"} else None,
     }
