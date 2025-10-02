@@ -62,7 +62,7 @@ async def get_students(
     cursor.close()
     connection.close()
     return students
-    
+
 @router.put("/students/{student_id}")
 async def update_student(
     student_id: int,
@@ -96,18 +96,19 @@ async def update_student(
     honors = classify_honors({"gwa": gwa})
     income_category = classify_income(income)
 
-    update_query = """
-        UPDATE students
-        SET firstname=%s, lastname=%s, sex=%s, program=%s,
-            municipality=%s, SHS_type=%s, GWA=%s, income=%s,
-            Honors=%s, IncomeCategory=%s
-        WHERE id=%s
-    """
-    cursor.execute(update_query, (
-        firstname, lastname, sex, program,
-        municipality, shs_type, gwa, income,
-        honors, income_category, student_id
-    ))
+    try:
+        cursor.execute(update_query, (
+            firstname, lastname, sex, program,
+            municipality, shs_type, gwa, income,
+            honors, income_category, student_id
+        ))
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
+        
     connection.commit()
     cursor.close()
     connection.close()
