@@ -78,6 +78,8 @@ async def change_password(data: dict = Body(...), current_user: dict = Depends(g
         raise HTTPException(status_code=400, detail="All fields are required")
     if new_password != confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
 
     if not verify_password(current_password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Current password is incorrect")

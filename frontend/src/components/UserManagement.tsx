@@ -145,8 +145,8 @@ const handleResetPassword = async () => {
     setError("Both password fields are required")
     return
   }
-  if (resetForm.newPassword.length < 8) {
-    setError("Password must be at least 8 characters long")
+  if (resetForm.newPassword.length < 6) {
+    setError("Password must be at least 6 characters long")
     return
   }
   if (resetForm.newPassword !== resetForm.confirmPassword) {
@@ -160,7 +160,7 @@ const handleResetPassword = async () => {
   try {
     await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
     setSuccess("Password successfully updated!")
-    // Close the modal after 1.5s so user can see the message
+    // Keep the modal open briefly so the user sees the message
     setTimeout(() => {
       setShowResetModal(false)
       setSuccess("")
@@ -477,28 +477,59 @@ const handleResetPassword = async () => {
             <Form.Group className="mb-3">
               <Form.Label>New Password</Form.Label>
               <div className="d-flex">
-                <Form.Control type={showPassword ? "text" : "password"} value={resetForm.newPassword} onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })} />
-                <Button variant="outline-secondary" onClick={() => setShowPassword(!showPassword)} className="ms-2">
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  value={resetForm.newPassword}
+                  onChange={(e) =>
+                    setResetForm({ ...resetForm, newPassword: e.target.value })
+                  }
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="ms-2"
+                >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </Button>
               </div>
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Confirm Password</Form.Label>
-              <Form.Control type="password" value={resetForm.confirmPassword} onChange={(e) => setResetForm({ ...resetForm, confirmPassword: e.target.value })} />
-              {resetForm.confirmPassword && resetForm.newPassword !== resetForm.confirmPassword && (
-                <Form.Text className="text-danger">Passwords do not match</Form.Text>
-              )}
+              <Form.Control
+                type="password"
+                value={resetForm.confirmPassword}
+                onChange={(e) =>
+                  setResetForm({ ...resetForm, confirmPassword: e.target.value })
+                }
+              />
+              {resetForm.confirmPassword &&
+                resetForm.newPassword !== resetForm.confirmPassword && (
+                  <Form.Text className="text-danger">
+                    Passwords do not match
+                  </Form.Text>
+                )}
             </Form.Group>
+
+            {/* ✅ Inline feedback */}
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowResetModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleResetPassword} disabled={saving}>
+          <Button variant="secondary" onClick={() => setShowResetModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleResetPassword}
+            disabled={saving}
+          >
             {saving ? <Spinner size="sm" animation="border" /> : "Update Password"}
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   )
 }
