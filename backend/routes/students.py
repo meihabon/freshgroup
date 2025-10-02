@@ -70,9 +70,9 @@ class StudentUpdate(BaseModel):
     program: str | None = None
     sex: str | None = None
     municipality: str | None = None
-    IncomeCategory: str | None = None
     SHS_type: str | None = None
-    Honors: str | None = None
+    income: float | None = None     
+    GWA: float | None = None       
 
 # --- Update route (Admin only) ---
 @router.put("/students/{student_id}")

@@ -444,7 +444,7 @@ function Students() {
                       />
                     </Form.Group>
 
-                    {/* Program (dropdown) */}
+                    {/* Program */}
                     <Form.Group className="mb-2">
                       <Form.Label>Program</Form.Label>
                       <Form.Select
@@ -462,7 +462,7 @@ function Students() {
                       </Form.Select>
                     </Form.Group>
 
-                    {/* Sex (dropdown) */}
+                    {/* Sex */}
                     <Form.Group className="mb-2">
                       <Form.Label>Sex</Form.Label>
                       <Form.Select
@@ -477,7 +477,7 @@ function Students() {
                       </Form.Select>
                     </Form.Group>
 
-                    {/* Municipality (dropdown) */}
+                    {/* Municipality */}
                     <Form.Group className="mb-2">
                       <Form.Label>Municipality</Form.Label>
                       <Form.Select
@@ -495,7 +495,7 @@ function Students() {
                       </Form.Select>
                     </Form.Group>
 
-                    {/* SHS Type (dropdown) */}
+                    {/* SHS Type */}
                     <Form.Group className="mb-2">
                       <Form.Label>SHS Type</Form.Label>
                       <Form.Select
@@ -513,44 +513,29 @@ function Students() {
                       </Form.Select>
                     </Form.Group>
 
-                    {/* Honors */}
+                    {/* Income (numeric) */}
                     <Form.Group className="mb-2">
-                      <Form.Label>Honors</Form.Label>
-                      <Form.Select
-                        value={editingStudent.Honors || ""}
+                      <Form.Label>Income (₱)</Form.Label>
+                      <Form.Control
+                        type="number"
+                        value={editingStudent.income ?? ""}
                         onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, Honors: e.target.value })
+                          setEditingStudent({ ...editingStudent, income: Number(e.target.value) })
                         }
-                      >
-                        <option value="">Select...</option>
-                        <option value="Average">Average</option>
-                        <option value="With Honors">With Honors</option>
-                        <option value="With High Honors">With High Honors</option>
-                        <option value="With Highest Honors">With Highest Honors</option>
-                      </Form.Select>
+                      />
                     </Form.Group>
 
-                    {/* Income Category */}
+                    {/* GWA (numeric) */}
                     <Form.Group className="mb-2">
-                      <Form.Label>Income Category</Form.Label>
-                      <Form.Select
-                        value={editingStudent.IncomeCategory || ""}
+                      <Form.Label>General Weighted Average (GWA)</Form.Label>
+                      <Form.Control
+                        type="number"
+                        step="0.01"
+                        value={editingStudent.GWA ?? ""}
                         onChange={(e) =>
-                          setEditingStudent({
-                            ...editingStudent,
-                            IncomeCategory: e.target.value,
-                          })
+                          setEditingStudent({ ...editingStudent, GWA: Number(e.target.value) })
                         }
-                      >
-                        <option value="">Select...</option>
-                        <option value="Poor">Poor</option>
-                        <option value="Low-Income">Low-Income</option>
-                        <option value="Lower-Middle">Lower-Middle</option>
-                        <option value="Middle-Middle">Middle-Middle</option>
-                        <option value="Upper-Middle">Upper-Middle</option>
-                        <option value="Upper-Income">Upper-Income</option>
-                        <option value="Rich">Rich</option>
-                      </Form.Select>
+                      />
                     </Form.Group>
                   </Form>
                 )}
