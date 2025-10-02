@@ -115,16 +115,18 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
             raise ValueError(f"Dataset is missing required column: {col}")
 
     # ✅ Fill blanks in required columns with a placeholder
+
     df["sex"] = df["sex"].fillna("Unknown")
-    df["SHS_type"] = df["SHS_type"].fillna("Unknown")
+    df["shs_type"] = df["shs_type"].fillna("Unknown")
     df["municipality"] = df["municipality"].fillna("Unknown")
     df["program"] = df["program"].fillna("Unknown")
 
     # Sex → numeric
     df["sex_code"] = df["sex"].map({"Male": 0, "Female": 1}).fillna(-1)
 
+
     # SHS Type → numeric
-    df["shs_code"] = df["SHS_type"].map({"Public": 0, "Private": 1}).fillna(-1)
+    df["shs_code"] = df["shs_type"].map({"Public": 0, "Private": 1}).fillna(-1)
 
     # Location (Upland/Lowland/Unknown)
     df["LocationCategory"] = df["municipality"].apply(classify_location)
