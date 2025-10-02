@@ -503,12 +503,19 @@ const handleResetPassword = async () => {
                   setResetForm({ ...resetForm, confirmPassword: e.target.value })
                 }
               />
+              {/* Inline feedback for password mismatch */}
               {resetForm.confirmPassword &&
                 resetForm.newPassword !== resetForm.confirmPassword && (
                   <Form.Text className="text-danger">
                     Passwords do not match
                   </Form.Text>
                 )}
+              {/* Inline feedback for password length */}
+              {resetForm.newPassword && resetForm.newPassword.length > 0 && resetForm.newPassword.length < 6 && (
+                <Form.Text className="text-danger">
+                  Password must be at least 6 characters
+                </Form.Text>
+              )}
             </Form.Group>
 
             {/* ✅ Inline feedback */}

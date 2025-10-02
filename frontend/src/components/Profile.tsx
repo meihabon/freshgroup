@@ -239,6 +239,14 @@ function Profile() {
                           {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
                         </Button>
                       </InputGroup>
+                      {/* Inline feedback for missing or incorrect current password */}
+                      {passwordData.currentPassword === "" && (
+                        <Form.Text className="text-danger">Current password is required</Form.Text>
+                      )}
+                      {/* Inline feedback for incorrect current password (after submit) */}
+                      {error === "Current password is incorrect" && passwordData.currentPassword !== "" && (
+                        <Form.Text className="text-danger">Incorrect current password</Form.Text>
+                      )}
                     </Form.Group>
 
                     <Form.Group className="mb-3">
@@ -257,7 +265,12 @@ function Profile() {
                           {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
                         </Button>
                       </InputGroup>
-                      <Form.Text className="text-muted">Password must be at least 6 characters long</Form.Text>
+                      {/* Inline feedback for password length */}
+                      {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 ? (
+                        <Form.Text className="text-danger">Password must be at least 6 characters long</Form.Text>
+                      ) : (
+                        <Form.Text className="text-muted">Password must be at least 6 characters long</Form.Text>
+                      )}
                     </Form.Group>
 
                     <Form.Group className="mb-4">
@@ -271,6 +284,10 @@ function Profile() {
                         required
                         placeholder="Confirm new password"
                       />
+                      {/* Inline feedback for password mismatch */}
+                      {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
+                        <Form.Text className="text-danger">Passwords do not match</Form.Text>
+                      )}
                     </Form.Group>
 
                     <Button type="submit" variant="primary" disabled={loading}>
