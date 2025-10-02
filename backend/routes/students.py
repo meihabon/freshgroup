@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 from db import get_db_connection
 from dependencies import get_current_user
+from utils import classify_honors, classify_income
 
 router = APIRouter()
 
@@ -86,7 +87,7 @@ async def update_student(student_id: int, payload: StudentUpdate, current_user: 
 
     cursor = connection.cursor()
 
-    # Dynamically build update fields
+    # --- 1. Update raw fields first ---
     updates = []
     values = []
     for field, value in payload.dict(exclude_unset=True).items():
@@ -99,8 +100,25 @@ async def update_student(student_id: int, payload: StudentUpdate, current_user: 
     values.append(student_id)
     query = f"UPDATE students SET {', '.join(updates)} WHERE id = %s"
     cursor.execute(query, values)
-    connection.commit()
 
+    # --- 2. Auto-recompute Honors and IncomeCategory ---
+    recompute_updates = []
+    recompute_values = []
+
+    if payload.GWA is not None:
+        recompute_updates.append("Honors = %s")
+        recompute_values.append(classify_honors(payload.GWA))
+
+    if payload.income is not None:
+        recompute_updates.append("IncomeCategory = %s")
+        recompute_values.append(classify_income(payload.income))
+
+    if recompute_updates:
+        recompute_values.append(student_id)
+        query2 = f"UPDATE students SET {', '.join(recompute_updates)} WHERE id = %s"
+        cursor.execute(query2, recompute_values)
+
+    connection.commit()
     cursor.close()
     connection.close()
 
