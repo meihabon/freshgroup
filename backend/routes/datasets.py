@@ -1,4 +1,3 @@
-# datasets.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
@@ -366,6 +365,7 @@ async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_curre
     cursor.execute("DELETE FROM students WHERE dataset_id = %s", (dataset_id,))
     cursor.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
     cursor.execute("DELETE FROM datasets WHERE id = %s", (dataset_id,))
+    connection.commit()
     cursor.close()
     connection.close()
     return {"message": "Dataset deleted successfully"}

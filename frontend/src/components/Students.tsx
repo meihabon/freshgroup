@@ -13,12 +13,13 @@ interface Student {
   sex: 'Male' | 'Female' | 'Incomplete' | null
   program: string
   municipality: string
-  income: number
+  income: number | null
   SHS_type: string
-  GWA: number
+  GWA: number | null
   Honors: string
   IncomeCategory: string
 }
+
 
 function Students() {
   const { API } = useAuth()
@@ -383,7 +384,7 @@ function Students() {
 
                       {/* Income */}
                       <td>
-                        {student.income === -1 || student.income === null
+                        {student.income === null
                           ? <Badge bg="danger">No Income Entered</Badge>
                           : `₱${student.income.toLocaleString()}`}
                       </td>
@@ -397,7 +398,7 @@ function Students() {
 
                       {/* GWA */}
                       <td>
-                        {student.GWA === -1 || student.GWA === null
+                        {student.GWA === null
                           ? <Badge bg="danger">No GWA Entered</Badge>
                           : student.GWA}
                       </td>
@@ -527,7 +528,7 @@ function Students() {
                         ))}
                       </Form.Select>
                     </Form.Group>
-
+                    
                     {/* Income (numeric) */}
                     <Form.Group className="mb-2">
                       <Form.Label>Income (₱)</Form.Label>
@@ -535,7 +536,10 @@ function Students() {
                         type="number"
                         value={editingStudent.income ?? ""}
                         onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, income: Number(e.target.value) })
+                          setEditingStudent({
+                            ...editingStudent,
+                            income: e.target.value === "" ? null : Number(e.target.value),
+                          })
                         }
                       />
                     </Form.Group>
@@ -548,10 +552,15 @@ function Students() {
                         step="0.01"
                         value={editingStudent.GWA ?? ""}
                         onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, GWA: Number(e.target.value) })
+                          setEditingStudent({
+                            ...editingStudent,
+                            GWA: e.target.value === "" ? null : Number(e.target.value),
+                          })
                         }
                       />
                     </Form.Group>
+
+
                   </Form>
                 )}
               </Modal.Body>

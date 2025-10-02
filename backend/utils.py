@@ -107,7 +107,7 @@ def classify_income(data):
 def normalize_student_record_db(student: dict) -> dict:
     """
     Clean a student record for database storage.
-    Keeps None for text blanks and -1 for missing numerics.
+    Keeps None for text blanks and None for missing numerics.
     Auto-classifies honors and income category.
     """
 
@@ -118,11 +118,11 @@ def normalize_student_record_db(student: dict) -> dict:
 
     def safe_num(val):
         if val is None or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
-            return -1
+            return None
         try:
             return float(val)
         except:
-            return -1
+            return None
 
     firstname = safe_text(student.get("firstname"))
     lastname = safe_text(student.get("lastname"))
@@ -154,7 +154,7 @@ def normalize_student_record_db(student: dict) -> dict:
 def normalize_student_record_display(student: dict) -> dict:
     """
     Normalize a student record for frontend/export.
-    Replaces blanks/None/-1 with human-readable placeholders.
+    Replaces blanks/None with human-readable placeholders.
     """
 
     def safe_text(val, placeholder):
@@ -163,7 +163,7 @@ def normalize_student_record_display(student: dict) -> dict:
         return str(val).strip()
 
     def safe_num(val, placeholder):
-        if val is None or val == -1 or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+        if val is None or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
             return placeholder
         try:
             return float(val)
