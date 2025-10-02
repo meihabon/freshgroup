@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
@@ -62,6 +62,7 @@ async def get_students(
     cursor.close()
     connection.close()
     return students
+    
 @router.put("/students/{student_id}")
 async def update_student(
     student_id: int,
