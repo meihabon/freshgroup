@@ -160,10 +160,10 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 # --- Update current logged-in user's profile ---
 @router.put("/users/me")
 async def update_current_user_profile(
-    profile: ProfileUpdate = Body(...),
+    update: ProfileUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    updates = {k: v for k, v in profile.dict().items() if v and v.strip()}
+    updates = {k: v for k, v in update.dict().items() if v and v.strip()}
 
     if not updates:
         raise HTTPException(status_code=400, detail="No changes provided")
