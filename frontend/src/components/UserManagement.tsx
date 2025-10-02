@@ -61,13 +61,16 @@ function UserManagement() {
     name: "",
     department: "",
     position: "",   
+    password: "", 
+    confirmPassword: "",  
   })
 
 
   const [showResetModal, setShowResetModal] = useState(false)
   const [resetUser, setResetUser] = useState<UserType | null>(null)
   const [resetForm, setResetForm] = useState({ newPassword: "", confirmPassword: "" })
-  const [showPassword, setShowPassword] = useState(false)
+  const [showAddPassword, setShowAddPassword] = useState(false)
+  const [showResetPasswordField, setShowResetPasswordField] = useState(false)
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
@@ -92,12 +95,21 @@ function UserManagement() {
       setLoading(false)
     }
   }
-
-  const handleShowAdd = () => {
-    setEditingUser(null)
-    setForm({ email: "", role: "Viewer", name: "", department: "", position: ""})
-    setShowModal(true)
-  }
+const handleShowAdd = () => {
+  setEditingUser(null);
+  setForm({
+    email: "",
+    role: "Viewer",
+    name: "",
+    department: "",
+    position: "",
+    password: "",
+    confirmPassword: "",
+  });
+  setModalError("");  // clear
+  setModalSuccess(""); // clear
+  setShowModal(true);
+};
 
   const handleShowEdit = (user: UserType) => {
     setEditingUser(user)
@@ -107,6 +119,8 @@ function UserManagement() {
       name: user.profile?.name || "",
       department: user.profile?.department || "",
       position: user.profile?.position || "",   
+      password: "",
+      confirmPassword: "",
     })
     setShowModal(true)
   }
@@ -119,12 +133,16 @@ const handleSaveUser = async () => {
   setSaving(true);
   setModalError("");
   setModalSuccess("");
+
   try {
+    // Make a copy of form and exclude confirmPassword
+    const { confirmPassword, ...payload } = form;
+
     if (editingUser) {
-      await API.put(`users/${editingUser.id}`, form);
+      await API.put(`users/${editingUser.id}`, payload);
       setModalSuccess("User updated successfully");
     } else {
-      await API.post("users", form);
+      await API.post("users", payload);
       setModalSuccess("User added successfully");
     }
 
@@ -141,6 +159,7 @@ const handleSaveUser = async () => {
     setSaving(false);
   }
 };
+
 
 
   const handleShowResetPassword = (user: UserType) => {
@@ -432,7 +451,6 @@ const handleResetPassword = async () => {
           <Modal.Title>{editingUser ? "Edit User" : "Add New User"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Local feedback for modal */}
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           {modalSuccess && <Alert variant="success">{modalSuccess}</Alert>}
 
@@ -476,6 +494,52 @@ const handleResetPassword = async () => {
               onChange={handleFormChange}
             />
 
+            {/* Password + Confirm Password only when adding */}
+            {!editingUser && (
+              <>
+                <Form.Group className="mb-3 mt-3">
+                  <Form.Label>Password</Form.Label>
+                  <div className="d-flex">
+                    <Form.Control
+                      type={showAddPassword ? "text" : "password"}
+                      name="password"
+                      value={form.password}
+                      onChange={handleFormChange}
+                    />
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => setShowAddPassword(!showAddPassword)}
+                      className="ms-2"
+                    >
+                      {showAddPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </div>
+                  {form.password && form.password.length < 6 && (
+                    <Form.Text className="text-danger">
+                      Password must be at least 6 characters
+                    </Form.Text>
+                  )}
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Confirm Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    value={form.confirmPassword || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, confirmPassword: e.target.value })
+                    }
+                  />
+                  {form.confirmPassword &&
+                    form.password !== form.confirmPassword && (
+                      <Form.Text className="text-danger">
+                        Passwords do not match
+                      </Form.Text>
+                    )}
+                </Form.Group>
+              </>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
               <Form.Select
@@ -493,11 +557,21 @@ const handleResetPassword = async () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSaveUser} disabled={saving}>
+          <Button
+            variant="primary"
+            onClick={handleSaveUser}
+            disabled={
+              saving ||
+              (!editingUser &&
+                (form.password.length < 6 ||
+                  form.password !== form.confirmPassword))
+            }
+          >
             {saving ? <Spinner size="sm" animation="border" /> : "Save"}
           </Button>
         </Modal.Footer>
       </Modal>
+
 
 
       {/* Reset Password Modal */}
@@ -511,25 +585,27 @@ const handleResetPassword = async () => {
           {resetSuccess && <Alert variant="success">{resetSuccess}</Alert>}
 
           <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>New Password</Form.Label>
-              <div className="d-flex">
-                <Form.Control
-                  type={showPassword ? "text" : "password"}
-                  value={resetForm.newPassword}
-                  onChange={(e) =>
-                    setResetForm({ ...resetForm, newPassword: e.target.value })
-                  }
-                />
-                <Button
-                  variant="outline-secondary"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="ms-2"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </Button>
-              </div>
-            </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>New Password</Form.Label>
+            <div className="d-flex">
+              <Form.Control
+                type={showResetPasswordField ? "text" : "password"}
+                value={resetForm.newPassword}
+                onChange={(e) =>
+                  setResetForm({ ...resetForm, newPassword: e.target.value })
+                }
+              />
+              <Button
+                variant="outline-secondary"
+                onClick={() =>
+                  setShowResetPasswordField(!showResetPasswordField)
+                }
+                className="ms-2"
+              >
+                {showResetPasswordField ? <EyeOff size={16} /> : <Eye size={16} />}
+              </Button>
+            </div>
+          </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Confirm Password</Form.Label>
