@@ -163,10 +163,10 @@ async def update_current_user_profile(
     profile: ProfileUpdate = Body(...),
     current_user: dict = Depends(get_current_user)
 ):
-    updates = {k: v for k, v in profile.dict().items() if v is not None and v.strip() != ""}
+    updates = {k: v for k, v in profile.dict().items() if v and v.strip()}
 
     if not updates:
-        return {"message": "No changes provided", "profile": profile.dict()}
+        raise HTTPException(status_code=400, detail="No changes provided")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)

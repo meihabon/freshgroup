@@ -37,22 +37,8 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/users/me");
 
-export const updateProfile = async (data: { name?: string; department?: string; position?: string }) => {
-  // Filter only valid string fields
-  const payload = Object.fromEntries(
-    Object.entries(data).filter(([_, v]) => typeof v === "string" && v.trim() !== "")
-  );
-
-  console.log("🔍 updateProfile → PUT /users/me with payload:", payload);
-
-  try {
-    const res = await API.put("/users/me", payload);
-    return res;
-  } catch (err: any) {
-    console.error("❌ updateProfile error:", err.response?.data || err.message);
-    throw err;
-  }
-};
+export const updateProfile = (data: { name?: string; department?: string; position?: string }) =>
+  API.put("/users/me", data);
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
   API.post("/users/change-password", data);
@@ -69,19 +55,6 @@ export const getDashboardStats = () => API.get("/dashboard/stats");
 
 /* ---------------- STUDENTS ---------------- */
 export const getStudents = () => API.get("/students");
-export interface StudentUpdatePayload {
-  firstname: string
-  lastname: string
-  sex: string | null
-  program: string
-  municipality: string
-  SHS_type: string
-  GWA: number
-  income: number
-}
-export const updateStudent = async (id: number, data: StudentUpdatePayload) => {
-  return API.put<{ message: string }>(`/students/${id}`, data)
-}
 
 /* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");

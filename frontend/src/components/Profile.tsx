@@ -54,43 +54,29 @@ function Profile() {
     setSuccess("");
 
     try {
-      // Build payload: only include non-empty strings
-      const payload: any = {};
-      Object.entries(profileData).forEach(([key, value]) => {
-        if (typeof value === "string" && value.trim() !== "") {
-          payload[key] = value.trim();
-        }
-      });
+      const payload = {
+        name: profileData.name?.trim(),
+        department: profileData.department?.trim(),
+        position: profileData.position?.trim(),
+      };
 
-      // ✅ Ensure only allowed keys
-      const allowed = ["name", "department", "position"];
-      const cleanPayload = Object.fromEntries(
-        Object.entries(payload).filter(([k]) => allowed.includes(k))
+      // remove empty values
+      Object.keys(payload).forEach(
+        (key) => (payload as any)[key] === "" && delete (payload as any)[key]
       );
-
-      console.log("📤 Clean payload:", cleanPayload);
-      await updateProfile(cleanPayload);
-
 
       if (Object.keys(payload).length === 0) {
         setError("Please fill at least one field to update.");
         setLoading(false);
         return;
       }
-      await refreshUser();
+
+      await updateProfile(payload); // call API
+      await refreshUser(); // refresh local state
       setSuccess("Profile updated successfully!");
     } catch (err: any) {
       console.error("Update profile error:", err.response?.data);
-
-      const detail = err.response?.data?.detail;
-      if (Array.isArray(detail)) {
-        // FastAPI validation errors come as an array
-        setError(detail.map((d: any) => d.msg).join(", "));
-      } else if (typeof detail === "string") {
-        setError(detail);
-      } else {
-        setError("Failed to update profile");
-      }
+      setError(err.response?.data?.detail || "Failed to update profile");
     } finally {
       setLoading(false);
     }
