@@ -37,8 +37,15 @@ export const logout = () => API.post("/auth/logout");
 
 export const getMe = () => API.get("/users/me");
 
-export const updateProfile = (data: { name?: string; department?: string; position?: string }) =>
-  API.put("/users/me", data);
+export const updateProfile = (data: { name?: string; department?: string; position?: string }) => {
+  const payload = {
+    ...(data.name ? { name: data.name } : {}),
+    ...(data.department ? { department: data.department } : {}),
+    ...(data.position ? { position: data.position } : {}),
+  }
+  return API.put("/users/me", payload)
+}
+
 
 export const changePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
   API.post("/users/change-password", data);

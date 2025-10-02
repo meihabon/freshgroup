@@ -14,7 +14,7 @@ class ProfileUpdate(BaseModel):
     position: Optional[str] = None
 
     class Config:
-        extra = Extra.ignore  # 🚫 ignore unexpected fields
+        extra = "ignore"  # ignore any unexpected fields
 
 # --- Get all users (Admin only) ---
 @router.get("/users")
