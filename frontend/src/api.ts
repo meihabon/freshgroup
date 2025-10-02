@@ -55,8 +55,16 @@ export const getUsers = () => API.get("/users");
 export const createUser = (data: any) => API.post("/users", data);
 export const updateUser = (userId: number, data: any) => API.put(`/users/${userId}`, data);
 export const deleteUser = (userId: number) => API.delete(`/users/${userId}`);
-export const resetUserPassword = (userId: number, data: any) => API.post(`/users/${userId}/reset-password`, data);
-
+// ✅ Reset password (Admin)
+export const resetUserPassword = (
+  userId: number,
+  newPassword: string,
+  confirmPassword: string
+) =>
+  API.post(`/users/${userId}/reset-password`, {
+    newPassword,
+    confirmPassword,
+  });
 /* ---------------- DASHBOARD ---------------- */
 export const getDashboardStats = () => API.get("/dashboard/stats");
 
