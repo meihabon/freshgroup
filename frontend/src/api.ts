@@ -69,6 +69,17 @@ export const getDashboardStats = () => API.get("/dashboard/stats");
 
 /* ---------------- STUDENTS ---------------- */
 export const getStudents = () => API.get("/students");
+export async function updateStudent(id: number, data: any) {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/students/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  })
+  if (!response.ok) throw new Error("Failed to update student")
+  return response.json()
+}
+
 
 /* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");

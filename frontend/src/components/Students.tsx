@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
-  InputGroup, Badge, Spinner, Alert 
+  InputGroup, Badge, Spinner, Alert, Modal
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import { useAuth } from "../context/AuthContext"
@@ -40,7 +40,31 @@ function Students() {
   const [programs, setPrograms] = useState<string[]>([])
   const [municipalities, setMunicipalities] = useState<string[]>([])
   const [shsTypes, setShsTypes] = useState<string[]>([])
+  
+  //Edit students
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [saving, setSaving] = useState(false)
 
+  const handleEdit = (student: Student) => {
+    setEditingStudent(student)
+    setShowEditModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!editingStudent) return
+    try {
+      setSaving(true)
+      await API.put(`/students/${editingStudent.id}`, editingStudent)
+      // refresh students
+      await fetchStudents()
+      setShowEditModal(false)
+    } catch (err: any) {
+      alert(err.response?.data?.detail || "Update failed")
+    } finally {
+      setSaving(false)
+    }
+  }
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const studentsPerPage = 25
@@ -287,50 +311,6 @@ function Students() {
       {/* Students Table with Pagination */}
       <Card>
         <Card.Body className="p-0">
-          {/* Pagination Controls */}
-          <div className="d-flex flex-column align-items-center mt-3">
-            <div className="mb-2 text-muted">
-              Showing {currentStudents.length} of {filteredStudents.length} students
-              {filteredStudents.length > studentsPerPage && ` (Page ${currentPage} of ${totalPages})`}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="d-flex gap-2 flex-wrap justify-content-center">
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = i + 1
-                  return (
-                    <Button
-                      key={page}
-                      size="sm"
-                      variant={currentPage === page ? 'success' : 'outline-success'}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  )
-                })}
-
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </div>
-
           <div className="table-responsive">
             <Table striped hover className="mb-0">
               <thead>
@@ -345,6 +325,7 @@ function Students() {
                   <th>General Weighted Average (GWA)</th>
                   <th>Honors</th>
                   <th>Income Category</th>
+                  <th>Action</th>
                 </tr>
               </thead>
                 <tbody>
@@ -421,19 +402,218 @@ function Students() {
                             : "No Income Category"}
                         </Badge>
                       </td>
+                      <td>
+                        <Button
+                          size="sm"
+                          variant="outline-primary"
+                          onClick={() => handleEdit(student)}>
+                          Edit
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
-
-
             </Table>
           </div>
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+              <Modal.Header closeButton>
+                <Modal.Title>Edit Student</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {editingStudent && (
+                  <Form>
+                    {/* First Name */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>First Name</Form.Label>
+                      <Form.Control
+                        value={editingStudent.firstname}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, firstname: e.target.value })
+                        }
+                      />
+                    </Form.Group>
+
+                    {/* Last Name */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Last Name</Form.Label>
+                      <Form.Control
+                        value={editingStudent.lastname}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, lastname: e.target.value })
+                        }
+                      />
+                    </Form.Group>
+
+                    {/* Program (dropdown) */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Program</Form.Label>
+                      <Form.Select
+                        value={editingStudent.program || ""}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, program: e.target.value })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        {programs.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+
+                    {/* Sex (dropdown) */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Sex</Form.Label>
+                      <Form.Select
+                        value={editingStudent.sex || ""}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, sex: e.target.value as any })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                      </Form.Select>
+                    </Form.Group>
+
+                    {/* Municipality (dropdown) */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Municipality</Form.Label>
+                      <Form.Select
+                        value={editingStudent.municipality || ""}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, municipality: e.target.value })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        {municipalities.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+
+                    {/* SHS Type (dropdown) */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>SHS Type</Form.Label>
+                      <Form.Select
+                        value={editingStudent.SHS_type || ""}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, SHS_type: e.target.value })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        {shsTypes.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+
+                    {/* Honors */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Honors</Form.Label>
+                      <Form.Select
+                        value={editingStudent.Honors || ""}
+                        onChange={(e) =>
+                          setEditingStudent({ ...editingStudent, Honors: e.target.value })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        <option value="Average">Average</option>
+                        <option value="With Honors">With Honors</option>
+                        <option value="With High Honors">With High Honors</option>
+                        <option value="With Highest Honors">With Highest Honors</option>
+                      </Form.Select>
+                    </Form.Group>
+
+                    {/* Income Category */}
+                    <Form.Group className="mb-2">
+                      <Form.Label>Income Category</Form.Label>
+                      <Form.Select
+                        value={editingStudent.IncomeCategory || ""}
+                        onChange={(e) =>
+                          setEditingStudent({
+                            ...editingStudent,
+                            IncomeCategory: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">Select...</option>
+                        <option value="Poor">Poor</option>
+                        <option value="Low-Income">Low-Income</option>
+                        <option value="Lower-Middle">Lower-Middle</option>
+                        <option value="Middle-Middle">Middle-Middle</option>
+                        <option value="Upper-Middle">Upper-Middle</option>
+                        <option value="Upper-Income">Upper-Income</option>
+                        <option value="Rich">Rich</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Form>
+                )}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="success" onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </Modal.Footer>
+            </Modal>
 
           {filteredStudents.length === 0 && (
             <div className="text-center py-5">
               <p className="text-muted">No students found matching the current filters.</p>
             </div>
           )}
+
+          {/* Pagination Controls */}
+          <div className="d-flex flex-column align-items-center mt-3">
+            <div className="mb-2 text-muted">
+              Showing {currentStudents.length} of {filteredStudents.length} students
+              {filteredStudents.length > studentsPerPage && ` (Page ${currentPage} of ${totalPages})`}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="d-flex gap-2 flex-wrap justify-content-center">
+                <Button
+                  size="sm"
+                  variant="outline-success"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </Button>
+
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1
+                  return (
+                    <Button
+                      key={page}
+                      size="sm"
+                      variant={currentPage === page ? 'success' : 'outline-success'}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  )
+                })}
+
+                <Button
+                  size="sm"
+                  variant="outline-success"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
         </Card.Body>
       </Card>
     </div>

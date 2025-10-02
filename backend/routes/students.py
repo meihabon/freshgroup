@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Optional
+from pydantic import BaseModel
 from db import get_db_connection
 from dependencies import get_current_user
 
@@ -61,3 +62,46 @@ async def get_students(
     cursor.close()
     connection.close()
     return students
+
+# --- Request model ---
+class StudentUpdate(BaseModel):
+    firstname: str | None = None
+    lastname: str | None = None
+    program: str | None = None
+    sex: str | None = None
+    municipality: str | None = None
+    IncomeCategory: str | None = None
+    SHS_type: str | None = None
+    Honors: str | None = None
+
+# --- Update route (Admin only) ---
+@router.put("/students/{student_id}")
+async def update_student(student_id: int, payload: StudentUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    connection = get_db_connection()
+    if not connection:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
+    cursor = connection.cursor()
+
+    # Dynamically build update fields
+    updates = []
+    values = []
+    for field, value in payload.dict(exclude_unset=True).items():
+        updates.append(f"{field} = %s")
+        values.append(value)
+
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    values.append(student_id)
+    query = f"UPDATE students SET {', '.join(updates)} WHERE id = %s"
+    cursor.execute(query, values)
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return {"message": "Student updated successfully"}
