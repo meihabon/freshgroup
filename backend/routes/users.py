@@ -185,32 +185,31 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 
 
 # --- Update current logged-in user's profile ---
-# --- Update current logged-in user's profile ---
 @router.put("/users/me")
 async def update_current_user_profile(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    # Always resolve to full DB user
     user = resolve_user(current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Extract profile fields
+    # Extract profile fields from body
     name = data.get("name")
     department = data.get("department")
     position = data.get("position")
 
-    # At least one field required
     if not any([name, department, position]):
         raise HTTPException(status_code=400, detail="No changes provided")
 
-    # Load existing profile
+    # Existing profile
     existing_profile = json.loads(user["profile"]) if user["profile"] else {}
 
-    # Merge updates (ignore empty strings)
+    # Merge updates (ignore empty/None)
     updated_profile = {
         **existing_profile,
         **{k: v for k, v in {"name": name, "department": department, "position": position}.items() if v and v.strip()}
     }
 
-    # Save back to DB
+    # Use user["id"] from DB (safe int)
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
