@@ -108,7 +108,10 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
 
 # --- Create new user (Admin only) ---
 @router.post("/users")
-async def create_user(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+async def create_user(
+    data: dict = Body(...), 
+    current_user: dict = Depends(get_current_user)
+):
     user = resolve_user(current_user)
     if not user or user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can create users")
@@ -122,17 +125,24 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
         "position": data.get("position", "")
     }
 
+    # --- validation checks ---
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
+    
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
+
+    # --- check if email already exists ---
     cursor.execute("SELECT id FROM users WHERE email=%s", (email,))
     if cursor.fetchone():
         cursor.close()
         connection.close()
         raise HTTPException(status_code=400, detail="Email already exists")
 
+    # --- save user ---
     hashed_password = get_password_hash(password)
     cursor.execute(
         "INSERT INTO users (email, password_hash, role, profile, active) VALUES (%s, %s, %s, %s, TRUE)",
@@ -142,7 +152,9 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     new_id = cursor.lastrowid
     cursor.close()
     connection.close()
+
     return {"message": "User created successfully", "id": new_id}
+
 
 class ProfileUpdate(BaseModel):
     name: Optional[str] = None
