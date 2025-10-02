@@ -320,49 +320,6 @@ function Students() {
       {/* Students Table with Pagination */}
       <Card>
         <Card.Body className="p-0">
-          {/* Pagination Controls */}
-          <div className="d-flex flex-column align-items-center mt-3">
-            <div className="mb-2 text-muted">
-              Showing {currentStudents.length} of {filteredStudents.length} students
-              {filteredStudents.length > studentsPerPage && ` (Page ${currentPage} of ${totalPages})`}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="d-flex gap-2 flex-wrap justify-content-center">
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = i + 1
-                  return (
-                    <Button
-                      key={page}
-                      size="sm"
-                      variant={currentPage === page ? 'success' : 'outline-success'}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  )
-                })}
-
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </div>
 
           <div className="table-responsive">
             <Table striped hover className="mb-0">
@@ -470,6 +427,49 @@ function Students() {
 
 
             </Table>
+                      {/* Pagination Controls */}
+          <div className="d-flex flex-column align-items-center mt-3">
+            <div className="mb-2 text-muted">
+              Showing {currentStudents.length} of {filteredStudents.length} students
+              {filteredStudents.length > studentsPerPage && ` (Page ${currentPage} of ${totalPages})`}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="d-flex gap-2 flex-wrap justify-content-center">
+                <Button
+                  size="sm"
+                  variant="outline-success"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </Button>
+
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1
+                  return (
+                    <Button
+                      key={page}
+                      size="sm"
+                      variant={currentPage === page ? 'success' : 'outline-success'}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  )
+                })}
+
+                <Button
+                  size="sm"
+                  variant="outline-success"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
           </div>
 
           {filteredStudents.length === 0 && (
