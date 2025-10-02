@@ -46,26 +46,44 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
+
       {/* Backdrop for mobile */}
       {isOpen && (
         <div 
-          className="position-fixed w-100 h-100 bg-dark opacity-50 d-md-none"
-          style={{ zIndex: 999 }}
+          className="sidebar-backdrop d-md-none"
           onClick={onClose}
         />
       )}
 
       <div 
-        className={`sidebar position-fixed d-flex flex-column ${isOpen ? 'show' : ''}`}
+        className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
         style={{ 
           width: '240px',
           zIndex: 1000,
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
           backgroundColor: '#f9fafb',
           borderRight: '1px solid #e5e5e5',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          height: '100vh',
         }}
       >
+        {/* Collapse button for mobile */}
+        <div className="d-md-none d-flex justify-content-end align-items-center p-2" style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+          <button
+            aria-label="Close sidebar"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              color: '#888',
+              cursor: 'pointer',
+              lineHeight: 1,
+            }}
+          >
+            &times;
+          </button>
+        </div>
         {/* Header (green section) */}
         <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
           <div className="d-flex align-items-center mb-1">

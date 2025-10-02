@@ -114,6 +114,8 @@ function Students() {
       'income',
       'SHS_type',
       'GWA',
+      'Honors',
+      'IncomeCategory',
     ]
 
     const csvContent = [
@@ -128,6 +130,8 @@ function Students() {
           student.income,
           student.SHS_type,
           student.GWA,
+          student.Honors,
+          student.IncomeCategory, 
         ].join(',')
       )
     ].join('\n')
@@ -213,12 +217,13 @@ function Students() {
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold">Students</h2>
-        <Button variant="success" onClick={exportToCSV}>
-          <Download size={18} className="me-2" />
-          Export CSV
-        </Button>
+      <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <h2 className="fw-bold mb-0">Students</h2>
+        <div className="btn-group" role="group" aria-label="Export options">
+          <Button variant="success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
+            <Download size={18} className="me-2" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

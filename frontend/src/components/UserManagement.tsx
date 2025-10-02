@@ -330,23 +330,22 @@ const handleResetPassword = async () => {
 
   return (
   <div className="fade-in">
-    <div className="d-flex justify-content-between align-items-center mb-4">
-      {/* Left side: Title + Download buttons */}
-      <div className="d-flex align-items-center gap-2">
-        <h2 className="fw-bold mb-0">User Management</h2>
-        <Button variant="success" onClick={handleDownloadCSV}>
-          <Download size={16} className="me-2" /> CSV
-        </Button>
-        <Button variant="danger" onClick={handleDownloadPDF}>
-          <Download size={16} className="me-2" /> PDF
-        </Button>
-        <Button variant="info" onClick={handleDownloadExcel}>
-          <Download size={16} className="me-2" /> Excel
-        </Button>
+    <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div className="d-flex align-items-center gap-3 flex-wrap">
+        <h2 className="fw-bold mb-0 me-3">User Management</h2>
+        <div className="btn-group" role="group" aria-label="Download options">
+          <Button variant="success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
+            <Download size={16} className="me-2" /> CSV
+          </Button>
+          <Button variant="danger" onClick={handleDownloadPDF} className="d-flex align-items-center px-3 py-2">
+            <Download size={16} className="me-2" /> PDF
+          </Button>
+          <Button variant="info" onClick={handleDownloadExcel} className="d-flex align-items-center px-3 py-2">
+            <Download size={16} className="me-2" /> Excel
+          </Button>
+        </div>
       </div>
-
-      {/* Right side: Add User */}
-      <Button variant="primary" onClick={handleShowAdd}>
+      <Button variant="primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
         <UserPlus size={16} className="me-2" /> Add User
       </Button>
     </div>
