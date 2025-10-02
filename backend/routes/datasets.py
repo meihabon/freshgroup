@@ -13,6 +13,7 @@ from fastapi.responses import StreamingResponse
 import csv
 import io
 from utils import classify_honors, classify_income, classify_location, encode_features, describe_cluster
+from sklearn.metrics import silhouette_score
 
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
@@ -106,6 +107,7 @@ def recommend_k_by_curvature(wcss: List[float], k_min=2) -> int:
     return max(2, min(5, len(wcss) // 2))  # fallback default
 
 
+
 @router.post("/datasets/elbow")
 async def elbow_preview(
     file: UploadFile = File(...),
@@ -114,7 +116,7 @@ async def elbow_preview(
     if current_user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can compute elbow preview")
 
-    if not file.filename.endswith(('.csv', '.xlsx')):
+    if not file.filename.endswith((".csv", ".xlsx")):
         raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
 
     file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
@@ -149,11 +151,27 @@ async def elbow_preview(
         k_min, k_max = 2, min(15, max(5, len(df)//2))
         wcss = compute_wcss_for_range(X_scaled, k_min=k_min, k_max=k_max)
         recommended_k = recommend_k_by_curvature(wcss, k_min=k_min) or 3
-
-        # Return k values for plotting
         k_values = list(range(k_min, k_min + len(wcss)))
 
-        return {"wcss": wcss, "k_values": k_values, "recommended_k": recommended_k}
+        # Silhouette analysis
+        silhouette_scores = []
+        for k in k_values:
+            try:
+                kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+                labels = kmeans.fit_predict(X_scaled)
+                score = silhouette_score(X_scaled, labels)
+                silhouette_scores.append(score)
+            except Exception:
+                silhouette_scores.append(-1)
+        silhouette_k = int((silhouette_scores.index(max(silhouette_scores)) + k_min)) if silhouette_scores else recommended_k
+
+        return {
+            "wcss": wcss,
+            "k_values": k_values,
+            "recommended_k": recommended_k,
+            "silhouette_scores": silhouette_scores,
+            "silhouette_k": silhouette_k
+        }
 
     except Exception as e:
         import traceback; traceback.print_exc()

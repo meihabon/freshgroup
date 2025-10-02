@@ -59,6 +59,24 @@ interface ClusterData {
  * Component
  */
 function Clusters() {
+  // Manual recluster handler (must be before JSX return)
+  const handleManualRecluster = async () => {
+    if (!manualK || manualK < 2) return;
+    setReclustering(true);
+    setError("");
+    try {
+      await API.post(`/clusters/recluster?k=${manualK}`);
+      setK(manualK);
+      await fetchOfficialClusters();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Failed to recluster with manual k");
+    } finally {
+      setReclustering(false);
+    }
+  };
+  // Manual override for official clusters k
+  const [manualK, setManualK] = useState<number | null>(null)
+  const [reclustering, setReclustering] = useState(false)
   const { API } = useAuth()
   const [activeTab, setActiveTab] = useState<string>("official")
   const [showScatterInfo, setShowScatterInfo] = useState(false)
@@ -672,7 +690,30 @@ function Clusters() {
               while income often affects access to resources, opportunities, and support systems. By pairing them, clusters highlight not only who is excelling academically, but also whether
               financial constraints may play a role in their educational journey. This makes the analysis more actionable for policy and support interventions.
             </p>
+            <Form className="mt-3 d-flex align-items-center" onSubmit={e => { e.preventDefault(); handleManualRecluster(); }}>
+              <Form.Label className="me-2 mb-0">Manual cluster count (k):</Form.Label>
+              <Form.Control
+                type="number"
+                min={2}
+                value={manualK ?? ""}
+                onChange={e => setManualK(Number(e.target.value))}
+                style={{ width: 80 }}
+                className="me-2"
+                disabled={reclustering}
+              />
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={reclustering || !manualK || manualK < 2}
+              >
+                {reclustering ? "Reclustering..." : "Apply"}
+              </Button>
+              {manualK && manualK < 2 && (
+                <span className="text-danger ms-2">k must be at least 2</span>
+              )}
+            </Form>
           </div>
+
 
           {renderClusterSection(clusterData, false)}
         </Tab>
