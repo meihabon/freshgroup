@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
-  InputGroup, Badge, Spinner, Alert, Modal
+  InputGroup, Badge, Spinner, Alert 
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import { useAuth } from "../context/AuthContext"
@@ -13,15 +13,12 @@ interface Student {
   sex: 'Male' | 'Female' | 'Incomplete' | null
   program: string
   municipality: string
-  income: number | null
-  income_display: string
+  income: number
   SHS_type: string
-  GWA: number | null
-  GWA_display: string
+  GWA: number
   Honors: string
   IncomeCategory: string
 }
-
 
 function Students() {
   const { API } = useAuth()
@@ -43,45 +40,6 @@ function Students() {
   const [programs, setPrograms] = useState<string[]>([])
   const [municipalities, setMunicipalities] = useState<string[]>([])
   const [shsTypes, setShsTypes] = useState<string[]>([])
-  
-  //Edit students
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
-  const [saving, setSaving] = useState(false)
-
-  const handleEdit = (student: Student) => {
-    setEditingStudent(student)
-    setShowEditModal(true)
-  }
-
-  const handleSave = async () => {
-    if (!editingStudent) return
-    try {
-      setSaving(true)
-
-      // ✅ Pick only editable fields
-      const payload = {
-        firstname: editingStudent.firstname,
-        lastname: editingStudent.lastname,
-        sex: editingStudent.sex,
-        program: editingStudent.program,
-        municipality: editingStudent.municipality,
-        SHS_type: editingStudent.SHS_type,
-        income: editingStudent.income,
-        GWA: editingStudent.GWA,
-      }
-
-      await API.put(`/students/${editingStudent.id}`, payload)
-
-      // refresh students
-      await fetchStudents()
-      setShowEditModal(false)
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Update failed")
-    } finally {
-      setSaving(false)
-    }
-  }
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -167,9 +125,9 @@ function Students() {
           student.sex,
           student.program,
           student.municipality,
-          student.income_display,
+          student.income,
           student.SHS_type,
-          student.GWA_display,
+          student.GWA,
         ].join(',')
       )
     ].join('\n')
@@ -329,252 +287,6 @@ function Students() {
       {/* Students Table with Pagination */}
       <Card>
         <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table striped hover className="mb-0">
-              <thead>
-                <tr>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Sex</th>
-                  <th>Program</th>
-                  <th>Municipality</th>
-                  <th>Income</th>
-                  <th>Senior High School Type</th>
-                  <th>General Weighted Average (GWA)</th>
-                  <th>Honors</th>
-                  <th>Income Category</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-                <tbody>
-                  {currentStudents.map((student) => (
-                    <tr key={student.id}>
-                      {/* Firstname */}
-                      <td className="fw-semibold">
-                        {student.firstname && student.firstname !== "Incomplete"
-                          ? student.firstname
-                          : <Badge bg="danger">No First Name</Badge>}
-                      </td>
-
-                      {/* Lastname */}
-                      <td className="fw-semibold">
-                        {student.lastname && student.lastname !== "Incomplete"
-                          ? student.lastname
-                          : <Badge bg="danger">No Last Name</Badge>}
-                      </td>
-
-                      {/* Sex */}
-                      <td>
-                        {student.sex && student.sex !== "Incomplete"
-                          ? student.sex
-                          : <Badge bg="danger">No Sex</Badge>}
-                      </td>
-
-                      {/* Program */}
-                      <td>
-                        {student.program && student.program !== "Incomplete"
-                          ? student.program
-                          : <Badge bg="danger">No Program</Badge>}
-                      </td>
-
-                      {/* Municipality */}
-                      <td>
-                        {student.municipality && student.municipality !== "Incomplete"
-                          ? student.municipality
-                          : <Badge bg="danger">No Municipality</Badge>}
-                      </td>
-
-                      {/* Income */}
-                      <td>
-                        {student.income === null
-                          ? <Badge bg="danger">No Income Entered</Badge>
-                          : student.income_display}
-                      </td>
-
-                      {/* SHS Type */}
-                      <td>
-                        {student.SHS_type && student.SHS_type !== "Incomplete"
-                          ? student.SHS_type
-                          : <Badge bg="danger">No SHS Type</Badge>}
-                      </td>
-
-                      {/* GWA */}
-                      <td>
-                        {student.GWA === null
-                          ? <Badge bg="danger">No GWA Entered</Badge>
-                          : student.GWA_display}
-                      </td>
-
-                      {/* Income Category */}
-                      <td>
-                        <Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>
-                          {student.IncomeCategory && student.IncomeCategory !== "Incomplete"
-                            ? student.IncomeCategory
-                            : "No Income Category"}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Button
-                          size="sm"
-                          variant="outline-primary"
-                          onClick={() => handleEdit(student)}>
-                          Edit
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-            </Table>
-          </div>
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-              <Modal.Header closeButton>
-                <Modal.Title>Edit Student</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                {editingStudent && (
-                  <Form>
-                    {/* First Name */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>First Name</Form.Label>
-                      <Form.Control
-                        value={editingStudent.firstname}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, firstname: e.target.value })
-                        }
-                      />
-                    </Form.Group>
-
-                    {/* Last Name */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>Last Name</Form.Label>
-                      <Form.Control
-                        value={editingStudent.lastname}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, lastname: e.target.value })
-                        }
-                      />
-                    </Form.Group>
-
-                    {/* Program */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>Program</Form.Label>
-                      <Form.Select
-                        value={editingStudent.program || ""}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, program: e.target.value })
-                        }
-                      >
-                        <option value="">Select...</option>
-                        {programs.map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-
-                    {/* Sex */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>Sex</Form.Label>
-                      <Form.Select
-                        value={editingStudent.sex || ""}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, sex: e.target.value as any })
-                        }
-                      >
-                        <option value="">Select...</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                      </Form.Select>
-                    </Form.Group>
-
-                    {/* Municipality */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>Municipality</Form.Label>
-                      <Form.Select
-                        value={editingStudent.municipality || ""}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, municipality: e.target.value })
-                        }
-                      >
-                        <option value="">Select...</option>
-                        {municipalities.map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-
-                    {/* SHS Type */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>SHS Type</Form.Label>
-                      <Form.Select
-                        value={editingStudent.SHS_type || ""}
-                        onChange={(e) =>
-                          setEditingStudent({ ...editingStudent, SHS_type: e.target.value })
-                        }
-                      >
-                        <option value="">Select...</option>
-                        {shsTypes.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                    
-                    {/* Income (numeric) */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>Income (₱)</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={editingStudent.income ?? ""}
-                        onChange={(e) =>
-                          setEditingStudent({
-                            ...editingStudent,
-                            income: e.target.value === "" ? null : Number(e.target.value),
-                          })
-                        }
-                      />
-                    </Form.Group>
-
-                    {/* GWA (numeric) */}
-                    <Form.Group className="mb-2">
-                      <Form.Label>General Weighted Average (GWA)</Form.Label>
-                      <Form.Control
-                        type="number"
-                        step="0.01"
-                        value={editingStudent.GWA ?? ""}
-                        onChange={(e) =>
-                          setEditingStudent({
-                            ...editingStudent,
-                            GWA: e.target.value === "" ? null : Number(e.target.value),
-                          })
-                        }
-                      />
-                    </Form.Group>
-
-
-                  </Form>
-                )}
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                  Cancel
-                </Button>
-                <Button variant="success" onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
-              </Modal.Footer>
-            </Modal>
-
-          {filteredStudents.length === 0 && (
-            <div className="text-center py-5">
-              <p className="text-muted">No students found matching the current filters.</p>
-            </div>
-          )}
-
           {/* Pagination Controls */}
           <div className="d-flex flex-column align-items-center mt-3">
             <div className="mb-2 text-muted">
@@ -618,6 +330,110 @@ function Students() {
               </div>
             )}
           </div>
+
+          <div className="table-responsive">
+            <Table striped hover className="mb-0">
+              <thead>
+                <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Sex</th>
+                  <th>Program</th>
+                  <th>Municipality</th>
+                  <th>Income</th>
+                  <th>Senior High School Type</th>
+                  <th>General Weighted Average (GWA)</th>
+                  <th>Honors</th>
+                  <th>Income Category</th>
+                </tr>
+              </thead>
+                <tbody>
+                  {currentStudents.map((student) => (
+                    <tr key={student.id}>
+                      {/* Firstname */}
+                      <td className="fw-semibold">
+                        {student.firstname && student.firstname !== "Incomplete"
+                          ? student.firstname
+                          : <Badge bg="danger">No First Name</Badge>}
+                      </td>
+
+                      {/* Lastname */}
+                      <td className="fw-semibold">
+                        {student.lastname && student.lastname !== "Incomplete"
+                          ? student.lastname
+                          : <Badge bg="danger">No Last Name</Badge>}
+                      </td>
+
+                      {/* Sex */}
+                      <td>
+                        {student.sex && student.sex !== "Incomplete"
+                          ? student.sex
+                          : <Badge bg="danger">No Sex</Badge>}
+                      </td>
+
+                      {/* Program */}
+                      <td>
+                        {student.program && student.program !== "Incomplete"
+                          ? student.program
+                          : <Badge bg="danger">No Program</Badge>}
+                      </td>
+
+                      {/* Municipality */}
+                      <td>
+                        {student.municipality && student.municipality !== "Incomplete"
+                          ? student.municipality
+                          : <Badge bg="danger">No Municipality</Badge>}
+                      </td>
+
+                      {/* Income */}
+                      <td>
+                        {student.income === -1 || student.income === null
+                          ? <Badge bg="danger">No Income Entered</Badge>
+                          : `₱${student.income.toLocaleString()}`}
+                      </td>
+
+                      {/* SHS Type */}
+                      <td>
+                        {student.SHS_type && student.SHS_type !== "Incomplete"
+                          ? student.SHS_type
+                          : <Badge bg="danger">No SHS Type</Badge>}
+                      </td>
+
+                      {/* GWA */}
+                      <td>
+                        {student.GWA === -1 || student.GWA === null
+                          ? <Badge bg="danger">No GWA Entered</Badge>
+                          : student.GWA}
+                      </td>
+
+                      {/* Honors */}
+                      <td>
+                        <Badge bg={getHonorsBadgeVariant(student.Honors)}>
+                          {student.Honors && student.Honors !== "Incomplete" ? student.Honors : "No Honors"}
+                        </Badge>
+                      </td>
+
+                      {/* Income Category */}
+                      <td>
+                        <Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>
+                          {student.IncomeCategory && student.IncomeCategory !== "Incomplete"
+                            ? student.IncomeCategory
+                            : "No Income Category"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+
+
+            </Table>
+          </div>
+
+          {filteredStudents.length === 0 && (
+            <div className="text-center py-5">
+              <p className="text-muted">No students found matching the current filters.</p>
+            </div>
+          )}
         </Card.Body>
       </Card>
     </div>

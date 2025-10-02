@@ -1,7 +1,8 @@
+# datasets.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
-from utils import classify_honors, classify_income, normalize_student_record_db, normalize_student_record_display
+from utils import classify_honors, classify_income
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -12,8 +13,6 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
-
-
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -206,24 +205,48 @@ async def upload_dataset(
         cluster_id = cursor.lastrowid
 
         for _, row in df.iterrows():
-            # Normalize entire record for DB
-            student_data = normalize_student_record_db(row.to_dict())
+            # Handle text fields (if blank/N/A → "Incomplete")
+            def safe_text(val):
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+                    return "Incomplete"
+                return str(val).strip()
+
+            # Handle numeric fields (if blank/N/A → -1)
+            def safe_num(val):
+                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+                    return -1
+                try:
+                    return float(val)
+                except Exception:
+                    return -1
+
+            firstname = safe_text(row.get('firstname'))
+            lastname = safe_text(row.get('lastname'))
+            sex = safe_text(row.get('sex'))
+            program = safe_text(row.get('program'))
+            municipality = safe_text(row.get('municipality'))
+            shs_type = safe_text(row.get('shs_type'))
+
+            income_val = safe_num(row.get('income'))
+            gwa_val = safe_num(row.get('gwa'))
+
+            honors = safe_text(row.get('Honors'))
+            income_category = safe_text(row.get('IncomeCategory'))
 
             cursor.execute("""
-                INSERT INTO students 
-                (firstname, lastname, sex, program, municipality, income, SHS_type, GWA, Honors, IncomeCategory, dataset_id)
+                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                student_data["firstname"],
-                student_data["lastname"],
-                student_data["sex"],
-                student_data["program"],
-                student_data["municipality"],
-                student_data["income"],
-                student_data["SHS_type"],
-                student_data["GWA"],
-                student_data["Honors"],
-                student_data["IncomeCategory"],
+                firstname,
+                lastname,
+                sex,
+                program,
+                municipality,
+                income_val,
+                shs_type,
+                gwa_val,
+                honors,
+                income_category,
                 dataset_id
             ))
 
@@ -233,6 +256,7 @@ async def upload_dataset(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
                 (student_id, cluster_id, int(row['Cluster']))
             )
+
 
         connection.commit()
         cursor.close()
@@ -296,10 +320,7 @@ async def preview_dataset(
         "SELECT * FROM students WHERE dataset_id = %s LIMIT 15",
         (dataset_id,)
     )
-    raw_rows = cur.fetchall()
-
-    # Normalize before returning
-    rows = [normalize_student_record_display(r) for r in raw_rows]
+    rows = cur.fetchall()
 
     cur.close()
     conn.close()
@@ -326,21 +347,17 @@ async def download_dataset(dataset_id: int, current_user: dict = Depends(get_cur
 
     # fetch all students for this dataset
     cur.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
-    raw_rows = cur.fetchall()
+    rows = cur.fetchall()
+    cur.close(); conn.close()
 
-    if not raw_rows:
+    if not rows:
         raise HTTPException(status_code=404, detail="No students found for this dataset")
 
-    # Normalize each row for display/export
-    rows = [normalize_student_record_display(r) for r in raw_rows]
-
-
-    # generate CSV in memory with normalized headers
+    # generate CSV in memory
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=rows[0].keys())
     writer.writeheader()
     writer.writerows(rows)
-
     output.seek(0)
 
     # return as streaming response
@@ -365,7 +382,6 @@ async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_curre
     cursor.execute("DELETE FROM students WHERE dataset_id = %s", (dataset_id,))
     cursor.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
     cursor.execute("DELETE FROM datasets WHERE id = %s", (dataset_id,))
-    connection.commit()
     cursor.close()
     connection.close()
     return {"message": "Dataset deleted successfully"}
