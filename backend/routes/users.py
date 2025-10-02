@@ -16,33 +16,69 @@ class ProfileUpdate(BaseModel):
     class Config:
         extra = "ignore"  # ignore any unexpected fields
 
+
+# --- helper ---
+def resolve_user(current_user: dict):
+    """
+    Resolve a user from either ID (int) or email (string) in current_user.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    user = None
+    sub = current_user.get("id") or current_user.get("sub")
+
+    # Try integer id
+    try:
+        cursor.execute("SELECT * FROM users WHERE id=%s", (int(sub),))
+        user = cursor.fetchone()
+    except (ValueError, TypeError):
+        pass
+
+    # Try email if id lookup failed
+    if not user and isinstance(sub, str):
+        cursor.execute("SELECT * FROM users WHERE email=%s", (sub,))
+        user = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return user
+
+
 # --- Get all users (Admin only) ---
 @router.get("/users")
 async def get_users(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "Admin":
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can view users")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute("SELECT id, email, role, active, profile, created_at FROM users ORDER BY created_at DESC")
     users = cursor.fetchall()
-    for user in users:
-        if user["profile"]:
-            profile = json.loads(user["profile"])
-            user["profile"] = {
+    for u in users:
+        if u["profile"]:
+            profile = json.loads(u["profile"])
+            u["profile"] = {
                 "name": profile.get("name", ""),
                 "department": profile.get("department", ""),
                 "position": profile.get("position", "")
             }
         else:
-            user["profile"] = {"name": "", "department": "", "position": ""}
+            u["profile"] = {"name": "", "department": "", "position": ""}
     cursor.close()
     connection.close()
     return users
 
+
 # --- User changes their own password ---
 @router.post("/users/change-password")
 async def change_password(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
     confirm_password = data.get("confirmPassword")
@@ -52,34 +88,24 @@ async def change_password(data: dict = Body(...), current_user: dict = Depends(g
     if new_password != confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT password_hash FROM users WHERE id=%s", (current_user["id"],))
-    user = cursor.fetchone()
-
-    if not user or not verify_password(current_password, user["password_hash"]):
-        cursor.close()
-        connection.close()
+    if not verify_password(current_password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Current password is incorrect")
 
     new_hashed = get_password_hash(new_password)
-    cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (new_hashed, current_user["id"]))
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (new_hashed, user["id"]))
     connection.commit()
     cursor.close()
     connection.close()
     return {"message": "Password updated successfully"}
 
+
 # --- Get current logged-in user ---
 @router.get("/users/me")
 async def get_current_user_profile(current_user: dict = Depends(get_current_user)):
-    # Return both account info and profile
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT id, email, role, active, profile, created_at FROM users WHERE id=%s", (current_user["id"],))
-    user = cursor.fetchone()
-    cursor.close()
-    connection.close()
-
+    user = resolve_user(current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -90,7 +116,8 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
 # --- Create new user (Admin only) ---
 @router.post("/users")
 async def create_user(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "Admin":
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can create users")
 
     email = data.get("email")
@@ -99,8 +126,7 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     profile = {
         "name": data.get("name", ""),
         "department": data.get("department", ""),
-        "position": data.get("position", "") 
-
+        "position": data.get("position", "")
     }
 
     if not email or not password:
@@ -129,7 +155,8 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
 # --- Update existing user (Admin only) ---
 @router.put("/users/{user_id}")
 async def update_user(user_id: int, data: dict = Body(...), current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "Admin":
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can update users")
 
     role = data.get("role")
@@ -159,26 +186,23 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
 
 # --- Update current logged-in user's profile ---
 @router.put("/users/me")
-async def update_current_user_profile(
-    update: ProfileUpdate,
-    current_user: dict = Depends(get_current_user)
-):
-    updates = {k: v for k, v in update.dict().items() if v and v.strip()}
+async def update_current_user_profile(update: ProfileUpdate, current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
+    updates = {k: v for k, v in update.dict().items() if v and v.strip()}
     if not updates:
         raise HTTPException(status_code=400, detail="No changes provided")
 
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT profile FROM users WHERE id=%s", (current_user["id"],))
-    row = cursor.fetchone()
-    existing_profile = json.loads(row["profile"]) if row["profile"] else {}
-
+    existing_profile = json.loads(user["profile"]) if user["profile"] else {}
     updated_profile = {**existing_profile, **updates}
 
+    connection = get_db_connection()
+    cursor = connection.cursor()
     cursor.execute(
         "UPDATE users SET profile=%s WHERE id=%s",
-        (json.dumps(updated_profile), current_user["id"])
+        (json.dumps(updated_profile), user["id"])
     )
     connection.commit()
     cursor.close()
@@ -187,11 +211,11 @@ async def update_current_user_profile(
     return {"message": "Profile updated successfully", "profile": updated_profile}
 
 
-
 # --- Delete User ---
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: int, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "Admin":
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
         raise HTTPException(status_code=403, detail="Only Admins can delete users")
 
     connection = get_db_connection()
