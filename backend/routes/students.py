@@ -3,12 +3,8 @@ from typing import Optional
 from pydantic import BaseModel
 from db import get_db_connection
 from dependencies import get_current_user
-from utils import (
-    classify_honors,
-    classify_income,
-    normalize_student_record_db,
-    normalize_student_record_display
-)
+from utils import classify_honors, classify_income, normalize_student_record_db, normalize_student_record_display
+
 
 
 router = APIRouter()

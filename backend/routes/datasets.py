@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
-from utils import classify_honors, classify_income
+from utils import classify_honors, classify_income, 
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -13,7 +13,7 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
-from utils import normalize_student_record
+
 
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
