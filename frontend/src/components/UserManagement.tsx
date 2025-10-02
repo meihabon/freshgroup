@@ -140,24 +140,33 @@ function UserManagement() {
     setShowResetModal(true)
   }
 
-  const handleResetPassword = async () => {
-    if (resetForm.newPassword !== resetForm.confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-    setSaving(true)
-    setError("")
-    setSuccess("")
-    try {
-      await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
-      setSuccess(`Password updated for ${resetUser?.email}`)
-      setShowResetModal(false)
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to reset password")
-    } finally {
-      setSaving(false)
-    }
+const handleResetPassword = async () => {
+  if (!resetForm.newPassword || !resetForm.confirmPassword) {
+    setError("Both password fields are required")
+    return
   }
+  if (resetForm.newPassword.length < 8) {
+    setError("Password must be at least 8 characters long")
+    return
+  }
+  if (resetForm.newPassword !== resetForm.confirmPassword) {
+    setError("Passwords do not match")
+    return
+  }
+
+  setSaving(true)
+  setError("")
+  setSuccess("")
+  try {
+    await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
+    setSuccess(`Password updated for ${resetUser?.email}`)
+    setShowResetModal(false)
+  } catch (err: any) {
+    setError(err.response?.data?.detail || "Failed to reset password")
+  } finally {
+    setSaving(false)
+  }
+}
 
   const handleDeleteUser = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return
