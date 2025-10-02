@@ -14,8 +14,10 @@ interface Student {
   program: string
   municipality: string
   income: number | null
+  income_display: string
   SHS_type: string
   GWA: number | null
+  GWA_display: string
   Honors: string
   IncomeCategory: string
 }
@@ -165,9 +167,9 @@ function Students() {
           student.sex,
           student.program,
           student.municipality,
-          student.income,
+          student.income_display,
           student.SHS_type,
-          student.GWA,
+          student.GWA_display,
         ].join(',')
       )
     ].join('\n')
@@ -386,7 +388,7 @@ function Students() {
                       <td>
                         {student.income === null
                           ? <Badge bg="danger">No Income Entered</Badge>
-                          : `₱${student.income.toLocaleString()}`}
+                          : student.income_display}
                       </td>
 
                       {/* SHS Type */}
@@ -400,14 +402,7 @@ function Students() {
                       <td>
                         {student.GWA === null
                           ? <Badge bg="danger">No GWA Entered</Badge>
-                          : student.GWA}
-                      </td>
-
-                      {/* Honors */}
-                      <td>
-                        <Badge bg={getHonorsBadgeVariant(student.Honors)}>
-                          {student.Honors && student.Honors !== "Incomplete" ? student.Honors : "No Honors"}
-                        </Badge>
+                          : student.GWA_display}
                       </td>
 
                       {/* Income Category */}

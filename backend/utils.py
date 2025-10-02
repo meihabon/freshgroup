@@ -154,21 +154,22 @@ def normalize_student_record_db(student: dict) -> dict:
 def normalize_student_record_display(student: dict) -> dict:
     """
     Normalize a student record for frontend/export.
-    Replaces blanks/None with human-readable placeholders.
+    Keeps numeric fields as numbers for clustering,
+    adds *_display fields for human-readable placeholders.
     """
 
     def safe_text(val, placeholder):
-        if val is None or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
+        if val is None or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none", "incomplete"]:
             return placeholder
         return str(val).strip()
 
-    def safe_num(val, placeholder):
-        if val is None or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
-            return placeholder
+    def safe_num(val):
+        if val is None or (isinstance(val, str) and val.strip().lower() in ["", "n/a", "na", "none", "incomplete"]):
+            return None
         try:
             return float(val)
         except:
-            return placeholder
+            return None
 
     firstname = safe_text(student.get("firstname"), "No First Name Entered")
     lastname = safe_text(student.get("lastname"), "No Last Name Entered")
@@ -177,8 +178,8 @@ def normalize_student_record_display(student: dict) -> dict:
     municipality = safe_text(student.get("municipality"), "No Municipality Entered")
     shs_type = safe_text(student.get("SHS_type"), "No SHS Type Entered")
 
-    income = safe_num(student.get("income"), "No Income Entered")
-    gwa = safe_num(student.get("GWA"), "No GWA Entered")
+    income = safe_num(student.get("income"))
+    gwa = safe_num(student.get("GWA"))
 
     return {
         "firstname": firstname,
@@ -187,8 +188,13 @@ def normalize_student_record_display(student: dict) -> dict:
         "program": program,
         "municipality": municipality,
         "SHS_type": shs_type,
+        # keep numerics for clustering
         "income": income,
         "GWA": gwa,
+        # add display-friendly fields
+        "income_display": f"₱{income:,.0f}" if isinstance(income, (int, float)) else "No Income Entered",
+        "GWA_display": f"{gwa:.2f}" if isinstance(gwa, (int, float)) else "No GWA Entered",
+        # derived classifications
         "Honors": classify_honors(gwa if isinstance(gwa, float) else None),
         "IncomeCategory": classify_income(income if isinstance(income, float) else None),
     }
