@@ -174,60 +174,9 @@ async def elbow_preview(
             "silhouette_k": silhouette_k
         }
     except Exception as e:
-async def upload_dataset(
-    if not file.filename.endswith(('.csv', '.xlsx')):
-        from sklearn.metrics import silhouette_score
-        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
-        else:
-            df = pd.read_excel(file_path)
-
-        # Normalize headers + safe fill
-        df = normalize_and_prepare_df(df)
-        # If you have encode_features, use it for one-hot/label encoding
-        if 'encode_features' in globals():
-            df = encode_features(df)
-    file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
-        # Feature selection: use all numeric and encoded features for best clustering
-        feature_cols = [
-            c for c in df.columns if (
-                c in ["gwa", "income", "sex_code", "shs_code", "location_code"]
-                or c.startswith("program_")
-            )
-        ]
-        # Remove columns with all NaN or constant value
-        feature_cols = [c for c in feature_cols if df[c].nunique(dropna=True) > 1]
-    with open(file_path, "wb") as buffer:
-        X = df[feature_cols].fillna(0)
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-        buffer.write(await file.read())
-        # Compute elbow with more k values for better accuracy
-        k_min, k_max = 2, min(15, max(5, len(df)//2))
-        wcss = compute_wcss_for_range(X_scaled, k_min=k_min, k_max=k_max)
-        recommended_k = recommend_k_by_curvature(wcss, k_min=k_min) or 3
-        k_values = list(range(k_min, k_min + len(wcss)))
-
-        # Silhouette analysis
-        silhouette_scores = []
-        for k in k_values:
-            try:
-                kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-                labels = kmeans.fit_predict(X_scaled)
-                score = silhouette_score(X_scaled, labels)
-                silhouette_scores.append(score)
-            except Exception:
-                silhouette_scores.append(-1)
-        silhouette_k = int((silhouette_scores.index(max(silhouette_scores)) + k_min)) if silhouette_scores else recommended_k
-    try:
-        return {
-            "wcss": wcss,
-            "k_values": k_values,
-            "recommended_k": recommended_k,
-            "silhouette_scores": silhouette_scores,
-            "silhouette_k": silhouette_k
-        }
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
         if file.filename.endswith('.csv'):
             df = pd.read_csv(file_path, low_memory=False)
         else:
