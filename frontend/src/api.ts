@@ -80,8 +80,9 @@ export interface StudentUpdatePayload {
   income: number
 }
 export const updateStudent = async (id: number, data: StudentUpdatePayload) => {
-  return axios.put(`/students/${id}`, data)
+  return API.put<{ message: string }>(`/students/${id}`, data)
 }
+
 /* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");
 export const recluster = (data: any) => API.post("/clusters/recluster", data);
