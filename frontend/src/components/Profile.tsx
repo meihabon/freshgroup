@@ -104,7 +104,15 @@ function Profile() {
       setSuccess("Password changed successfully!");
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to change password");
+      // If 401 and message is 'Current password is incorrect', do NOT log out, just show error
+      if (
+        err.response?.status === 401 &&
+        err.response?.data?.detail === "Current password is incorrect"
+      ) {
+        setError("Current password is incorrect");
+      } else {
+        setError(err.response?.data?.detail || "Failed to change password");
+      }
     } finally {
       setLoading(false);
     }
