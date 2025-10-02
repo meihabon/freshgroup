@@ -50,6 +50,8 @@ function UserManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
 
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<UserType | null>(null)
@@ -59,7 +61,6 @@ function UserManagement() {
     name: "",
     department: "",
     position: "",   
-    password: "",   
   })
 
 
@@ -68,6 +69,8 @@ function UserManagement() {
   const [resetForm, setResetForm] = useState({ newPassword: "", confirmPassword: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [modalError, setModalError] = useState("");
+  const [modalSuccess, setModalSuccess] = useState("");
 
   const totalUsers = users.length
   const adminCount = users.filter((u) => u.role === "Admin").length
@@ -92,7 +95,7 @@ function UserManagement() {
 
   const handleShowAdd = () => {
     setEditingUser(null)
-    setForm({ email: "", role: "Viewer", name: "", department: "", position: "", password: "" })
+    setForm({ email: "", role: "Viewer", name: "", department: "", position: ""})
     setShowModal(true)
   }
 
@@ -103,8 +106,7 @@ function UserManagement() {
       role: user.role,
       name: user.profile?.name || "",
       department: user.profile?.department || "",
-      position: user.profile?.position || "",   // 👈 added
-      password: "",
+      position: user.profile?.position || "",   
     })
     setShowModal(true)
   }
@@ -113,26 +115,33 @@ function UserManagement() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSaveUser = async () => {
-    setSaving(true)
-    setError("")
-    setSuccess("")
-    try {
-      if (editingUser) {
-        await API.put(`users/${editingUser.id}`, form)
-        setSuccess("User updated successfully")
-      } else {
-        await API.post("users", form)
-        setSuccess("User added successfully")
-      }
-      setShowModal(false)
-      fetchUsers()
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to save user")
-    } finally {
-      setSaving(false)
+const handleSaveUser = async () => {
+  setSaving(true);
+  setModalError("");
+  setModalSuccess("");
+  try {
+    if (editingUser) {
+      await API.put(`users/${editingUser.id}`, form);
+      setModalSuccess("User updated successfully");
+    } else {
+      await API.post("users", form);
+      setModalSuccess("User added successfully");
     }
+
+    // Close modal after short delay so success is visible
+    setTimeout(() => {
+      setShowModal(false);
+      setModalSuccess("");
+      fetchUsers();
+    }, 1200);
+
+  } catch (err: any) {
+    setModalError(err.response?.data?.detail || "Failed to save user");
+  } finally {
+    setSaving(false);
   }
+};
+
 
   const handleShowResetPassword = (user: UserType) => {
     setResetUser(user)
@@ -142,35 +151,35 @@ function UserManagement() {
 
 const handleResetPassword = async () => {
   if (!resetForm.newPassword || !resetForm.confirmPassword) {
-    setError("Both password fields are required")
-    return
+    setResetError("Both password fields are required");
+    return;
   }
   if (resetForm.newPassword.length < 6) {
-    setError("Password must be at least 6 characters long")
-    return
+    setResetError("Password must be at least 6 characters long");
+    return;
   }
   if (resetForm.newPassword !== resetForm.confirmPassword) {
-    setError("Passwords do not match")
-    return
+    setResetError("Passwords do not match");
+    return;
   }
 
-  setSaving(true)
-  setError("")
-  setSuccess("")
+  setSaving(true);
+  setResetError("");
+  setResetSuccess("");
   try {
-    await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
-    setSuccess("Password successfully updated!")
-    // Keep the modal open briefly so the user sees the message
+    await API.post(`users/${resetUser?.id}/reset-password`, resetForm);
+    setResetSuccess("Password successfully updated!");
     setTimeout(() => {
-      setShowResetModal(false)
-      setSuccess("")
-    }, 1500)
+      setShowResetModal(false);
+      setResetSuccess("");
+    }, 1500);
   } catch (err: any) {
-    setError(err.response?.data?.detail || "Failed to reset password")
+    setResetError(err.response?.data?.detail || "Failed to reset password");
   } finally {
-    setSaving(false)
+    setSaving(false);
   }
-}
+};
+
 
 
   const handleDeleteUser = async (id: number) => {
@@ -423,36 +432,57 @@ const handleResetPassword = async () => {
           <Modal.Title>{editingUser ? "Edit User" : "Add New User"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {/* Local feedback for modal */}
+          {modalError && <Alert variant="danger">{modalError}</Alert>}
+          {modalSuccess && <Alert variant="success">{modalSuccess}</Alert>}
+
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" name="email" value={form.email} onChange={handleFormChange} disabled={!!editingUser} />
+              <Form.Control
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleFormChange}
+                disabled={!!editingUser}
+              />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="text" name="name" value={form.name} onChange={handleFormChange} />
+              <Form.Control
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleFormChange}
+              />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Department</Form.Label>
-              <Form.Control type="text" name="department" value={form.department} onChange={handleFormChange} />
+              <Form.Control
+                type="text"
+                name="department"
+                value={form.department}
+                onChange={handleFormChange}
+              />
             </Form.Group>
+
             <Form.Label>Position</Form.Label>
             <Form.Control
-              type="text" name="position" value={form.position} onChange={handleFormChange} />
-            {!editingUser && (
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <div className="d-flex">
-                  <Form.Control type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleFormChange} />
-                  <Button variant="outline-secondary" onClick={() => setShowPassword(!showPassword)} className="ms-2">
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </div>
-              </Form.Group>
-            )}
+              type="text"
+              name="position"
+              value={form.position}
+              onChange={handleFormChange}
+            />
+
             <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
-              <Form.Select name="role" value={form.role} onChange={handleFormChange}>
+              <Form.Select
+                name="role"
+                value={form.role}
+                onChange={handleFormChange}
+              >
                 <option value="Admin">Admin</option>
                 <option value="Viewer">Viewer</option>
               </Form.Select>
@@ -460,12 +490,15 @@ const handleResetPassword = async () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
           <Button variant="primary" onClick={handleSaveUser} disabled={saving}>
             {saving ? <Spinner size="sm" animation="border" /> : "Save"}
           </Button>
         </Modal.Footer>
       </Modal>
+
 
       {/* Reset Password Modal */}
       <Modal show={showResetModal} onHide={() => setShowResetModal(false)}>
@@ -473,9 +506,10 @@ const handleResetPassword = async () => {
           <Modal.Title>Reset Password</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Move alerts to the top of the modal body for visibility */}
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
+          {/* Local error/success feedback */}
+          {resetError && <Alert variant="danger">{resetError}</Alert>}
+          {resetSuccess && <Alert variant="success">{resetSuccess}</Alert>}
+
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>New Password</Form.Label>
@@ -506,19 +540,17 @@ const handleResetPassword = async () => {
                   setResetForm({ ...resetForm, confirmPassword: e.target.value })
                 }
               />
-              {/* Inline feedback for password mismatch */}
               {resetForm.confirmPassword &&
                 resetForm.newPassword !== resetForm.confirmPassword && (
+                  <Form.Text className="text-danger">Passwords do not match</Form.Text>
+                )}
+              {resetForm.newPassword &&
+                resetForm.newPassword.length > 0 &&
+                resetForm.newPassword.length < 6 && (
                   <Form.Text className="text-danger">
-                    Passwords do not match
+                    Password must be at least 6 characters
                   </Form.Text>
                 )}
-              {/* Inline feedback for password length */}
-              {resetForm.newPassword && resetForm.newPassword.length > 0 && resetForm.newPassword.length < 6 && (
-                <Form.Text className="text-danger">
-                  Password must be at least 6 characters
-                </Form.Text>
-              )}
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -535,6 +567,7 @@ const handleResetPassword = async () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
 
     </div>
   )
