@@ -131,7 +131,8 @@ async def elbow_preview(
 
         # Normalize headers + safe fill
         df = normalize_and_prepare_df(df)
-        df = encode_features(df)
+        if 'encode_features' in globals():
+            df = encode_features(df)
 
         # Feature selection: use all numeric and encoded features for best clustering
         feature_cols = [
@@ -145,10 +146,33 @@ async def elbow_preview(
 
         X = df[feature_cols].fillna(0)
         scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # Compute elbow with more k values for better accuracy
+        k_min, k_max = 2, min(15, max(5, len(df)//2))
         wcss = compute_wcss_for_range(X_scaled, k_min=k_min, k_max=k_max)
+        recommended_k = recommend_k_by_curvature(wcss, k_min=k_min) or 3
+        k_values = list(range(k_min, k_min + len(wcss)))
+
         # Silhouette analysis
+        silhouette_scores = []
+        for k in k_values:
+            try:
+                kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+                labels = kmeans.fit_predict(X_scaled)
+                score = silhouette_score(X_scaled, labels)
+                silhouette_scores.append(score)
+            except Exception:
+                silhouette_scores.append(-1)
         silhouette_k = int((silhouette_scores.index(max(silhouette_scores)) + k_min)) if silhouette_scores else recommended_k
+
+        return {
+            "wcss": wcss,
             "k_values": k_values,
+            "recommended_k": recommended_k,
+            "silhouette_scores": silhouette_scores,
+            "silhouette_k": silhouette_k
+        }
     except Exception as e:
 async def upload_dataset(
     if not file.filename.endswith(('.csv', '.xlsx')):
