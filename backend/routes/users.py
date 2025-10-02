@@ -199,7 +199,7 @@ async def admin_reset_password(
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
     if len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)

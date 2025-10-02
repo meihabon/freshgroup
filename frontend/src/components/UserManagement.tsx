@@ -473,6 +473,9 @@ const handleResetPassword = async () => {
           <Modal.Title>Reset Password</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {/* Move alerts to the top of the modal body for visibility */}
+          {error && <Alert variant="danger">{error}</Alert>}
+          {success && <Alert variant="success">{success}</Alert>}
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>New Password</Form.Label>
@@ -517,10 +520,6 @@ const handleResetPassword = async () => {
                 </Form.Text>
               )}
             </Form.Group>
-
-            {/* ✅ Inline feedback */}
-            {error && <Alert variant="danger">{error}</Alert>}
-            {success && <Alert variant="success">{success}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
