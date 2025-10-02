@@ -451,6 +451,7 @@ const handleResetPassword = async () => {
           <Modal.Title>{editingUser ? "Edit User" : "Add New User"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {/* Show error/success inside modal */}
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           {modalSuccess && <Alert variant="success">{modalSuccess}</Alert>}
 
@@ -514,7 +515,8 @@ const handleResetPassword = async () => {
                       {showAddPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </Button>
                   </div>
-                  {form.password && form.password.length < 6 && (
+                  {/* Real-time password length warning */}
+                  {form.password && form.password.length > 0 && form.password.length < 6 && (
                     <Form.Text className="text-danger">
                       Password must be at least 6 characters
                     </Form.Text>
@@ -530,6 +532,7 @@ const handleResetPassword = async () => {
                       setForm({ ...form, confirmPassword: e.target.value })
                     }
                   />
+                  {/* Real-time password mismatch warning */}
                   {form.confirmPassword &&
                     form.password !== form.confirmPassword && (
                       <Form.Text className="text-danger">
