@@ -133,11 +133,12 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     df["location_code"] = df["LocationCategory"].map({"Upland": 0, "Lowland": 1}).fillna(-1)
 
     # Income → numeric + category
+
     df["income"] = pd.to_numeric(df["income"], errors="coerce").fillna(-1)
     df["IncomeCategory"] = df["income"].apply(classify_income)
 
-    # GWA → numeric
-    df["GWA"] = pd.to_numeric(df["GWA"], errors="coerce").fillna(-1)
+    # gwa → numeric (lowercase)
+    df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce").fillna(-1)
 
     # Honors → computed
     df["Honors"] = df.apply(classify_honors, axis=1)
@@ -171,7 +172,7 @@ def describe_cluster(students_df: pd.DataFrame, cluster_num: int) -> str:
     )
 
     # --- GWA ---
-    avg_gwa = cluster_df["GWA"].mean()
+    avg_gwa = cluster_df["gwa"].mean()
     if pd.isna(avg_gwa):
         gwa_desc = "students"
     elif avg_gwa <= 1.75:
