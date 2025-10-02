@@ -103,8 +103,21 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     - Numeric GWA & income
     - Encode sex, SHS type, location
     - One-hot encode program
+    - Handle missing values gracefully
     """
     df = df.copy()
+
+    # ✅ Ensure required columns exist
+    required_cols = ["sex", "SHS_type", "municipality", "income", "program", "GWA"]
+    for col in required_cols:
+        if col not in df.columns:
+            raise ValueError(f"Dataset is missing required column: {col}")
+
+    # ✅ Fill blanks in required columns with a placeholder
+    df["sex"] = df["sex"].fillna("Unknown")
+    df["SHS_type"] = df["SHS_type"].fillna("Unknown")
+    df["municipality"] = df["municipality"].fillna("Unknown")
+    df["program"] = df["program"].fillna("Unknown")
 
     # Sex → numeric
     df["sex_code"] = df["sex"].map({"Male": 0, "Female": 1}).fillna(-1)
@@ -112,14 +125,18 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     # SHS Type → numeric
     df["shs_code"] = df["SHS_type"].map({"Public": 0, "Private": 1}).fillna(-1)
 
-    # Location (Upland/Lowland)
+    # Location (Upland/Lowland/Unknown)
     df["LocationCategory"] = df["municipality"].apply(classify_location)
     df["location_code"] = df["LocationCategory"].map({"Upland": 0, "Lowland": 1}).fillna(-1)
 
-    # Income category
+    # Income → numeric + category
+    df["income"] = pd.to_numeric(df["income"], errors="coerce").fillna(-1)
     df["IncomeCategory"] = df["income"].apply(classify_income)
 
-    # Honors
+    # GWA → numeric
+    df["GWA"] = pd.to_numeric(df["GWA"], errors="coerce").fillna(-1)
+
+    # Honors → computed
     df["Honors"] = df.apply(classify_honors, axis=1)
 
     # One-hot encode Program
@@ -127,6 +144,7 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     df = pd.concat([df, program_dummies], axis=1)
 
     return df
+
 
 
 # -------------------------------
