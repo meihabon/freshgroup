@@ -62,19 +62,24 @@ def classify_income(income):
 
 UPLAND_MUNICIPALITIES = {
     # Ilocos Sur Upland
-    "Alilem", "Banayoyo", "Sigay", "Sugpon", "Suyo", "Cervantes", "Quirino", "Salcedo",
+    "Alilem", "Banayoyo", "Sigay", "Sugpon", "Suyo", "Cervantes", 
+    "Quirino", "Salcedo", "Galimuyod", "Gregorio del Pilar", "San Emilio",
+
     # La Union Upland
-    "Bagulin", "Burgos", "Santol", "Sudipen"
+    "Bagulin", "Burgos", "Santol", "Sudipen", "San Gabriel"
 }
 
 LOWLAND_MUNICIPALITIES = {
     # Ilocos Sur Lowland
-    "Tagudin", "Santa Cruz", "Santa Lucia", "Candon City", "Santa Maria", "San Esteban",
-    "Santiago", "Narvacan", "Santa", "Santa Catalina", "San Vicente", "Vigan City",
-    "Bantay", "San Ildefonso", "San Juan", "Cabugao", "Sinait", "Magsingal", "Caoayan",
+    "Tagudin", "Santa Cruz", "Santa Lucia", "Candon City", "Santa Maria", 
+    "San Esteban", "Santiago", "Narvacan", "Santa", "Santa Catalina", 
+    "San Vicente", "Vigan City", "Bantay", "San Ildefonso", "Cabugao", 
+    "Sinait", "Magsingal", "Caoayan", "Santa Barbara", "Santo Domingo",
+
     # La Union Lowland
-    "Agoo", "Aringay", "Bacnotan", "Balaoan", "Bauang", "Caba", "Luna", "Naguilian",
-    "Pugo", "Rosario", "San Fernando City", "San Gabriel", "San Juan", "Santo Tomas", "Tubao"
+    "Agoo", "Aringay", "Bacnotan", "Balaoan", "Bangar", "Bauang", 
+    "Caba", "Luna", "Naguilian", "Pugo", "Rosario", 
+    "San Fernando City", "San Juan", "Santo Tomas", "Tubao"
 }
 
 def classify_location(municipality: str) -> str:

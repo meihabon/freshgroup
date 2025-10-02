@@ -83,10 +83,10 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # --- Elbow Helper Functions ---
-def compute_wcss_for_range(X_scaled, k_min=2, k_max=10) -> List[float]:
+def compute_wcss_for_range(X_scaled, k_min=2, k_max=15) -> List[float]:
     wcss = []
     for k in range(k_min, k_max + 1):
-        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=20, max_iter=500)
         kmeans.fit(X_scaled)
         wcss.append(float(kmeans.inertia_))
     return wcss
@@ -104,6 +104,7 @@ def recommend_k_by_curvature(wcss: List[float], k_min=2) -> int:
     except Exception:
         pass
     return max(2, min(5, len(wcss) // 2))  # fallback default
+
 
 @router.post("/datasets/elbow")
 async def elbow_preview(
@@ -130,19 +131,29 @@ async def elbow_preview(
         df = normalize_and_prepare_df(df)
         df = encode_features(df)
 
-        # Feature selection
-        feature_cols = ["gwa", "income", "sex_code", "shs_code", "location_code"] + \
-                       [c for c in df.columns if c.startswith("program_")]
+        # Feature selection: use all numeric and encoded features for best clustering
+        feature_cols = [
+            c for c in df.columns if (
+                c in ["gwa", "income", "sex_code", "shs_code", "location_code"]
+                or c.startswith("program_")
+            )
+        ]
+        # Remove columns with all NaN or constant value
+        feature_cols = [c for c in feature_cols if df[c].nunique(dropna=True) > 1]
 
         X = df[feature_cols].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        # Compute elbow
-        wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
-        recommended_k = recommend_k_by_curvature(wcss) or 3
+        # Compute elbow with more k values for better accuracy
+        k_min, k_max = 2, min(15, max(5, len(df)//2))
+        wcss = compute_wcss_for_range(X_scaled, k_min=k_min, k_max=k_max)
+        recommended_k = recommend_k_by_curvature(wcss, k_min=k_min) or 3
 
-        return {"wcss": wcss, "recommended_k": recommended_k}
+        # Return k values for plotting
+        k_values = list(range(k_min, k_min + len(wcss)))
+
+        return {"wcss": wcss, "k_values": k_values, "recommended_k": recommended_k}
 
     except Exception as e:
         import traceback; traceback.print_exc()

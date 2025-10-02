@@ -391,17 +391,20 @@ function Clusters() {
     const yCategories = isPairwise ? data.y_categories ?? null : null
 
     // Build scatter traces (preserve original hover info + include location)
+    // Use descriptive cluster labels if available from backend
+    const clusterLabels = (data as any).cluster_labels || {};
     const scatterTraces: Partial<Plotly.PlotData>[] = clusterIds.map((clusterId) => {
       const students = data.clusters[clusterId]
+      const label = clusterLabels[clusterId] || `Cluster ${clusterId}`;
       return {
         x: students.map((s: any) => (isPairwise ? s.pair_x : s.GWA)),
         y: students.map((s: any) => (isPairwise ? s.pair_y : s.income)),
         mode: "markers",
         type: "scatter",
-        name: `Cluster ${clusterId}`,
+        name: label,
         text: students.map(
           (s: any) =>
-            `${s.firstname} ${s.lastname}<br>${isPairwise ? xTitle : "GWA"}: ${isPairwise ? s.pair_x_label ?? s.pair_x : s.GWA}<br>${isPairwise ? yTitle : "Income"}: ${isPairwise ? s.pair_y_label ?? s.pair_y : s.income}<br>Program: ${s.program ?? "-"}<br>Municipality: ${s.municipality ?? "-"}<br>Location: ${s.LocationCategory ?? "-"}`
+            `${s.firstname} ${s.lastname}<br>${isPairwise ? xTitle : "GWA"}: ${isPairwise ? s.pair_x_label ?? s.pair_x : s.GWA}<br>${isPairwise ? yTitle : "Income"}: ${isPairwise ? s.pair_y_label ?? s.pair_y : s.income}<br>Program: ${s.program ?? "-"}<br>Municipality: ${s.municipality ?? "-"}<br>Location: ${s.LocationCategory ?? "-"}<br>Cluster: ${label}`
         ),
         hovertemplate: "%{text}<extra></extra>",
         marker: {
@@ -496,24 +499,27 @@ function Clusters() {
                 <h6 className="mb-0 fw-bold">Cluster Summaries</h6>
               </Card.Header>
               <Card.Body>
-                {clusterIds.map((cid) => (
-                  <div
-                    key={cid}
-                    className="p-3 border rounded mb-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setSelectedCluster(cid)
-                      setCurrentPage(1)
-                    }}
-                  >
-                    <h6>
-                      Cluster {cid} — {getClusterDescription(data.clusters[cid]).title}
-                    </h6>
-                    <small className="text-muted">
-                      {getClusterDescription(data.clusters[cid]).summary}
-                    </small>
-                  </div>
-                ))}
+                {clusterIds.map((cid) => {
+                  const label = clusterLabels[cid] || getClusterDescription(data.clusters[cid]).title;
+                  return (
+                    <div
+                      key={cid}
+                      className="p-3 border rounded mb-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setSelectedCluster(cid)
+                        setCurrentPage(1)
+                      }}
+                    >
+                      <h6>
+                        {label}
+                      </h6>
+                      <small className="text-muted">
+                        {getClusterDescription(data.clusters[cid]).summary}
+                      </small>
+                    </div>
+                  )
+                })}
               </Card.Body>
             </Card>
           </Col>
