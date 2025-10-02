@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
+from utils import classify_income, classify_honors
 
 router = APIRouter()
 
@@ -61,3 +62,52 @@ async def get_students(
     cursor.close()
     connection.close()
     return students
+@router.put("/students/{student_id}")
+async def update_student(
+    student_id: int,
+    student_data: dict = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    connection = get_db_connection()
+    if not connection:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    cursor = connection.cursor(dictionary=True)
+
+    # Fetch existing student
+    cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
+    student = cursor.fetchone()
+    if not student:
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    # Extract editable fields
+    firstname = student_data.get("firstname", student["firstname"])
+    lastname = student_data.get("lastname", student["lastname"])
+    sex = student_data.get("sex", student["sex"])
+    program = student_data.get("program", student["program"])
+    municipality = student_data.get("municipality", student["municipality"])
+    shs_type = student_data.get("SHS_type", student["SHS_type"])
+    gwa = student_data.get("GWA", student["GWA"])
+    income = student_data.get("income", student["income"])
+
+    # 🔒 Honors & IncomeCategory should be system-computed
+    honors = classify_honors({"gwa": gwa})
+    income_category = classify_income(income)
+
+    update_query = """
+        UPDATE students
+        SET firstname=%s, lastname=%s, sex=%s, program=%s,
+            municipality=%s, SHS_type=%s, GWA=%s, income=%s,
+            Honors=%s, IncomeCategory=%s
+        WHERE id=%s
+    """
+    cursor.execute(update_query, (
+        firstname, lastname, sex, program,
+        municipality, shs_type, gwa, income,
+        honors, income_category, student_id
+    ))
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return {"message": "Student updated successfully"}

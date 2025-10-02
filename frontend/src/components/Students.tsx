@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
-  InputGroup, Badge, Spinner, Alert 
+  InputGroup, Badge, Spinner, Alert, Modal 
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import { useAuth } from "../context/AuthContext"
-
+import { updateStudent } from "../api"
 interface Student {
   id: number
   firstname: string
@@ -163,6 +163,36 @@ function Students() {
     }
   }
 
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+
+  const handleEditClick = (student: Student) => {
+    setSelectedStudent(student)
+    setShowEditModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!selectedStudent) return
+
+    const payload = {
+      firstname: selectedStudent.firstname,
+      lastname: selectedStudent.lastname,
+      sex: selectedStudent.sex,
+      program: selectedStudent.program,
+      municipality: selectedStudent.municipality,
+      SHS_type: selectedStudent.SHS_type,
+      GWA: selectedStudent.GWA,
+      income: selectedStudent.income,
+    }
+
+    try {
+      await updateStudent(selectedStudent.id, payload)
+      setShowEditModal(false)
+      fetchStudents() // refresh list
+    } catch (error: any) {
+      alert(error.response?.data?.detail || "Failed to update student")
+    }
+  }
   // Pagination logic
   const indexOfLast = currentPage * studentsPerPage
   const indexOfFirst = indexOfLast - studentsPerPage
@@ -226,6 +256,7 @@ function Students() {
                 <option value="">All</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
+                <option value="Unknown">Unknown</option>
               </Form.Select>
             </Col>
 
@@ -250,6 +281,7 @@ function Students() {
                 <option value="Upper-Middle">Upper-Middle</option>
                 <option value="Upper-Income">Upper-Income</option>
                 <option value="Rich">Rich</option>
+                <option value="Unknown">Unknown</option>
               </Form.Select>
             </Col>
 
@@ -271,6 +303,7 @@ function Students() {
                 <option value="With Honors">With Honors</option>
                 <option value="With High Honors">With High Honors</option>
                 <option value="With Highest Honors">With Highest Honors</option>
+                <option value="Unknown">Unknown</option>
               </Form.Select>
             </Col>
 
@@ -345,6 +378,7 @@ function Students() {
                   <th>General Weighted Average (GWA)</th>
                   <th>Honors</th>
                   <th>Income Category</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
                 <tbody>
@@ -421,6 +455,15 @@ function Students() {
                             : "No Income Category"}
                         </Badge>
                       </td>
+                      <td>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={() => handleEditClick(student)}
+                      >
+                        Edit
+                      </Button>
+                    </td>
                     </tr>
                   ))}
                 </tbody>
@@ -434,6 +477,126 @@ function Students() {
               <p className="text-muted">No students found matching the current filters.</p>
             </div>
           )}
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Student</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedStudent && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.firstname}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, firstname: e.target.value })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.lastname}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, lastname: e.target.value })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Sex</Form.Label>
+                <Form.Select
+                  value={selectedStudent.sex || ""}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, sex: e.target.value as any })
+                  }
+                >
+                  <option value="">Select Sex</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Program</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.program}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, program: e.target.value })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Municipality</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.municipality}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, municipality: e.target.value })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>SHS Type</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.SHS_type}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, SHS_type: e.target.value })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Income</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={selectedStudent.income}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, income: parseFloat(e.target.value) })
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>GWA</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={selectedStudent.GWA}
+                  onChange={(e) =>
+                    setSelectedStudent({ ...selectedStudent, GWA: parseFloat(e.target.value) })
+                  }
+                />
+              </Form.Group>
+
+              {/* 🔒 Read-only computed fields */}
+              <Form.Group className="mb-3">
+                <Form.Label>Honors (System Computed)</Form.Label>
+                <Form.Control type="text" value={selectedStudent.Honors} disabled />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Income Category (System Computed)</Form.Label>
+                <Form.Control type="text" value={selectedStudent.IncomeCategory} disabled />
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="success" onClick={handleSave}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
         </Card.Body>
       </Card>
     </div>

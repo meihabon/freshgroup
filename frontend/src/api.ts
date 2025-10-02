@@ -69,7 +69,19 @@ export const getDashboardStats = () => API.get("/dashboard/stats");
 
 /* ---------------- STUDENTS ---------------- */
 export const getStudents = () => API.get("/students");
-
+export interface StudentUpdatePayload {
+  firstname: string
+  lastname: string
+  sex: string | null
+  program: string
+  municipality: string
+  SHS_type: string
+  GWA: number
+  income: number
+}
+export const updateStudent = async (id: number, data: StudentUpdatePayload) => {
+  return axios.put(`/students/${id}`, data)
+}
 /* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");
 export const recluster = (data: any) => API.post("/clusters/recluster", data);
