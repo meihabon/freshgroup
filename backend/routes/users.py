@@ -149,6 +149,7 @@ class ProfileUpdate(BaseModel):
 
     class Config:
         extra = "ignore"  # ignore any unexpected fields
+
 # --- Update current logged-in user's profile ---
 @router.put("/users/me")
 async def update_current_user_profile(update: ProfileUpdate, current_user: dict = Depends(get_current_user)):
@@ -174,6 +175,46 @@ async def update_current_user_profile(update: ProfileUpdate, current_user: dict 
     connection.close()
 
     return {"message": "Profile updated successfully", "profile": updated_profile}
+
+# --- Admin resets a user's password ---
+@router.post("/users/{user_id}/reset-password")
+async def admin_reset_password(
+    user_id: int,
+    data: dict = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    # Ensure only Admins can reset
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can reset passwords")
+
+    new_password = data.get("newPassword")
+    confirm_password = data.get("confirmPassword")
+
+    if not new_password or not confirm_password:
+        raise HTTPException(status_code=400, detail="Both password fields are required")
+    if new_password != confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT id FROM users WHERE id=%s", (user_id,))
+    target_user = cursor.fetchone()
+    if not target_user:
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    hashed = get_password_hash(new_password)
+    cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (hashed, user_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"message": f"Password for user {user_id} has been reset successfully"}
 
 # --- Update existing user (Admin only) ---
 @router.put("/users/{user_id}")
