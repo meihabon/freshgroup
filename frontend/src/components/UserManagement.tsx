@@ -159,14 +159,19 @@ const handleResetPassword = async () => {
   setSuccess("")
   try {
     await API.post(`users/${resetUser?.id}/reset-password`, resetForm)
-    setSuccess(`Password updated for ${resetUser?.email}`)
-    setShowResetModal(false)
+    setSuccess("Password successfully updated!")
+    // Close the modal after 1.5s so user can see the message
+    setTimeout(() => {
+      setShowResetModal(false)
+      setSuccess("")
+    }, 1500)
   } catch (err: any) {
     setError(err.response?.data?.detail || "Failed to reset password")
   } finally {
     setSaving(false)
   }
 }
+
 
   const handleDeleteUser = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return
