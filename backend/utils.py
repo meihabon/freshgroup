@@ -107,8 +107,9 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # ✅ Ensure required columns exist
-    required_cols = ["sex", "SHS_type", "municipality", "income", "program", "GWA"]
+
+    # ✅ Ensure required columns exist (all lowercase to match normalized DataFrame)
+    required_cols = ["sex", "shs_type", "municipality", "income", "program", "gwa"]
     for col in required_cols:
         if col not in df.columns:
             raise ValueError(f"Dataset is missing required column: {col}")
