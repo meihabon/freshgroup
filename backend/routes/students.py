@@ -96,6 +96,15 @@ async def update_student(
     honors = classify_honors({"gwa": gwa})
     income_category = classify_income(income)
 
+    # ✅ define the update_query here
+    update_query = """
+        UPDATE students
+        SET firstname=%s, lastname=%s, sex=%s, program=%s,
+            municipality=%s, SHS_type=%s, GWA=%s, income=%s,
+            Honors=%s, IncomeCategory=%s
+        WHERE id=%s
+    """
+
     try:
         cursor.execute(update_query, (
             firstname, lastname, sex, program,
@@ -105,11 +114,9 @@ async def update_student(
         connection.commit()
     except Exception as e:
         connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
+    finally:
         cursor.close()
         connection.close()
-        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
-        
-    connection.commit()
-    cursor.close()
-    connection.close()
+
     return {"message": "Student updated successfully"}
