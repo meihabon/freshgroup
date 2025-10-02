@@ -70,6 +70,8 @@ export const getDashboardStats = () => API.get("/dashboard/stats");
 
 /* ---------------- STUDENTS ---------------- */
 export const getStudents = () => API.get("/students");
+export const updateStudent = (studentId: number, data: any) =>
+  API.put(`/students/${studentId}`, data);
 
 /* ---------------- CLUSTERS ---------------- */
 export const getClusters = () => API.get("/clusters");
