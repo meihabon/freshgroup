@@ -55,7 +55,21 @@ function Students() {
     if (!editingStudent) return
     try {
       setSaving(true)
-      await API.put(`/students/${editingStudent.id}`, editingStudent)
+
+      // ✅ Pick only editable fields
+      const payload = {
+        firstname: editingStudent.firstname,
+        lastname: editingStudent.lastname,
+        sex: editingStudent.sex,
+        program: editingStudent.program,
+        municipality: editingStudent.municipality,
+        SHS_type: editingStudent.SHS_type,
+        income: editingStudent.income,
+        GWA: editingStudent.GWA,
+      }
+
+      await API.put(`/students/${editingStudent.id}`, payload)
+
       // refresh students
       await fetchStudents()
       setShowEditModal(false)
@@ -65,6 +79,7 @@ function Students() {
       setSaving(false)
     }
   }
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const studentsPerPage = 25

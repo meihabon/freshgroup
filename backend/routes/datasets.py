@@ -13,6 +13,8 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
+from utils import normalize_student_record
+
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -205,48 +207,24 @@ async def upload_dataset(
         cluster_id = cursor.lastrowid
 
         for _, row in df.iterrows():
-            # Handle text fields (if blank/N/A → "Incomplete")
-            def safe_text(val):
-                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
-                    return "Incomplete"
-                return str(val).strip()
-
-            # Handle numeric fields (if blank/N/A → -1)
-            def safe_num(val):
-                if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
-                    return -1
-                try:
-                    return float(val)
-                except Exception:
-                    return -1
-
-            firstname = safe_text(row.get('firstname'))
-            lastname = safe_text(row.get('lastname'))
-            sex = safe_text(row.get('sex'))
-            program = safe_text(row.get('program'))
-            municipality = safe_text(row.get('municipality'))
-            shs_type = safe_text(row.get('shs_type'))
-
-            income_val = safe_num(row.get('income'))
-            gwa_val = safe_num(row.get('gwa'))
-
-            honors = safe_text(row.get('Honors'))
-            income_category = safe_text(row.get('IncomeCategory'))
+            # Normalize entire record for DB
+            student_data = normalize_student_record_db(row.to_dict())
 
             cursor.execute("""
-                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
+                INSERT INTO students 
+                (firstname, lastname, sex, program, municipality, income, SHS_type, GWA, Honors, IncomeCategory, dataset_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                firstname,
-                lastname,
-                sex,
-                program,
-                municipality,
-                income_val,
-                shs_type,
-                gwa_val,
-                honors,
-                income_category,
+                student_data["firstname"],
+                student_data["lastname"],
+                student_data["sex"],
+                student_data["program"],
+                student_data["municipality"],
+                student_data["income"],
+                student_data["SHS_type"],
+                student_data["GWA"],
+                student_data["Honors"],
+                student_data["IncomeCategory"],
                 dataset_id
             ))
 
@@ -256,7 +234,6 @@ async def upload_dataset(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
                 (student_id, cluster_id, int(row['Cluster']))
             )
-
 
         connection.commit()
         cursor.close()
@@ -320,7 +297,10 @@ async def preview_dataset(
         "SELECT * FROM students WHERE dataset_id = %s LIMIT 15",
         (dataset_id,)
     )
-    rows = cur.fetchall()
+    raw_rows = cur.fetchall()
+
+    # Normalize before returning
+    rows = [normalize_student_record_display(r) for r in raw_rows]
 
     cur.close()
     conn.close()
@@ -347,17 +327,21 @@ async def download_dataset(dataset_id: int, current_user: dict = Depends(get_cur
 
     # fetch all students for this dataset
     cur.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
-    rows = cur.fetchall()
-    cur.close(); conn.close()
+    raw_rows = cur.fetchall()
 
-    if not rows:
+    if not raw_rows:
         raise HTTPException(status_code=404, detail="No students found for this dataset")
 
-    # generate CSV in memory
+    # Normalize each row for display/export
+    rows = [normalize_student_record_display(r) for r in raw_rows]
+
+
+    # generate CSV in memory with normalized headers
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=rows[0].keys())
     writer.writeheader()
     writer.writerows(rows)
+
     output.seek(0)
 
     # return as streaming response
