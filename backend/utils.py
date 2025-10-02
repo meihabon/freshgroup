@@ -1,7 +1,15 @@
 import pandas as pd
 
-def classify_honors(row):
-    gwa = row.get('gwa')
+def classify_honors(data):
+    # Accept either dict (row) or raw float
+    if isinstance(data, dict):
+        gwa = data.get("gwa")
+        all_pass = data.get("all_pass", True)
+        conduct_issue = data.get("conduct_issue", False)
+    else:
+        gwa = data
+        all_pass = True
+        conduct_issue = False
 
     # Handle missing/blank GWA
     if pd.isna(gwa) or gwa == "" or gwa is None:
@@ -11,10 +19,6 @@ def classify_honors(row):
         gwa = float(gwa)
     except:
         return "No GWA Entered"
-
-    # Optional dataset flags
-    all_pass = row.get('all_pass', True)
-    conduct_issue = row.get('conduct_issue', False)
 
     if not all_pass or conduct_issue:
         return "Average"
@@ -27,7 +31,14 @@ def classify_honors(row):
         return "With Honors"
     return "Average"
 
-def classify_income(income):
+
+def classify_income(data):
+    # Accept either dict (row) or raw float
+    if isinstance(data, dict):
+        income = data.get("income")
+    else:
+        income = data
+
     # Handle missing/blank income
     if pd.isna(income) or income == "" or income is None:
         return "No Income Entered"

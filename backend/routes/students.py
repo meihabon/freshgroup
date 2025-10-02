@@ -75,7 +75,6 @@ class StudentUpdate(BaseModel):
     income: float | None = None     
     GWA: float | None = None       
 
-# --- Update route (Admin only) ---
 @router.put("/students/{student_id}")
 async def update_student(student_id: int, payload: StudentUpdate, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
@@ -87,7 +86,7 @@ async def update_student(student_id: int, payload: StudentUpdate, current_user: 
 
     cursor = connection.cursor()
 
-    # --- 1. Update raw fields first ---
+    # --- 1. Update raw fields (firstname, lastname, program, etc.) ---
     updates = []
     values = []
     for field, value in payload.dict(exclude_unset=True).items():
@@ -101,17 +100,17 @@ async def update_student(student_id: int, payload: StudentUpdate, current_user: 
     query = f"UPDATE students SET {', '.join(updates)} WHERE id = %s"
     cursor.execute(query, values)
 
-    # --- 2. Auto-recompute Honors and IncomeCategory ---
+    # --- 2. Auto-recompute Honors and IncomeCategory if income/GWA updated ---
     recompute_updates = []
     recompute_values = []
 
     if payload.GWA is not None:
         recompute_updates.append("Honors = %s")
-        recompute_values.append(classify_honors(payload.GWA))
+        recompute_values.append(classify_honors(payload.GWA))  # raw number now works
 
     if payload.income is not None:
         recompute_updates.append("IncomeCategory = %s")
-        recompute_values.append(classify_income(payload.income))
+        recompute_values.append(classify_income(payload.income))  # raw number now works
 
     if recompute_updates:
         recompute_values.append(student_id)
