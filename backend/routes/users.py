@@ -8,15 +8,6 @@ from typing import Optional
 
 router = APIRouter()
 
-class ProfileUpdate(BaseModel):
-    name: Optional[str] = None
-    department: Optional[str] = None
-    position: Optional[str] = None
-
-    class Config:
-        extra = "ignore"  # ignore any unexpected fields
-
-
 # --- helper ---
 def resolve_user(current_user: dict):
     """
@@ -151,6 +142,38 @@ async def create_user(data: dict = Body(...), current_user: dict = Depends(get_c
     connection.close()
     return {"message": "User created successfully", "id": new_id}
 
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    department: Optional[str] = None
+    position: Optional[str] = None
+
+    class Config:
+        extra = "ignore"  # ignore any unexpected fields
+# --- Update current logged-in user's profile ---
+@router.put("/users/me")
+async def update_current_user_profile(update: ProfileUpdate, current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    updates = {k: v for k, v in update.dict().items() if v and v.strip()}
+    if not updates:
+        raise HTTPException(status_code=400, detail="No changes provided")
+
+    existing_profile = json.loads(user["profile"]) if user["profile"] else {}
+    updated_profile = {**existing_profile, **updates}
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "UPDATE users SET profile=%s WHERE id=%s",
+        (json.dumps(updated_profile), user["id"])
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"message": "Profile updated successfully", "profile": updated_profile}
 
 # --- Update existing user (Admin only) ---
 @router.put("/users/{user_id}")
@@ -182,42 +205,6 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
     cursor.close()
     connection.close()
     return {"message": "User updated successfully"}
-
-
-# --- Update current logged-in user's profile ---
-@router.put("/users/me")
-async def update_current_user_profile(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
-    user = resolve_user(current_user)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Manually extract only profile fields
-    updates = {}
-    if "name" in data and data["name"].strip():
-        updates["name"] = data["name"].strip()
-    if "department" in data and data["department"].strip():
-        updates["department"] = data["department"].strip()
-    if "position" in data and data["position"].strip():
-        updates["position"] = data["position"].strip()
-
-    if not updates:
-        raise HTTPException(status_code=400, detail="No changes provided")
-
-    existing_profile = json.loads(user["profile"]) if user["profile"] else {}
-    updated_profile = {**existing_profile, **updates}
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        "UPDATE users SET profile=%s WHERE id=%s",
-        (json.dumps(updated_profile), user["id"])
-    )
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-    return {"message": "Profile updated successfully", "profile": updated_profile}
-
 
 
 # --- Delete User ---
