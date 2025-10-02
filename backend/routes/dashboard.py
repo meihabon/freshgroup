@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db_connection
 from dependencies import get_current_user
+from utils import classify_location
 
 router = APIRouter()
 
@@ -20,6 +21,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
             "total_students": 0,
             "most_common_program": "N/A",
             "most_common_municipality": "N/A",
+            "most_common_location": "N/A",
             "most_common_sex": "N/A",
             "most_common_income": "N/A",
             "most_common_shs": "N/A",
@@ -27,6 +29,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
             "sex_distribution": {},
             "program_distribution": {},
             "municipality_distribution": {},
+            "location_distribution": {},
             "income_distribution": {},
             "shs_distribution": {},
             "honors_distribution": {}
@@ -34,29 +37,45 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
     dataset_id = latest_dataset["id"]
 
+    # === Total students ===
     cursor.execute("SELECT COUNT(*) as count FROM students WHERE dataset_id = %s", (dataset_id,))
     total_students = cursor.fetchone()["count"]
 
+    # === Sex ===
     cursor.execute("SELECT sex, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY sex", (dataset_id,))
     sex_distribution = {row["sex"]: row["count"] for row in cursor.fetchall()}
     most_common_sex = max(sex_distribution, key=sex_distribution.get) if sex_distribution else "N/A"
 
+    # === Program ===
     cursor.execute("SELECT program, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY program", (dataset_id,))
     program_distribution = {row["program"]: row["count"] for row in cursor.fetchall()}
     most_common_program = max(program_distribution, key=program_distribution.get) if program_distribution else "N/A"
 
-    cursor.execute("SELECT municipality, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY municipality", (dataset_id,))
-    municipality_distribution = {row["municipality"]: row["count"] for row in cursor.fetchall()}
-    most_common_municipality = max(municipality_distribution, key=municipality_distribution.get) if municipality_distribution else "N/A"
+    # === Municipality ===
+    cursor.execute("SELECT municipality FROM students WHERE dataset_id = %s", (dataset_id,))
+    muni_rows = cursor.fetchall()
+    municipality_distribution = {}
+    location_distribution = {}
+    for row in muni_rows:
+        muni = row["municipality"]
+        municipality_distribution[muni] = municipality_distribution.get(muni, 0) + 1
+        loc = classify_location(muni)
+        location_distribution[loc] = location_distribution.get(loc, 0) + 1
 
+    most_common_municipality = max(municipality_distribution, key=municipality_distribution.get) if municipality_distribution else "N/A"
+    most_common_location = max(location_distribution, key=location_distribution.get) if location_distribution else "N/A"
+
+    # === Income ===
     cursor.execute("SELECT IncomeCategory, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY IncomeCategory", (dataset_id,))
     income_distribution = {row["IncomeCategory"]: row["count"] for row in cursor.fetchall()}
     most_common_income = max(income_distribution, key=income_distribution.get) if income_distribution else "N/A"
 
+    # === SHS Type ===
     cursor.execute("SELECT SHS_type, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY SHS_type", (dataset_id,))
     shs_distribution = {row["SHS_type"]: row["count"] for row in cursor.fetchall()}
     most_common_shs = max(shs_distribution, key=shs_distribution.get) if shs_distribution else "N/A"
 
+    # === Honors ===
     cursor.execute("SELECT Honors, COUNT(*) as count FROM students WHERE dataset_id = %s GROUP BY Honors", (dataset_id,))
     honors_distribution = {row["Honors"]: row["count"] for row in cursor.fetchall()}
     most_common_honors = max(honors_distribution, key=honors_distribution.get) if honors_distribution else "N/A"
@@ -68,6 +87,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "total_students": total_students,
         "most_common_program": most_common_program,
         "most_common_municipality": most_common_municipality,
+        "most_common_location": most_common_location,   # ✅ added
         "most_common_sex": most_common_sex,
         "most_common_income": most_common_income,
         "most_common_shs": most_common_shs,
@@ -75,6 +95,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "sex_distribution": sex_distribution,
         "program_distribution": program_distribution,
         "municipality_distribution": municipality_distribution,
+        "location_distribution": location_distribution,  # ✅ added
         "income_distribution": income_distribution,
         "shs_distribution": shs_distribution,
         "honors_distribution": honors_distribution,

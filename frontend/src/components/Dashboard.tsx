@@ -11,12 +11,14 @@ interface DashboardStats {
   most_common_income: string
   most_common_shs: string
   most_common_honors: string
+  most_common_location: string
   sex_distribution: Record<string, number>
   program_distribution: Record<string, number>
   municipality_distribution: Record<string, number>
   income_distribution: Record<string, number>
   shs_distribution: Record<string, number>
   honors_distribution: Record<string, number>
+  location_distribution: Record<string, number>
 }
 
 function Dashboard() {
@@ -73,7 +75,9 @@ function Dashboard() {
         return `${maxCategory} is the predominant SHS background (${percentage}%), which may indicate differences in academic preparation and the need for bridging programs.`
       case 'Honors Distribution':
         return `${maxCategory} represents ${percentage}% of students in honors classification. This gives a quick snapshot of academic achievement and recognition opportunities.`
-      default:
+      case 'Location Distribution':
+        return `${maxCategory} areas account for ${percentage}% of students. This helps the institution identify whether most learners come from Upland, Lowland, or Coastal areas and design outreach, facilities, and transportation planning accordingly.`
+        default:
         return 'This chart provides insights into student demographics and academic characteristics.'
     }
   }
@@ -101,6 +105,7 @@ function Dashboard() {
     { title: 'Income Distribution', data: stats.income_distribution },
     { title: 'SHS Type Distribution', data: stats.shs_distribution },
     { title: 'Honors Distribution', data: stats.honors_distribution },
+    { title: 'Location Distribution', data: stats.location_distribution },
   ]
 
   return (
@@ -185,6 +190,18 @@ function Dashboard() {
               <div>
                 <h6 className="fw-bold mb-1">{stats.most_common_municipality}</h6>
                 <p className="text-muted mb-0">Most Common Municipality</p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col md={4} className="mb-3">
+          <Card className="h-100 clickable-card" onClick={() => openModal('Location Breakdown', stats.location_distribution)}>
+            <Card.Body className="d-flex align-items-center">
+              <MapPin size={40} className="text-info me-3" />
+              <div>
+                <h6 className="fw-bold mb-1">{stats.most_common_location}</h6>
+                <p className="text-muted mb-0">Most Common Location Category</p>
               </div>
             </Card.Body>
           </Card>

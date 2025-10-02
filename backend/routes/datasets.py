@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
-from utils import classify_honors, classify_income
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -13,6 +12,8 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
+from utils import classify_honors, classify_income, classify_location, encode_features, describe_cluster
+
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -50,6 +51,7 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     # Derive Honors & IncomeCategory
     df["Honors"] = df.apply(classify_honors, axis=1)
     df["IncomeCategory"] = df["income"].apply(classify_income)
+    df["LocationCategory"] = df["municipality"].apply(classify_location)
 
     # Clean numerics
     df["gwa"] = pd.to_numeric(df["gwa"], errors="coerce")
@@ -117,17 +119,23 @@ async def elbow_preview(
             buffer.write(await file.read())
 
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
+            df = pd.read_csv(file_path, low_memory=False)
         else:
             df = pd.read_excel(file_path)
 
+        # Normalize and prepare
         df = normalize_and_prepare_df(df)
+        df = encode_features(df)
 
-        features = ['gwa', 'income']
-        X = df[features].fillna(0)
+        # Select features for clustering
+        feature_cols = ["gwa", "income", "sex_code", "shs_code", "location_code"] + \
+                       [c for c in df.columns if c.startswith("program_")]
+
+        X = df[feature_cols].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
+        # Compute WCSS
         wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
         recommended_k = recommend_k_by_curvature(wcss)
 
@@ -135,7 +143,7 @@ async def elbow_preview(
 
     except Exception as e:
         import traceback
-        traceback.print_exc()  # <-- prints full error with line numbers
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
     finally:
         if os.path.exists(file_path):
@@ -162,14 +170,19 @@ async def upload_dataset(
 
     try:
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path, dtype={"income": "float64", "gwa": "float64"}, low_memory=False)
+            df = pd.read_csv(file_path, low_memory=False)
         else:
             df = pd.read_excel(file_path)
 
+        # Normalize + enrich dataset
         df = normalize_and_prepare_df(df)
+        df = encode_features(df)
 
-        features = ['gwa', 'income']
-        X = df[features].fillna(0)
+        # Select features for clustering
+        feature_cols = ["gwa", "income", "sex_code", "shs_code", "location_code"] + \
+                       [c for c in df.columns if c.startswith("program_")]
+
+        X = df[feature_cols].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
@@ -178,14 +191,16 @@ async def upload_dataset(
             wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
             k = recommend_k_by_curvature(wcss)
 
+        # Run KMeans clustering
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
         df['Cluster'] = kmeans.fit_predict(X_scaled)
-        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
+        df['Cluster'] = df['Cluster'].astype(int)
 
+        # Store only GWA + income centroids (for interpretability)
         all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
-    # Keep only GWA (index 0) and income (index 1)
         centroids = [[c[0], c[1]] for c in all_centroids]
 
+        # Save dataset + clusters into DB
         connection = get_db_connection()
         if not connection:
             os.remove(file_path)
@@ -204,14 +219,13 @@ async def upload_dataset(
         )
         cluster_id = cursor.lastrowid
 
+        # Save student records
         for _, row in df.iterrows():
-            # Handle text fields (if blank/N/A → "Incomplete")
             def safe_text(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return "Incomplete"
                 return str(val).strip()
 
-            # Handle numeric fields (if blank/N/A → -1)
             def safe_num(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return -1
@@ -232,10 +246,11 @@ async def upload_dataset(
 
             honors = safe_text(row.get('Honors'))
             income_category = safe_text(row.get('IncomeCategory'))
+            location = safe_text(row.get("LocationCategory"))
 
             cursor.execute("""
-                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, LocationCategory, dataset_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 firstname,
                 lastname,
@@ -247,16 +262,15 @@ async def upload_dataset(
                 gwa_val,
                 honors,
                 income_category,
+                location,
                 dataset_id
             ))
-
 
             student_id = cursor.lastrowid
             cursor.execute(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
                 (student_id, cluster_id, int(row['Cluster']))
             )
-
 
         connection.commit()
         cursor.close()
@@ -274,6 +288,7 @@ async def upload_dataset(
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=f"Error processing dataset: {str(e)}")
+
 
 # -----------------------------
 # Get Dataset History
