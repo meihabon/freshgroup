@@ -7,7 +7,14 @@ import { Eye, EyeOff } from "lucide-react"
 const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+
+  // If no token, redirect to login immediately
   const token = searchParams.get("token")
+  React.useEffect(() => {
+    if (!token) {
+      navigate("/login", { replace: true })
+    }
+  }, [token, navigate])
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
