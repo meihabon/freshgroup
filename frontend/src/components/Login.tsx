@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import axios from 'axios'
 import { Container, Row, Col, Card, Form, Button, Alert, Nav, Modal } from 'react-bootstrap'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -51,12 +52,19 @@ function Login() {
     }
   }
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: connect to backend API
-    setSuccess(`Password reset link sent to ${resetEmail}`)
-    setShowReset(false)
-    setResetEmail('')
+    setError("");
+    setSuccess("");
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+      await axios.post(`${apiUrl}/auth/forgot-password`, { email: resetEmail });
+      setSuccess(`Password reset link sent to ${resetEmail}`);
+      setShowReset(false);
+      setResetEmail("");
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to send reset link. Try again.");
+    }
   }
 
   const resetForm = () => {
