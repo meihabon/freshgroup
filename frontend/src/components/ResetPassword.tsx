@@ -107,6 +107,7 @@ const ResetPassword: React.FC = () => {
               )}
             </Form.Group>
 
+
             {/* Confirm password (no toggle) */}
             <Form.Group className="mb-3">
               <Form.Label>Confirm Password</Form.Label>

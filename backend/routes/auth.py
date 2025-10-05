@@ -137,6 +137,9 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 # ---------------------------
 
 # --- Password Reset: Send Reset Link ---
+
+import sys
+
 @router.post("/auth/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest):
     connection = get_db_connection()
@@ -147,6 +150,7 @@ async def forgot_password(payload: ForgotPasswordRequest):
     connection.close()
 
     if not user:
+        print(f"[RESET] User not found: {payload.email}", file=sys.stderr)
         raise HTTPException(status_code=404, detail="User not found")
 
     # Create reset token
@@ -170,8 +174,14 @@ async def forgot_password(payload: ForgotPasswordRequest):
         subtype="html",
     )
 
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    print(f"[RESET] Attempting to send reset email to {payload.email}", file=sys.stderr)
+    try:
+        fm = FastMail(conf)
+        await fm.send_message(message)
+        print("[RESET] Reset email sent successfully", file=sys.stderr)
+    except Exception as e:
+        print(f"[RESET] Error sending reset email: {e}", file=sys.stderr)
+        raise HTTPException(status_code=500, detail="Failed to send reset email")
 
     return {"message": "Password reset link sent to your email"}
 
