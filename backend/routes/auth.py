@@ -4,8 +4,8 @@ from db import get_db_connection
 from security import verify_password, get_password_hash, create_access_token
 from dependencies import get_current_user
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
-from config import conf
-from fastapi_mail import FastMail, MessageSchema
+from config import conf, MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_SENDER
+from mailjet_rest import Client
 
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
@@ -140,6 +140,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 
 import sys
 
+
 @router.post("/auth/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest):
     connection = get_db_connection()
@@ -159,25 +160,31 @@ async def forgot_password(payload: ForgotPasswordRequest):
 
     reset_link = f"https://freshgroup-ispsc.vercel.app/reset-password?token={token}"
 
-    # Send email with a form-like message
-    message = MessageSchema(
-        subject="Password Reset Request",
-        recipients=[payload.email],
-        body=f"""
-        <h3>Password Reset</h3>
-        <p>Hello,</p>
-        <p>Click the link below to open the password reset form (valid for 1 hour):</p>
-        <a href='{reset_link}'>{reset_link}</a>
-        <br><br>
-        If you did not request this, please ignore this email.
-        """,
-        subtype="html",
-    )
-
+    # Send email using Mailjet
     print(f"[RESET] Attempting to send reset email to {payload.email}", file=sys.stderr)
     try:
-        fm = FastMail(conf)
-        await fm.send_message(message)
+        mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
+        data = {
+            'Messages': [
+                {
+                    "From": {"Email": MAILJET_SENDER, "Name": "FreshGroup"},
+                    "To": [{"Email": payload.email}],
+                    "Subject": "Password Reset Request",
+                    "HTMLPart": f"""
+                        <h3>Password Reset</h3>
+                        <p>Hello,</p>
+                        <p>Click the link below to open the password reset form (valid for 1 hour):</p>
+                        <a href='{reset_link}'>{reset_link}</a>
+                        <br><br>
+                        If you did not request this, please ignore this email.
+                    """
+                }
+            ]
+        }
+        result = mailjet.send.create(data=data)
+        if result.status_code != 200:
+            print(f"[RESET] Mailjet error: {result.status_code} {result.json()}", file=sys.stderr)
+            raise Exception("Mailjet send failed")
         print("[RESET] Reset email sent successfully", file=sys.stderr)
     except Exception as e:
         print(f"[RESET] Error sending reset email: {e}", file=sys.stderr)
