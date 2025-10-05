@@ -277,17 +277,6 @@ function Login() {
                           )}
                         </Button>
                       </Form>
-
-                      {/* Demo accounts */}
-                      {isLogin && (
-                        <div className="mt-4 text-center">
-                          <small className="text-muted">
-                            <strong>Demo Accounts:</strong><br />
-                            Admin: admin@freshgroup.com / registrar123<br />
-                            Viewer: viewer@freshgroup.com / viewer123
-                          </small>
-                        </div>
-                      )}
                     </>
                   ) : (
                     <>

@@ -135,6 +135,8 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 # ---------------------------
 # Forgot / Reset Password
 # ---------------------------
+
+# --- Password Reset: Send Reset Link ---
 @router.post("/auth/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest):
     connection = get_db_connection()
@@ -153,15 +155,17 @@ async def forgot_password(payload: ForgotPasswordRequest):
 
     reset_link = f"https://freshgroup-ispsc.vercel.app/reset-password?token={token}"
 
-    # Send email
+    # Send email with a form-like message
     message = MessageSchema(
         subject="Password Reset Request",
         recipients=[payload.email],
         body=f"""
         <h3>Password Reset</h3>
         <p>Hello,</p>
-        <p>Click the link below to reset your password (valid for 1 hour):</p>
-        <a href="{reset_link}">{reset_link}</a>
+        <p>Click the link below to open the password reset form (valid for 1 hour):</p>
+        <a href='{reset_link}'>{reset_link}</a>
+        <br><br>
+        If you did not request this, please ignore this email.
         """,
         subtype="html",
     )
@@ -172,6 +176,8 @@ async def forgot_password(payload: ForgotPasswordRequest):
     return {"message": "Password reset link sent to your email"}
 
 
+
+# --- Password Reset: Handle New Password Submission ---
 @router.post("/auth/reset-password")
 async def reset_password(payload: ResetPasswordRequest):
     try:
@@ -180,18 +186,10 @@ async def reset_password(payload: ResetPasswordRequest):
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 
-    # 🔒 Password validation
     pwd = payload.new_password
-    if len(pwd) < 8:
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
-    if not any(c.isupper() for c in pwd):
-        raise HTTPException(status_code=400, detail="Password must include at least one uppercase letter")
-    if not any(c.islower() for c in pwd):
-        raise HTTPException(status_code=400, detail="Password must include at least one lowercase letter")
-    if not any(c.isdigit() for c in pwd):
-        raise HTTPException(status_code=400, detail="Password must include at least one number")
-    if not any(c in "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~" for c in pwd):
-        raise HTTPException(status_code=400, detail="Password must include at least one special character")
+    # Only require at least 6 characters, and confirmation is handled on frontend
+    if len(pwd) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
 
     # 🔎 Verify user exists
     connection = get_db_connection()
