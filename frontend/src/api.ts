@@ -5,11 +5,20 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// Attach JWT token from localStorage
+// Attach JWT token from localStorage, but skip for public auth endpoints
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    const publicEndpoints = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/forgot-password",
+      "/auth/reset-password"
+    ];
+    // Only attach token for protected endpoints
+    if (!publicEndpoints.some((ep) => config.url?.includes(ep))) {
+      const token = localStorage.getItem("token");
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
