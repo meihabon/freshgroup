@@ -2,22 +2,47 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
+/* 🌿 FreshGroup — Clean Gradient Background */
 body {
   background:
-    linear-gradient(135deg, #f9fafb 0%, #eef5f1 40%, #e8f0ff 100%),
-    radial-gradient(circle at 85% 15%, rgba(39, 174, 96, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 15% 85%, rgba(52, 152, 219, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #fefefe 0%, #f9fff9 25%, #fefae8 55%, #f4fff6 100%),
+    radial-gradient(circle at 85% 15%, rgba(27, 150, 73, 0.1) 0%, transparent 60%),
+    radial-gradient(circle at 15% 85%, rgba(255, 221, 87, 0.15) 0%, transparent 65%),
     repeating-linear-gradient(45deg, rgba(39, 174, 96, 0.03) 0px, rgba(39, 174, 96, 0.03) 1px, transparent 1px, transparent 25px);
   background-blend-mode: lighten, normal, normal, overlay;
   background-attachment: fixed;
   background-size: cover;
+  color: #212529;
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
 }
 
-/* 🧱 Optional: make dashboard cards transparentish */
-.fade-in, .container-fluid {
+/* 🌫️ Dashboard transparency + polish */
+.fade-in,
+.container-fluid,
+.main-content {
   background: transparent !important;
+}
+
+/* 🪟 Glass-style cards */
+.card {
+  backdrop-filter: blur(5px);
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* Optional: smoother font and spacing */
+body, h1, h2, h3, h4, h5, h6, p {
+  letter-spacing: 0.2px;
 }
 
 .clickable-card:hover {
