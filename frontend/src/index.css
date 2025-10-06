@@ -9,6 +9,11 @@ body {
   background-blend-mode: lighten, normal, normal, normal;
   background-attachment: fixed;
 }
+.clickable-card:hover {
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

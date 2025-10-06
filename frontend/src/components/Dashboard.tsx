@@ -239,6 +239,23 @@ function Dashboard() {
             </Card.Body>
           </Card>
         </Col>
+        <Col md={4} className="mb-3">
+          <Card 
+            className="h-100 clickable-card hover-shadow" 
+            onClick={() => window.location.href = "/clusters"}
+          >
+            <Card.Body className="d-flex align-items-center">
+              <Users size={40} className="text-primary me-3" />
+              <div>
+                <h5 className="fw-bold mb-1">View Clusters</h5>
+                <p className="text-muted mb-0">
+                  Explore student groupings from the latest dataset
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
       </Row>
 
       {/* Distribution Charts */}
