@@ -8,65 +8,6 @@ import json
 from typing import List, Dict
 
 router = APIRouter()
-# Municipality classification for descriptive labeling
-# Covers Ilocos Sur and La Union (including STA./SANTA variations)
-
-MUNICIPALITY_TYPE = {
-    # Ilocos Sur - Lowland
-    "TAGUDIN": "lowland",
-    "SANTA CRUZ": "lowland", "STA CRUZ": "lowland", "STA. CRUZ": "lowland",
-    "SANTA LUCIA": "lowland", "STA LUCIA": "lowland", "STA. LUCIA": "lowland",
-    "CANDON CITY": "lowland",
-    "SANTIAGO": "lowland",
-    "SAN ESTEBAN": "lowland",
-    "SAN ILDEFONSO": "lowland",
-    "SAN JUAN": "lowland",
-    "CABUGAO": "lowland",
-    "SINAIT": "lowland",
-    "CAOAYAN": "lowland",
-    "SANTA CATALINA": "lowland", "STA CATALINA": "lowland", "STA. CATALINA": "lowland",
-    "VIGAN CITY": "lowland",
-    "SANTA": "lowland", "STA": "lowland", "STA.": "lowland",
-    "NARVACAN": "lowland",
-    "SANTA MARIA": "lowland", "STA MARIA": "lowland", "STA. MARIA": "lowland",
-
-    # Ilocos Sur - Upland
-    "SUYO": "upland",
-    "SIGAY": "upland",
-    "GREGORIO DEL PILAR": "upland",
-    "SUGPON": "upland",
-    "ALILEM": "upland",
-    "BANAYOYO": "upland",
-    "BURGOS": "upland",
-    "GALIMUYOD": "upland",
-    "CERVANTES": "upland",
-    "SAN EMILIO": "upland",
-    "SALCEDO": "upland",
-    "QUIRINO": "upland",
-
-    # La Union - Lowland
-    "BANGAR": "lowland",
-    "LUNA": "lowland",
-    "BALAOAN": "lowland",
-    "BACNOTAN": "lowland",
-    "SAN JUAN (LU)": "lowland",
-    "SAN FERNANDO CITY": "lowland",
-    "BAUANG": "lowland",
-    "CABA": "lowland",
-    "AGOO": "lowland",
-    "BURGOS (LU)": "lowland",
-    "ROSARIO": "lowland",
-    "SANTO TOMAS": "lowland", "STO TOMAS": "lowland", "STO. TOMAS": "lowland",
-
-    # La Union - Upland
-    "SANTOL": "upland", "STA TOL": "upland", "STA. TOL": "upland",
-    "SUDIPEN": "upland",
-    "BAGULIN": "upland",
-    "TUBAO": "upland",
-    "PUGO": "upland",
-    "SAN GABRIEL": "upland",
-    "NAGUILIAN": "mixed",  # upland + lowland barangays
-}
 
 
 # ------------------------
@@ -204,25 +145,29 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             print("Error parsing centroids:", exc)
             centroids = []
 
-        # ========================================
-        # Build a full DataFrame for all students
-        # ========================================
+
+        # ------------------------
+        # RADAR (SPIDER) CHART DATA
+        # ------------------------
+        feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
+        radar_data = []
+
         df_all = pd.DataFrame(students)
         df_all = normalize_dataframe_columns(df_all)
+        df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
-        feature_names = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
-
-        # ================================
-        # Generate radar data per cluster
-        # ================================
-        radar_data = []
-        descriptions = {}
+        # Normalize each feature 0–1 for fair comparison
+        for col in feature_names:
+            if col in df_all.columns:
+                min_val, max_val = df_all[col].min(), df_all[col].max()
+                if max_val != min_val:
+                    df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
+                else:
+                    df_all[col] = 0.0
 
         for cnum, members in clusters.items():
             member_ids = [m["id"] for m in members if "id" in m]
             df_c = df_all[df_all["id"].isin(member_ids)]
-
-            # Compute radar values (mean-normalized features)
             avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
             radar_data.append({
                 "cluster": int(cnum),
@@ -230,72 +175,13 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
                 "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
             })
 
-            # ================================
-            # Compute Descriptive Cluster Title
-            # ================================
-
-            # 1. Academic Performance
-            if "gwa" in df_c.columns:
-                avg_gwa = df_c["gwa"].mean()
-                if avg_gwa >= 90:
-                    acad_desc = "High-performing"
-                elif avg_gwa >= 85:
-                    acad_desc = "Average-performing"
-                else:
-                    acad_desc = "At-risk"
-            else:
-                acad_desc = "Students"
-
-            # 2. Socioeconomic Status
-            if "income" in df_c.columns:
-                avg_income = df_c["income"].mean()
-                q1, q2 = df_all["income"].quantile([0.33, 0.66])
-                if avg_income <= q1:
-                    fin_desc = "low-income"
-                elif avg_income <= q2:
-                    fin_desc = "middle-income"
-                else:
-                    fin_desc = "high-income"
-            else:
-                fin_desc = "diverse-income"
-
-            # 3. Municipality Type (upland / lowland)
-            if "municipality" in df_c.columns:
-                muni_series = df_c["municipality"].astype(str).str.upper().str.strip()
-                types = [MUNICIPALITY_TYPE.get(m, "unknown") for m in muni_series]
-                upland_count = types.count("upland")
-                lowland_count = types.count("lowland")
-                if upland_count > lowland_count:
-                    area_desc = "from upland municipalities"
-                elif lowland_count > upland_count:
-                    area_desc = "from lowland municipalities"
-                else:
-                    area_desc = "from mixed municipalities"
-            else:
-                area_desc = "from varied areas"
-
-            # 4. SHS Type
-            if "shs_type" in df_c.columns:
-                shs_mode = df_c["shs_type"].mode()[0] if not df_c["shs_type"].mode().empty else None
-                if shs_mode:
-                    shs_desc = f"mostly {shs_mode.title()} SHS students"
-                else:
-                    shs_desc = ""
-            else:
-                shs_desc = ""
-
-            # ✅ Final Combined Label
-            descriptions[cnum] = f"{acad_desc}, {fin_desc} group {area_desc} ({shs_desc})"
-
         return {
             "clusters": clusters,
             "plot_data": plot_data,
             "centroids": centroids,
-            "radar_data": radar_data,
-            "descriptions": descriptions,
+            "radar_data": radar_data,   # 👈 send radar data to frontend
             "k": cluster_info["k"],
         }
-
 
 
 
