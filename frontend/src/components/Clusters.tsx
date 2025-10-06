@@ -118,7 +118,86 @@ function Clusters() {
     return palette[clusterId % palette.length]
   }
 
-  
+const getClusterLabel = (students: Student[], clusterId?: number) => {
+  if (!students || students.length === 0) return "Unclassified Cluster";
+
+  // Average stats
+  const avgGWA = students.reduce((a, s) => a + (s.GWA ?? 0), 0) / students.length;
+  const avgIncome = students.reduce((a, s) => a + (s.income ?? 0), 0) / students.length;
+
+  // --- Match backend classify_honors() ---
+  let perf = "Average";
+  if (avgGWA >= 98) perf = "With Highest Honors";
+  else if (avgGWA >= 95) perf = "With High Honors";
+  else if (avgGWA >= 90) perf = "With Honors";
+
+  // --- Match backend classify_income() ---
+  let econ = "No Income Entered";
+  if (avgIncome < 12030) econ = "Poor";
+  else if (avgIncome < 24060) econ = "Low-Income";
+  else if (avgIncome < 48120) econ = "Lower-Middle";
+  else if (avgIncome < 84210) econ = "Middle-Middle";
+  else if (avgIncome < 144360) econ = "Upper-Middle";
+  else if (avgIncome < 240600) econ = "Upper-Income";
+  else econ = "Rich";
+
+  // --- Municipality type detection ---
+  const uplandMunicipalities = [
+    "Vigan City", "Bantay", "Santa Catalina", "San Vicente", "Caoayan",
+    "Santa", "Santa Maria", "Santa Lucia", "Santiago", "San Esteban",
+    "San Juan", "San Ildefonso", "Narvacan", "Santa Cruz", "Santa Barbara",
+    "Sugpon", "Cervantes", "Quirino", "Galimuyod", "Gregorio del Pilar",
+    "Sigay", "Alilem", "Suyo", "Tagudin",
+    // La Union municipalities
+    "Agoo", "Aringay", "Bacnotan", "Bagulin", "Balaoan", "Bangar", "Bauang",
+    "Burgos", "Caba", "Luna", "Naguilian", "Pugo", "Rosario", "San Fernando City",
+    "San Gabriel", "San Juan", "Santo Tomas", "Sudipen", "Tubao",
+  ];
+
+  // Count how many are upland vs lowland
+  let uplandCount = 0;
+  let lowlandCount = 0;
+  const muniCounts: Record<string, number> = {};
+
+  for (const s of students) {
+    const muni = (s.municipality || "").trim();
+    const muniLower = muni.toLowerCase();
+
+    const isStaPrefix =
+      muniLower.startsWith("sta") ||
+      muniLower.startsWith("santa") ||
+      muniLower.startsWith("santo");
+
+    const isUpland =
+      uplandMunicipalities.some((m) => m.toLowerCase() === muniLower) || isStaPrefix;
+
+    if (isUpland) uplandCount++;
+    else lowlandCount++;
+
+    if (muni) muniCounts[muni] = (muniCounts[muni] || 0) + 1;
+  }
+
+  const total = uplandCount + lowlandCount;
+  const uplandRatio = total > 0 ? uplandCount / total : 0;
+
+  const areaType =
+    uplandRatio > 0.6
+      ? "mostly upland"
+      : uplandRatio < 0.4
+      ? "mostly lowland"
+      : "mixed upland and lowland";
+
+  const commonMuni = Object.entries(muniCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Unknown";
+
+  // --- Construct descriptive label ---
+  const countText = `${students.length} student${students.length !== 1 ? "s" : ""}`;
+  const clusterText = clusterId !== undefined ? ` (Cluster ${clusterId})` : "";
+
+  return `${perf} ${econ} students from ${areaType} areas (e.g., ${commonMuni}) — ${countText}${clusterText}`;
+};
+
+
+
   const getClusterDescription = (
     students: Student[],
     xName?: string | null,
@@ -416,7 +495,7 @@ const renderClusterSection = (
                         y: students.map((s: any) => (isPairwise ? s.pair_y : s.income)),
                         mode: "markers" as const,
                         type: "scatter" as const,
-                        name: `Cluster ${clusterId}`,
+                        name: getClusterLabel(data.clusters[clusterId]),
                         text: students.map(
                           (s: any) =>
                             `${s.firstname} ${s.lastname}<br>${isPairwise ? xTitle : "GWA"}: ${
@@ -492,7 +571,7 @@ const renderClusterSection = (
                       setCurrentPage(1)
                     }}
                   >
-                    <h6>Cluster {cid} — {data.clusters[cid].length} students</h6>
+                    <h6>{getClusterLabel(data.clusters[cid], cid)}</h6>
                     <small className="text-muted">{getClusterDescription(data.clusters[cid], data.x_name, data.y_name, isPairwise).summary}</small>
                   </div>
                 ))}

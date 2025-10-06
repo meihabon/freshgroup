@@ -179,7 +179,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             "clusters": clusters,
             "plot_data": plot_data,
             "centroids": centroids,
-            "radar_data": radar_data,   # 👈 send radar data to frontend
+            "radar_data": radar_data,
             "k": cluster_info["k"],
         }
 
