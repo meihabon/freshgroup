@@ -582,8 +582,9 @@ const renderClusterSection = (
             </p>
           </div>
 
-          {renderClusterSection(clusterData, false)}
-          {clusterData?.radar_data && clusterData.radar_data.length > 0 && (
+        {renderClusterSection(clusterData, false)}
+
+        {clusterData?.radar_data && clusterData.radar_data.length > 0 && (
           <Card className="mt-4 bg-light">
             <Card.Header>
               <h6 className="fw-bold mb-0">Radar Chart — Cluster Feature Comparison</h6>
@@ -596,13 +597,32 @@ const renderClusterSection = (
                 data={clusterData.radar_data.map((c) => ({
                   type: "scatterpolar",
                   r: c.values,
-                  theta: c.features,
+                  theta: c.features.map((f) =>
+                    f === "gwa"
+                      ? "GWA"
+                      : f === "income"
+                      ? "Income"
+                      : f === "sex_enc"
+                      ? "Sex"
+                      : f === "program_enc"
+                      ? "Program"
+                      : f === "municipality_enc"
+                      ? "Municipality"
+                      : f === "shs_type_enc"
+                      ? "SHS Type"
+                      : f
+                  ),
                   fill: "toself",
                   name: `Cluster ${c.cluster}`,
                 }))}
                 layout={{
                   polar: {
-                    radialaxis: { visible: true, range: [0, 1], tickfont: { size: 10 } },
+                    radialaxis: {
+                      visible: true,
+                      range: [0, 1],
+                      tickfont: { size: 10 },
+                      title: { text: "Normalized Scale (0–1)" },
+                    },
                   },
                   showlegend: true,
                   legend: { orientation: "h", y: -0.3 },
@@ -612,9 +632,39 @@ const renderClusterSection = (
                 }}
                 style={{ width: "100%" }}
               />
+
+              {/* Explanation Section */}
+              <div className="mt-4 p-3 border rounded bg-white">
+                <h6 className="fw-bold mb-2">How to Read This Chart</h6>
+                <p className="text-muted mb-2">
+                  Each <b>colored shape</b> represents one cluster’s average performance across
+                  all measured features: <em>GWA</em>, <em>Income</em>, <em>Sex</em>, <em>Program</em>,
+                  <em>Municipality</em>, and <em>SHS Type</em>.
+                </p>
+                <ul className="text-muted small">
+                  <li>
+                    The chart’s <b>axes</b> correspond to those features, radiating from the center.
+                  </li>
+                  <li>
+                    The <b>closer a point is to the edge</b> (value near 1), the stronger that cluster is in that feature.
+                  </li>
+                  <li>
+                    The <b>closer to the center</b> (value near 0), the lower or less prominent that trait is for that cluster.
+                  </li>
+                  <li>
+                    Overlapping shapes mean clusters share similar average values in certain traits.
+                  </li>
+                </ul>
+                <p className="text-muted small mb-0">
+                  💡 <b>Interpretation Tip:</b> Larger, outward shapes suggest clusters that perform
+                  better across multiple areas (e.g., higher income and lower GWA), while inward shapes
+                  indicate clusters with lower averages or less diversity in those features.
+                </p>
+              </div>
             </Card.Body>
           </Card>
         )}
+
 
         </Tab>
 
