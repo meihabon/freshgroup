@@ -204,6 +204,13 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             print("Error parsing centroids:", exc)
             centroids = []
 
+        # ========================================
+        # Build a full DataFrame for all students
+        # ========================================
+        df_all = pd.DataFrame(students)
+        df_all = normalize_dataframe_columns(df_all)
+
+        feature_names = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
 
         # ================================
         # Generate radar data per cluster
@@ -214,6 +221,8 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         for cnum, members in clusters.items():
             member_ids = [m["id"] for m in members if "id" in m]
             df_c = df_all[df_all["id"].isin(member_ids)]
+
+            # Compute radar values (mean-normalized features)
             avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
             radar_data.append({
                 "cluster": int(cnum),
@@ -225,7 +234,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             # Compute Descriptive Cluster Title
             # ================================
 
-            # 1. Academic Performance (based on GWA)
+            # 1. Academic Performance
             if "gwa" in df_c.columns:
                 avg_gwa = df_c["gwa"].mean()
                 if avg_gwa >= 90:
@@ -237,7 +246,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             else:
                 acad_desc = "Students"
 
-            # 2. Socioeconomic (based on Income)
+            # 2. Socioeconomic Status
             if "income" in df_c.columns:
                 avg_income = df_c["income"].mean()
                 q1, q2 = df_all["income"].quantile([0.33, 0.66])
@@ -265,7 +274,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             else:
                 area_desc = "from varied areas"
 
-            # 4. SHS Type (Public or Private)
+            # 4. SHS Type
             if "shs_type" in df_c.columns:
                 shs_mode = df_c["shs_type"].mode()[0] if not df_c["shs_type"].mode().empty else None
                 if shs_mode:
@@ -275,17 +284,18 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             else:
                 shs_desc = ""
 
-            # Final Combined Label
+            # ✅ Final Combined Label
             descriptions[cnum] = f"{acad_desc}, {fin_desc} group {area_desc} ({shs_desc})"
 
         return {
             "clusters": clusters,
             "plot_data": plot_data,
             "centroids": centroids,
-            "radar_data": radar_data,   
+            "radar_data": radar_data,
             "descriptions": descriptions,
             "k": cluster_info["k"],
         }
+
 
 
 
