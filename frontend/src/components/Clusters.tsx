@@ -52,8 +52,15 @@ interface ClusterData {
   y_name?: string
   x_categories?: string[] | null
   y_categories?: string[] | null
-  k?: number 
+  k?: number
+  radar_data?: {
+    cluster: number
+    features: string[]
+    values: number[]
+  }[]
 }
+
+
 
 /**
  * Component
@@ -576,6 +583,39 @@ const renderClusterSection = (
           </div>
 
           {renderClusterSection(clusterData, false)}
+          {clusterData?.radar_data && clusterData.radar_data.length > 0 && (
+          <Card className="mt-4 bg-light">
+            <Card.Header>
+              <h6 className="fw-bold mb-0">Radar Chart — Cluster Feature Comparison</h6>
+              <small className="text-muted">
+                Displays average normalized feature values (0–1) per cluster.
+              </small>
+            </Card.Header>
+            <Card.Body>
+              <Plot
+                data={clusterData.radar_data.map((c) => ({
+                  type: "scatterpolar",
+                  r: c.values,
+                  theta: c.features,
+                  fill: "toself",
+                  name: `Cluster ${c.cluster}`,
+                }))}
+                layout={{
+                  polar: {
+                    radialaxis: { visible: true, range: [0, 1], tickfont: { size: 10 } },
+                  },
+                  showlegend: true,
+                  legend: { orientation: "h", y: -0.3 },
+                  title: { text: "Cluster Profile Radar (All Features)" },
+                  height: 500,
+                  margin: { t: 60, b: 80, l: 40, r: 40 },
+                }}
+                style={{ width: "100%" }}
+              />
+            </Card.Body>
+          </Card>
+        )}
+
         </Tab>
 
         <Tab eventKey="pairwise" title="Pairwise Clusters">

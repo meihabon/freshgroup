@@ -77,7 +77,14 @@ function Login() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(120deg, #f8f9fa 0%, #e9f7ef 50%, #e3e6f3 100%), repeating-linear-gradient(135deg, rgba(39,174,96,0.04) 0px, rgba(39,174,96,0.04) 2px, transparent 2px, transparent 24px)",
+        backgroundAttachment: "fixed"
+      }}
+    >
       <Container fluid className="h-100">
         <Row className="h-100 g-0">
           
