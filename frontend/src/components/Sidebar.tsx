@@ -61,16 +61,16 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
           height: '100vh',
           transition: 'all 0.3s ease',
-          background: 'linear-gradient(180deg, #1c1f2a 0%, #22263a 100%)',
-          color: '#ffffff',
-          borderRight: '1px solid rgba(255,255,255,0.05)',
-          boxShadow: '2px 0 10px rgba(0,0,0,0.2)',
+          background: 'linear-gradient(180deg, #27ae60 0%, #2ecc71 80%)',
+          color: '#fff',
+          borderRight: '2px solid rgba(255,255,255,0.2)',
+          boxShadow: '3px 0 10px rgba(0,0,0,0.1)',
         }}
       >
         {/* Collapse button for mobile */}
         <div 
           className="d-md-none d-flex justify-content-end align-items-center p-2" 
-          style={{ background: '#1c1f2a', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+          style={{ background: 'rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
         >
           <button
             aria-label="Close sidebar"
@@ -79,7 +79,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               background: 'none',
               border: 'none',
               fontSize: '1.5rem',
-              color: '#bbb',
+              color: '#fff',
               cursor: 'pointer',
               lineHeight: 1,
             }}
@@ -90,12 +90,12 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Header (brand) */}
         <div className="sidebar-brand p-3 border-bottom" 
-          style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           <div className="d-flex align-items-center mb-1">
-            <BarChart size={26} className="me-2 text-success" />
+            <BarChart size={26} className="me-2 text-warning" />
             <h5 className="mb-0 fw-bold text-white">FreshGroup</h5>
           </div>
-          <p className="mb-0 small text-muted">Student Profiling System</p>
+          <p className="mb-0 small text-white-50">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -114,9 +114,10 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                   isActive ? 'active' : ''
                 }`}
                 style={{
-                  color: isActive ? '#ffffff' : '#cfd3e1',
-                  background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                  borderRadius: '10px',
+                  color: isActive ? '#fff' : '#f4f4f4',
+                  background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
+                  borderRadius: '8px',
                   padding: '10px 12px',
                   marginBottom: '6px',
                   transition: 'all 0.2s ease',
@@ -124,8 +125,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <IconComponent 
                   size={18} 
-                  className="me-3" 
-                  color={isActive ? '#00e676' : '#cfd3e1'} 
+                  className="me-3"
+                  color={isActive ? '#f1c40f' : '#fff'}
                 />
                 <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
               </Nav.Link>
@@ -134,16 +135,16 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         </Nav>
 
         {/* Footer */}
-        <div className="p-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="p-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           <div className="mb-3">
             <div className="d-flex align-items-center mb-1">
-              <User size={16} className="me-2 text-light" />
+              <User size={16} className="me-2 text-white" />
               <small className="fw-semibold text-white">{user?.profile?.name || user?.email}</small>
             </div>
             <small 
               className="badge rounded-pill px-3 py-1" 
               style={{ 
-                backgroundColor: '#00e676',
+                backgroundColor: '#f1c40f',
                 color: '#1c1f2a', 
                 fontSize: '0.75rem',
                 fontWeight: 600,
@@ -155,30 +156,30 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className="d-grid gap-2">
             <Button 
-              variant="light" 
               size="sm"
               as={Link as any} 
               to="/profile"
               onClick={onClose}
               className="d-flex align-items-center justify-content-center sidebar-btn"
               style={{
-                background: 'rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.15)',
                 color: '#fff',
                 border: 'none',
+                fontWeight: 500,
               }}
             >
               <User size={14} className="me-2" />
               Profile
             </Button>
             <Button 
-              variant="light" 
               size="sm" 
               onClick={handleLogout}
               className="d-flex align-items-center justify-content-center sidebar-btn"
               style={{
-                background: 'rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.15)',
                 color: '#ff6b6b',
                 border: 'none',
+                fontWeight: 500,
               }}
             >
               <LogOut size={14} className="me-2" />
