@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import json
 from typing import List, Dict
-from completeness import filter_complete_df, is_row_complete
+
 router = APIRouter()
 
 
@@ -80,55 +80,6 @@ def _pick_feature_columns(df: pd.DataFrame, canonical_features: List[str]) -> Li
             out.append(feat)
     return out
 
-def perform_recluster(dataset_id: int, k: int, save: bool = True):
-    """
-    Rebuilds clusters using only complete student records.
-    If save=True, updates the DB; otherwise returns preview results.
-    """
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
-    students = cur.fetchall()
-    cur.close(); conn.close()
-
-    if not students:
-        raise ValueError("No students found for dataset.")
-
-    df = pd.DataFrame(students)
-    df = filter_complete_df(df)
-    if df.empty:
-        raise ValueError("No complete student records available.")
-
-    features = ["gwa", "income"]
-    df[features] = df[features].apply(pd.to_numeric, errors="coerce")
-    X = df[features].fillna(0)
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    preds = kmeans.fit_predict(X_scaled)
-    centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
-
-    if save:
-        conn2 = get_db_connection()
-        c2 = conn2.cursor(dictionary=True)
-        # delete old cluster mappings
-        c2.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
-        c2.execute("INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
-                   (dataset_id, k, json.dumps(centroids)))
-        cluster_id = c2.lastrowid
-        for idx, row in df.iterrows():
-            student_id = row["id"]
-            c2.execute(
-                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (student_id, cluster_id, int(preds[idx]))
-            )
-        conn2.commit()
-        c2.close(); conn2.close()
-
-    return {"preds": preds, "centroids": centroids, "df_complete": df}
-
 
 # ------------------------
 # GET OFFICIAL CLUSTERS
@@ -153,15 +104,12 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         connection.close()
         return {"clusters": {}, "plot_data": {}, "centroids": []}
 
-    # ✅ FIX: define dataset_id here before using it
-    dataset_id = cluster_info["dataset_id"]
-
     cursor.execute("""
         SELECT s.*, sc.cluster_number
         FROM students s
-        INNER JOIN student_cluster sc ON s.id = sc.student_id
+        LEFT JOIN student_cluster sc ON s.id = sc.student_id
         WHERE s.dataset_id = %s
-    """, (dataset_id,))
+    """, (cluster_info["dataset_id"],))
     students = cursor.fetchall()
 
     cursor.close()
@@ -172,12 +120,8 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         "y": [s.get("income", 0) for s in students],
         "colors": [s.get("cluster_number", 0) for s in students],
         "text": [
-            f"{s.get('firstname','')} {s.get('lastname','')}<br>"
-            f"Program: {s.get('program','-')}<br>"
-            f"Municipality: {s.get('municipality','-')}<br>"
-            f"Income: {s.get('IncomeCategory','-')}<br>"
-            f"Honors: {s.get('Honors','-')}<br>"
-            f"SHS: {s.get('SHS_type','-')}"
+            f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
+            f"Income: {s.get('IncomeCategory','-')}<br>Honors: {s.get('Honors','-')}<br>SHS: {s.get('SHS_type','-')}"
             for s in students
         ]
     }
@@ -185,6 +129,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     clusters: Dict[int, List[dict]] = {}
     for student in students:
         cnum = int(student.get("cluster_number", 0))
+        # ✅ enforce integer cluster IDs in the student dict itself
         student["cluster_number"] = cnum
         clusters.setdefault(cnum, []).append(student)
 
@@ -192,48 +137,54 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     if cluster_info.get("centroids"):
         try:
             parsed = json.loads(cluster_info["centroids"])
+            # parsed is list of full feature centroids [gwa, income, sex_enc, program_enc, ...]
             for c in parsed:
                 if len(c) >= 2:
-                    centroids.append([float(c[0]), float(c[1])])
+                    centroids.append([float(c[0]), float(c[1])])  # only GWA (x) and Income (y)
         except Exception as exc:
             print("Error parsing centroids:", exc)
             centroids = []
 
-    # ------------------------
-    # RADAR (SPIDER) CHART DATA
-    # ------------------------
-    feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
-    radar_data = []
 
-    df_all = pd.DataFrame(students)
-    df_all = normalize_dataframe_columns(df_all)
-    df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
+        # ------------------------
+        # RADAR (SPIDER) CHART DATA
+        # ------------------------
+        feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
+        radar_data = []
 
-    for col in feature_names:
-        if col in df_all.columns:
-            min_val, max_val = df_all[col].min(), df_all[col].max()
-            if max_val != min_val:
-                df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
-            else:
-                df_all[col] = 0.0
+        df_all = pd.DataFrame(students)
+        df_all = normalize_dataframe_columns(df_all)
+        df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
-    for cnum, members in clusters.items():
-        member_ids = [m["id"] for m in members if "id" in m]
-        df_c = df_all[df_all["id"].isin(member_ids)]
-        avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
-        radar_data.append({
-            "cluster": int(cnum),
-            "features": feature_names,
-            "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
-        })
+        # Normalize each feature 0–1 for fair comparison
+        for col in feature_names:
+            if col in df_all.columns:
+                min_val, max_val = df_all[col].min(), df_all[col].max()
+                if max_val != min_val:
+                    df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
+                else:
+                    df_all[col] = 0.0
 
-    return {
-        "clusters": clusters,
-        "plot_data": plot_data,
-        "centroids": centroids,
-        "radar_data": radar_data,
-        "k": cluster_info["k"],
-    }
+        for cnum, members in clusters.items():
+            member_ids = [m["id"] for m in members if "id" in m]
+            df_c = df_all[df_all["id"].isin(member_ids)]
+            avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
+            radar_data.append({
+                "cluster": int(cnum),
+                "features": feature_names,
+                "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
+            })
+
+        return {
+            "clusters": clusters,
+            "plot_data": plot_data,
+            "centroids": centroids,
+            "radar_data": radar_data,
+            "k": cluster_info["k"],
+        }
+
+
+
 
 # ------------------------
 # RE-CLUSTER DATASET
@@ -270,17 +221,6 @@ async def recluster(
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
-    # ✅ Filter only complete student records before clustering
-    df = filter_complete_df(df)
-    if df.empty:
-        cursor.close()
-        connection.close()
-        raise HTTPException(status_code=400, detail="No complete student records available for reclustering.")
-
-    if k > len(df):
-        cursor.close()
-        connection.close()
-        raise HTTPException(status_code=400, detail="k cannot be greater than number of complete students")
 
     canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
     feature_cols = _pick_feature_columns(df, canonical_features)

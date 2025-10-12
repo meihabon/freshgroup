@@ -1,3 +1,4 @@
+# datasets.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
@@ -12,8 +13,6 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
-from completeness import filter_complete_df, is_row_complete
-
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -124,16 +123,10 @@ async def elbow_preview(
 
         df = normalize_and_prepare_df(df)
 
-        # ✅ Filter only complete records before clustering
-        df_complete = filter_complete_df(df)
-        if df_complete.empty:
-            raise HTTPException(status_code=400, detail="No complete student records found for clustering.")
-
         features = ['gwa', 'income']
-        X = df_complete[features].fillna(0)
+        X = df[features].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-
 
         wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
         recommended_k = recommend_k_by_curvature(wcss)
@@ -175,16 +168,10 @@ async def upload_dataset(
 
         df = normalize_and_prepare_df(df)
 
-        # ✅ Use only complete records for clustering
-        df_complete = filter_complete_df(df)
-        if df_complete.empty:
-            raise HTTPException(status_code=400, detail="No complete student records found for clustering.")
-
         features = ['gwa', 'income']
-        X = df_complete[features].fillna(0)
+        X = df[features].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-
 
         # auto-select k if not provided
         if k is None:
@@ -192,12 +179,8 @@ async def upload_dataset(
             k = recommend_k_by_curvature(wcss)
 
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        df_complete['Cluster'] = kmeans.fit_predict(X_scaled)
-
-        df['Cluster'] = None
-        for idx in df_complete.index:
-            df.loc[idx, 'Cluster'] = int(df_complete.loc[idx, 'Cluster'])
-
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
 
         all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
     # Keep only GWA (index 0) and income (index 1)
@@ -221,7 +204,7 @@ async def upload_dataset(
         )
         cluster_id = cursor.lastrowid
 
-        for idx, row in df.iterrows():
+        for _, row in df.iterrows():
             # Handle text fields (if blank/N/A → "Incomplete")
             def safe_text(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
@@ -250,7 +233,6 @@ async def upload_dataset(
             honors = safe_text(row.get('Honors'))
             income_category = safe_text(row.get('IncomeCategory'))
 
-            # insert student (always)
             cursor.execute("""
                 INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -268,15 +250,12 @@ async def upload_dataset(
                 dataset_id
             ))
 
-            student_id = cursor.lastrowid
 
-            # ✅ only link to cluster if this student is in df_complete
-            if idx in df_complete.index:
-                cluster_num = int(df_complete.loc[idx, 'Cluster'])
-                cursor.execute(
-                    "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                    (student_id, cluster_id, cluster_num)
-                )
+            student_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                (student_id, cluster_id, int(row['Cluster']))
+            )
 
 
         connection.commit()
