@@ -193,7 +193,11 @@ async def upload_dataset(
 
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
         df_complete['Cluster'] = kmeans.fit_predict(X_scaled)
-        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
+
+        df['Cluster'] = None
+        for idx in df_complete.index:
+            df.loc[idx, 'Cluster'] = int(df_complete.loc[idx, 'Cluster'])
+
 
         all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
     # Keep only GWA (index 0) and income (index 1)
