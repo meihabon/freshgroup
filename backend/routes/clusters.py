@@ -128,10 +128,14 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
 
     clusters: Dict[int, List[dict]] = {}
     for student in students:
-        cnum = int(student.get("cluster_number", 0))
-        # ✅ enforce integer cluster IDs in the student dict itself
-        student["cluster_number"] = cnum
+        cnum_val = student.get("cluster_number")
+        try:
+            cnum = int(cnum_val) if cnum_val is not None else 0
+        except (ValueError, TypeError):
+            cnum = 0
+
         clusters.setdefault(cnum, []).append(student)
+
 
     centroids = []
     if cluster_info.get("centroids"):
