@@ -104,12 +104,34 @@ async def cluster_playground(
 
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
-    # attach cluster only to complete rows; keep others unassigned
-    df["Cluster"] = -1
-    df.loc[df_complete.index, "Cluster"] = preds
+    # attach cluster only to complete rows
+    df_complete = df_complete.copy()
+    df_complete["Cluster"] = preds
+
+    # Build student output similar to pairwise so frontend receives the same shape
+    students_out = []
+    for _, row in df_complete.iterrows():
+        students_out.append({
+            "id": int(row.get("id", 0)),
+            "firstname": row.get("firstname"),
+            "lastname": row.get("lastname"),
+            "sex": row.get("sex"),
+            "program": row.get("program"),
+            "municipality": row.get("municipality"),
+            "income": float(row.get("income") or 0),
+            "SHS_type": row.get("shs_type"),
+            "GWA": float(row.get("gwa") or 0),
+            "Honors": row.get("Honors"),
+            "IncomeCategory": row.get("IncomeCategory"),
+            "Cluster": int(row["Cluster"]),
+            "pair_x": float(row[x_col]),
+            "pair_y": float(row[y_col]),
+            "pair_x_label": str(row.get("gwa")) if "gwa" in row.index else str(row.get(x_col)),
+            "pair_y_label": str(row.get("income")) if "income" in row.index else str(row.get(y_col)),
+        })
 
     return {
-        "students": df.to_dict(orient="records"),
+        "students": students_out,
         "centroids": centroids
     }
 
@@ -133,16 +155,24 @@ async def export_cluster_playground(
         raise HTTPException(status_code=404, detail="No dataset found")
 
     df = pd.DataFrame(students)
-    features = ["GWA", "income"]
-    X = df[features].fillna(0)
+    # normalize canonical columns so we reliably use 'gwa' and 'income'
+    df = clusters_module.normalize_dataframe_columns(df)
+    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+
+    df_complete = filter_complete_students_df(df)
+    if df_complete.empty:
+        raise HTTPException(status_code=404, detail="No complete students available for export")
+
+    features = ["gwa", "income"]
+    X = df_complete[features].fillna(0)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    df["Cluster"] = kmeans.fit_predict(X_scaled)
+    df_complete["Cluster"] = kmeans.fit_predict(X_scaled)
 
-    cluster_counts = df["Cluster"].value_counts().to_dict()
+    cluster_counts = df_complete["Cluster"].value_counts().to_dict()
 
     # === CSV Export ===
     if format == "csv":
@@ -153,8 +183,8 @@ async def export_cluster_playground(
             writer.writerow([f"Cluster {c}", v])
         writer.writerow([])
         writer.writerow(["Firstname", "Lastname", "GWA", "Income", "Cluster"])
-        for _, row in df.iterrows():
-            writer.writerow([row["firstname"], row["lastname"], row["GWA"], row["income"], row["Cluster"]])
+        for _, row in df_complete.iterrows():
+            writer.writerow([row.get("firstname"), row.get("lastname"), row.get("gwa"), row.get("income"), row.get("Cluster")])
         return StreamingResponse(
             io.BytesIO(buffer.getvalue().encode()),
             media_type="text/csv",
@@ -185,7 +215,7 @@ async def export_cluster_playground(
 
     # Students table
     table_data = [["Firstname", "Lastname", "Program", "Municipality", "Income", "Income Category", "SHS Type", "GWA", "Honors", "Cluster"]] + \
-        df[["firstname", "lastname", "program", "municipality", "income", "IncomeCategory", "SHS_type", "GWA", "Honors", "Cluster"]].values.tolist()
+        df_complete[["firstname", "lastname", "program", "municipality", "income", "IncomeCategory", "SHS_type", "gwa", "Honors", "Cluster"]].values.tolist()
     table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.grey),

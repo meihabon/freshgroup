@@ -118,14 +118,18 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     connection.close()
 
     # Build plot data only from clustered students (these are complete by construction)
+    # Normalize column names to lowercase so we pick up 'gwa' consistently
+    df_students = pd.DataFrame(students)
+    df_students.columns = [c.lower() for c in df_students.columns]
+
     plot_data = {
-        "x": [s.get("GWA", 0) for s in students],
-        "y": [s.get("income", 0) for s in students],
-        "colors": [s.get("cluster_number", 0) for s in students],
+        "x": [float(s.get("gwa", 0) or 0) for _, s in df_students.iterrows()],
+        "y": [float(s.get("income", 0) or 0) for _, s in df_students.iterrows()],
+        "colors": [int(s.get("cluster_number", 0) or 0) for _, s in df_students.iterrows()],
         "text": [
             f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
-            f"Income: {s.get('IncomeCategory','-')}<br>Honors: {s.get('Honors','-')}<br>SHS: {s.get('SHS_type','-')}"
-            for s in students
+            f"Income: {s.get('incomecategory','-')}<br>Honors: {s.get('honors','-')}<br>SHS: {s.get('shs_type','-')}"
+            for _, s in df_students.iterrows()
         ]
     }
 
@@ -156,9 +160,10 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         radar_data = []
 
         # Use only clustered students as source for radar/averages
-        df_all = pd.DataFrame(students)
-        df_all = normalize_dataframe_columns(df_all)
-        df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
+    df_all = df_students.copy()
+    # ensure canonical column names available for radar calculation
+    df_all = normalize_dataframe_columns(df_all)
+    df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
         # Normalize each feature 0–1 for fair comparison
         for col in feature_names:
