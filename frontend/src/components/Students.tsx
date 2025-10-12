@@ -18,6 +18,7 @@ interface Student {
   GWA: number
   Honors: string
   IncomeCategory: string
+  areaType?: string 
 }
 
 function Students() {
@@ -35,6 +36,8 @@ function Students() {
   const [incomeFilter, setIncomeFilter] = useState('')
   const [shsFilter, setShsFilter] = useState('')
   const [honorsFilter, setHonorsFilter] = useState('')
+  const [areaTypeFilter, setAreaTypeFilter] = useState("");
+
 
   // Dropdown options
   const [programs, setPrograms] = useState<string[]>([])
@@ -89,6 +92,9 @@ function Students() {
     if (incomeFilter) filtered = filtered.filter(s => s.IncomeCategory === incomeFilter)
     if (shsFilter) filtered = filtered.filter(s => s.SHS_type === shsFilter)
     if (honorsFilter) filtered = filtered.filter(s => s.Honors === honorsFilter)
+    if (areaTypeFilter) {
+      filtered = filtered.filter((s) => getAreaType(s.municipality) === areaTypeFilter);
+    }
 
     setFilteredStudents(filtered)
   }
@@ -111,6 +117,7 @@ function Students() {
       'sex',
       'program',
       'municipality',
+      'area_type',
       'income',
       'SHS_type',
       'GWA',
@@ -127,6 +134,7 @@ function Students() {
           student.sex,
           student.program,
           student.municipality,
+          getAreaType(student.municipality),
           student.income,
           student.SHS_type,
           student.GWA,
@@ -153,6 +161,32 @@ function Students() {
       default: return 'secondary'
     }
   }
+  // 🏔️ Determine Area Type based on Municipality
+  const getAreaType = (municipality: string) => {
+    const uplandMunicipalities = [
+      "Vigan City", "Bantay", "Santa Catalina", "San Vicente", "Caoayan",
+      "Santa", "Santa Maria", "Santa Lucia", "Santiago", "San Esteban",
+      "San Juan", "San Ildefonso", "Narvacan", "Santa Cruz", "Santa Barbara",
+      "Sugpon", "Cervantes", "Quirino", "Galimuyod", "Gregorio del Pilar",
+      "Sigay", "Alilem", "Suyo", "Tagudin",
+      "Agoo", "Aringay", "Bacnotan", "Bagulin", "Balaoan", "Bangar", "Bauang",
+      "Burgos", "Caba", "Luna", "Naguilian", "Pugo", "Rosario", "San Fernando City",
+      "San Gabriel", "San Juan", "Santo Tomas", "Sudipen", "Tubao"
+    ];
+
+    if (!municipality) return "Unknown";
+
+    const muniLower = municipality.toLowerCase();
+    const isStaPrefix =
+      muniLower.startsWith("sta") ||
+      muniLower.startsWith("santa") ||
+      muniLower.startsWith("santo");
+
+    const isUpland =
+      uplandMunicipalities.some((m) => m.toLowerCase() === muniLower) || isStaPrefix;
+
+    return isUpland ? "Upland" : "Lowland";
+  };
 
   const getIncomeBadgeVariant = (income: string) => {
     switch (income) {
@@ -276,6 +310,18 @@ function Students() {
             </Col>
 
             <Col md={6} lg={2}>
+              <Form.Label>Area Type</Form.Label>
+              <Form.Select
+                value={areaTypeFilter}
+                onChange={(e) => setAreaTypeFilter(e.target.value)}
+              >
+                <option value="">All Areas</option>
+                <option value="Upland">Upland</option>
+                <option value="Lowland">Lowland</option>
+              </Form.Select>
+            </Col>
+
+            <Col md={6} lg={2}>
               <Form.Label>Income Category</Form.Label>
               <Form.Select value={incomeFilter} onChange={(e) => setIncomeFilter(e.target.value)}>
                 <option value="">All Income Levels</option>
@@ -335,6 +381,7 @@ function Students() {
                   <th>Sex</th>
                   <th>Program</th>
                   <th>Municipality</th>
+                  <th>Area Type</th>
                   <th>Income</th>
                   <th>Senior High School Type</th>
                   <th>General Weighted Average (GWA)</th>
@@ -380,6 +427,13 @@ function Students() {
                           ? student.municipality
                           : <Badge bg="danger">No Municipality</Badge>}
                       </td>
+
+                      <td>
+                        <Badge bg={getAreaType(student.municipality) === "Upland" ? "success" : "info"}>
+                          {getAreaType(student.municipality)}
+                        </Badge>
+                      </td>
+
 
                       {/* Income */}
                       <td>
@@ -540,10 +594,16 @@ function Students() {
                 <Form.Label>Municipality</Form.Label>
                 <Form.Control
                   type="text"
-                  value={selectedStudent.municipality}
-                  onChange={(e) =>
-                    setSelectedStudent({ ...selectedStudent, municipality: e.target.value })
-                  }
+                  value={selectedStudent.municipality || ""}
+                  onChange={(e) => {
+                    const newMunicipality = e.target.value
+                    const newAreaType = getAreaType(newMunicipality)
+                    setSelectedStudent({
+                      ...selectedStudent,
+                      municipality: newMunicipality,
+                      areaType: newAreaType,
+                    })
+                  }}
                 />
               </Form.Group>
 
@@ -581,6 +641,15 @@ function Students() {
               </Form.Group>
 
               {/* 🔒 Read-only computed fields */}
+              <Form.Group className="mb-3">
+                <Form.Label>Area Type (System Computed)</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.areaType || getAreaType(selectedStudent.municipality)}
+                  disabled
+                />
+              </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Honors (System Computed)</Form.Label>
                 <Form.Control type="text" value={selectedStudent.Honors} disabled />
