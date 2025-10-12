@@ -105,40 +105,46 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         connection.close()
         return {"clusters": {}, "plot_data": {}, "centroids": []}
 
-    # Only fetch students that have cluster assignments (clustered = complete)
-    cursor.execute("""
-        SELECT s.*, sc.cluster_number
-        FROM students s
-        INNER JOIN student_cluster sc ON s.id = sc.student_id
-        WHERE s.dataset_id = %s
-    """, (cluster_info["dataset_id"],))
+    # Fetch all students for latest dataset and recompute official clusters only on complete rows
+    cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (cluster_info["dataset_id"],))
     students = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
-    # Build plot data from clustered students but verify completeness using the shared helper.
-    df_students = pd.DataFrame(students)
-    # normalize column names to lowercase and canonical columns
-    df_students.columns = [c.lower() for c in df_students.columns]
-    df_students = normalize_dataframe_columns(df_students)
-    df_students = encode_categorical_safe(df_students, ["sex", "program", "municipality", "shs_type"])
+    if not students:
+        return {"clusters": {}, "plot_data": {}, "centroids": []}
 
-    # enforce completeness (safety): only use rows that satisfy the completeness rules
-    df_complete = filter_complete_students_df(df_students)
+    # Build dataframe and normalize/encode like pairwise
+    df = pd.DataFrame(students)
+    df = normalize_dataframe_columns(df)
+    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
-    # Build clusters mapping using only complete/clustered students
-    clusters: Dict[int, List[dict]] = {}
-    for _, row in df_complete.iterrows():
-        student = row.to_dict()
-        cnum = int(student.get("cluster_number", 0))
-        student["cluster_number"] = cnum
-        clusters.setdefault(cnum, []).append(student)
+    # Only cluster on complete rows
+    df_complete = filter_complete_students_df(df)
+    if df_complete.empty:
+        return {"clusters": {}, "plot_data": {}, "centroids": []}
 
+    # Official clusters use GWA and income as canonical features
+    feature_cols = ["gwa", "income"]
+    X = df_complete[feature_cols].fillna(0).astype(float)
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    k = int(cluster_info.get("k", 3)) if cluster_info.get("k") else 3
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    preds = kmeans.fit_predict(X_scaled)
+    centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
+
+    df_complete = df_complete.copy()
+    df_complete["Cluster"] = preds
+
+    # Build plot data and clusters mapping from df_complete
     plot_data = {
         "x": [float(r.get("gwa", 0) or 0) for _, r in df_complete.iterrows()],
         "y": [float(r.get("income", 0) or 0) for _, r in df_complete.iterrows()],
-        "colors": [int(r.get("cluster_number", 0) or 0) for _, r in df_complete.iterrows()],
+        "colors": [int(r.get("Cluster", 0) or 0) for _, r in df_complete.iterrows()],
         "text": [
             f"{r.get('firstname','')} {r.get('lastname','')}<br>Program: {r.get('program','-')}<br>Municipality: {r.get('municipality','-')}<br>"
             f"Income: {r.get('incomecategory','-')}<br>Honors: {r.get('honors','-')}<br>SHS: {r.get('shs_type','-')}"
@@ -146,27 +152,16 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         ]
     }
 
-    centroids = []
-    if cluster_info.get("centroids"):
-        try:
-            parsed = json.loads(cluster_info["centroids"])
-            # parsed is list of full feature centroids [gwa, income, sex_enc, program_enc, ...]
-            for c in parsed:
-                if len(c) >= 2:
-                    centroids.append([float(c[0]), float(c[1])])  # only GWA (x) and Income (y)
-        except Exception as exc:
-            print("Error parsing centroids:", exc)
-            centroids = []
+    clusters: Dict[int, List[dict]] = {}
+    for _, row in df_complete.iterrows():
+        s = row.to_dict()
+        cnum = int(s.get("Cluster", 0))
+        s["cluster_number"] = cnum
+        clusters.setdefault(cnum, []).append(s)
 
-    # ------------------------
-    # RADAR (SPIDER) CHART DATA
-    # ------------------------
+    # Radar: normalize same features across df_complete
     feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
-    radar_data = []
-
-    # Use only clustered students as source for radar/averages
-    df_all = df_students.copy()
-    # ensure canonical column names available for radar calculation
+    df_all = df_complete.copy()
     df_all = normalize_dataframe_columns(df_all)
     df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
@@ -179,6 +174,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             else:
                 df_all[col] = 0.0
 
+    radar_data = []
     for cnum, members in clusters.items():
         member_ids = [m["id"] for m in members if "id" in m]
         df_c = df_all[df_all["id"].isin(member_ids)]
@@ -194,7 +190,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         "plot_data": plot_data,
         "centroids": centroids,
         "radar_data": radar_data,
-        "k": cluster_info["k"],
+        "k": k,
     }
 
 
