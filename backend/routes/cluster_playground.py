@@ -11,6 +11,7 @@ from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
 from dependencies import get_current_user
 from db import get_db_connection
+from completeness import filter_complete_df
 
 router = APIRouter()
 
@@ -72,16 +73,15 @@ async def cluster_playground(
     if k > len(students):
         raise HTTPException(status_code=400, detail="k cannot be greater than the number of students")
 
-    # Run clustering
+    # ✅ Only include complete student records
     df = pd.DataFrame(students)
-    # ✅ Only include students with complete essential info
-    df = df.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"])
-    df = df[
-        (df["income"] > 0) &
-        (df["GWA"] > 0) &
-        (df["municipality"].astype(str).str.strip() != "") &
-        (df["program"].astype(str).str.strip() != "")
-    ]
+    df = filter_complete_df(df)
+    if df.empty:
+        raise HTTPException(status_code=400, detail="No complete student records available for playground clustering.")
+
+    if k > len(df):
+        raise HTTPException(status_code=400, detail="k cannot be greater than number of complete students")
+
 
     features = ["GWA", "income"]
     X = df[features].fillna(0)

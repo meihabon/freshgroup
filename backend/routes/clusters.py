@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import json
 from typing import List, Dict
-
+from completeness import filter_complete_df, is_row_complete
 router = APIRouter()
 
 
@@ -80,6 +80,55 @@ def _pick_feature_columns(df: pd.DataFrame, canonical_features: List[str]) -> Li
             out.append(feat)
     return out
 
+def perform_recluster(dataset_id: int, k: int, save: bool = True):
+    """
+    Rebuilds clusters using only complete student records.
+    If save=True, updates the DB; otherwise returns preview results.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
+    students = cur.fetchall()
+    cur.close(); conn.close()
+
+    if not students:
+        raise ValueError("No students found for dataset.")
+
+    df = pd.DataFrame(students)
+    df = filter_complete_df(df)
+    if df.empty:
+        raise ValueError("No complete student records available.")
+
+    features = ["gwa", "income"]
+    df[features] = df[features].apply(pd.to_numeric, errors="coerce")
+    X = df[features].fillna(0)
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    preds = kmeans.fit_predict(X_scaled)
+    centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
+
+    if save:
+        conn2 = get_db_connection()
+        c2 = conn2.cursor(dictionary=True)
+        # delete old cluster mappings
+        c2.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
+        c2.execute("INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
+                   (dataset_id, k, json.dumps(centroids)))
+        cluster_id = c2.lastrowid
+        for idx, row in df.iterrows():
+            student_id = row["id"]
+            c2.execute(
+                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                (student_id, cluster_id, int(preds[idx]))
+            )
+        conn2.commit()
+        c2.close(); conn2.close()
+
+    return {"preds": preds, "centroids": centroids, "df_complete": df}
+
 
 # ------------------------
 # GET OFFICIAL CLUSTERS
@@ -107,9 +156,9 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     cursor.execute("""
         SELECT s.*, sc.cluster_number
         FROM students s
-        LEFT JOIN student_cluster sc ON s.id = sc.student_id
+        INNER JOIN student_cluster sc ON s.id = sc.student_id
         WHERE s.dataset_id = %s
-    """, (cluster_info["dataset_id"],))
+    """, (dataset_id,))
     students = cursor.fetchall()
 
     cursor.close()
@@ -221,6 +270,17 @@ async def recluster(
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    # ✅ Filter only complete student records before clustering
+    df = filter_complete_df(df)
+    if df.empty:
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=400, detail="No complete student records available for reclustering.")
+
+    if k > len(df):
+        cursor.close()
+        connection.close()
+        raise HTTPException(status_code=400, detail="k cannot be greater than number of complete students")
 
     canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
     feature_cols = _pick_feature_columns(df, canonical_features)
