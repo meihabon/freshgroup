@@ -45,12 +45,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Backdrop for mobile */}
       {isOpen && (
-        <div 
-          className="sidebar-backdrop d-md-none"
-          onClick={onClose}
-        />
+        <div className="sidebar-backdrop d-md-none" onClick={onClose} />
       )}
 
       <div 
@@ -61,7 +57,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
           height: '100vh',
           transition: 'all 0.3s ease',
-          background: 'linear-gradient(180deg, #27ae60 0%, #2ecc71 80%)',
+          background: 'linear-gradient(180deg, #145a32 0%, #27ae60 50%, #a9dfbf 90%)', // 🌿 richer green
           color: '#fff',
           borderRight: '2px solid rgba(255,255,255,0.2)',
           boxShadow: '3px 0 10px rgba(0,0,0,0.1)',
@@ -88,7 +84,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Header (brand) */}
+        {/* Header */}
         <div className="sidebar-brand p-3 border-bottom" 
           style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           <div className="d-flex align-items-center mb-1">
@@ -114,7 +110,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                   isActive ? 'active' : ''
                 }`}
                 style={{
-                  color: '#fff', // 👈 always white text now
+                  color: '#fff',
                   background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                   borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
                   borderRadius: '8px',
