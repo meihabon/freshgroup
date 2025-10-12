@@ -173,13 +173,22 @@ async def upload_dataset(
 
         # 🔹 Filter only complete students for clustering
         required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
-        df_complete = df.dropna(subset=required_cols)
-        df_complete = df_complete[
-            (df_complete["income"] > 0) &
-            (df_complete["gwa"] > 0) &
-            (df_complete["municipality"].astype(str).str.strip() != "") &
-            (df_complete["program"].astype(str).str.strip() != "")
-        ]
+        # 🔹 Identify truly complete records (not "Incomplete", not -1, not empty)
+        def is_complete(row):
+            required = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
+            for col in required:
+                val = row.get(col)
+                if pd.isna(val) or str(val).strip().lower() in ["", "incomplete", "n/a", "na", "none", "-1"]:
+                    return False
+            try:
+                if float(row.get("income", 0)) <= 0 or float(row.get("gwa", 0)) <= 0:
+                    return False
+            except Exception:
+                return False
+            return True
+
+        df_complete = df[df.apply(is_complete, axis=1)].copy()
+
 
         # 🧠 Clustering will only use df_complete
         features = ['gwa', 'income']
