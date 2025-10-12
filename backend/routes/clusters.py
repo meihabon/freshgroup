@@ -9,6 +9,22 @@ from typing import List, Dict
 
 router = APIRouter()
 
+def filter_complete_students(df: pd.DataFrame) -> pd.DataFrame:
+    """Return only complete student records (no 'Incomplete', 'N/A', or invalid data)."""
+    def is_complete(row):
+        required = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "GWA"]
+        for col in required:
+            val = row.get(col)
+            if pd.isna(val) or str(val).strip().lower() in ["", "incomplete", "n/a", "na", "none", "-1"]:
+                return False
+        try:
+            if float(row.get("income", 0)) <= 0 or float(row.get("GWA", 0)) <= 0:
+                return False
+        except Exception:
+            return False
+        return True
+
+    return df[df.apply(is_complete, axis=1)].copy()
 
 # ------------------------
 # Helpers: normalize and safe encoding
@@ -231,13 +247,7 @@ async def recluster(
 
     # 🔹 4. Identify complete records only
     required_fields = ["firstname", "lastname", "sex", "program", "municipality", "shs_type", "GWA", "income"]
-    df_complete = df.dropna(subset=required_fields)
-    df_complete = df_complete[
-        (df_complete["GWA"] > 0) &
-        (df_complete["income"] > 0) &
-        (df_complete["municipality"].astype(str).str.strip() != "") &
-        (df_complete["program"].astype(str).str.strip() != "")
-    ]
+    df_complete = filter_complete_students(df)
 
     if df_complete.empty:
         cursor.close(); connection.close()
@@ -341,6 +351,8 @@ async def pairwise_clusters(
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    df = filter_complete_students(df)
+
 
     def actual_col(canon: str) -> str:
         if canon in {"sex", "program", "municipality", "shs_type"}:
