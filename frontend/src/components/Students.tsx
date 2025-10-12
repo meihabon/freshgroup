@@ -226,12 +226,14 @@ function Students() {
     }
 
     try {
-      await updateStudent(selectedStudent.id, payload)
+      const res = await updateStudent(selectedStudent.id, payload)
+      alert(res.data.message || "Student updated successfully")  // 👈 show backend message
       setShowEditModal(false)
-      fetchStudents() // refresh list
+      fetchStudents()
     } catch (error: any) {
       alert(error.response?.data?.detail || "Failed to update student")
     }
+
   }
   // Pagination logic
   const indexOfLast = currentPage * studentsPerPage

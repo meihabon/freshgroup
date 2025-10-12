@@ -3,6 +3,8 @@ from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_income, classify_honors
+from fastapi import BackgroundTasks
+from clusters import recluster
 
 router = APIRouter()
 
@@ -63,10 +65,28 @@ async def get_students(
     connection.close()
     return students
 
+# ✅ Helper: check if student record is complete
+def is_record_complete(student: dict) -> bool:
+    """Return True if all required fields are present and valid."""
+    required_fields = ["firstname", "lastname", "sex", "program", "municipality", "SHS_type", "GWA", "income"]
+    for field in required_fields:
+        val = student.get(field)
+        if val in [None, "", "Incomplete", "N/A", "NA", "None", -1]:
+            return False
+    try:
+        if float(student.get("GWA", 0)) <= 0 or float(student.get("income", 0)) <= 0:
+            return False
+    except ValueError:
+        return False
+    return True
+
+
+# ✅ Main endpoint: Update student and trigger recluster if record becomes complete
 @router.put("/students/{student_id}")
 async def update_student(
     student_id: int,
     student_data: dict = Body(...),
+    background_tasks: BackgroundTasks = None,
     current_user: dict = Depends(get_current_user)
 ):
     connection = get_db_connection()
@@ -92,11 +112,10 @@ async def update_student(
     gwa = student_data.get("GWA", student["GWA"])
     income = student_data.get("income", student["income"])
 
-    # 🔒 Honors & IncomeCategory should be system-computed
+    # 🔒 System-computed fields
     honors = classify_honors({"gwa": gwa})
     income_category = classify_income(income)
 
-    # ✅ define the update_query here
     update_query = """
         UPDATE students
         SET firstname=%s, lastname=%s, sex=%s, program=%s,
@@ -119,4 +138,21 @@ async def update_student(
         cursor.close()
         connection.close()
 
-    return {"message": "Student updated successfully"}
+    # ✅ Step 2: Check if this student is now complete
+    updated_record = {
+        "firstname": firstname,
+        "lastname": lastname,
+        "sex": sex,
+        "program": program,
+        "municipality": municipality,
+        "SHS_type": shs_type,
+        "GWA": gwa,
+        "income": income,
+    }
+
+    # ✅ Step 3: Trigger reclustering in background (admin only)
+    if is_record_complete(updated_record) and current_user.get("role") == "Admin":
+        background_tasks.add_task(recluster, k=3, current_user=current_user)
+        return {"message": "Student updated successfully. Record is now complete → re-clustering triggered."}
+
+    return {"message": "Student updated successfully."}
