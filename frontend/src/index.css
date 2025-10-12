@@ -79,7 +79,8 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 /* Gradient sidebar for stronger separation */
 .gradient-sidebar {
-  background: linear-gradient(180deg, #1e9b4a 0%, #27ae60 35%, #f1c40f 100%);
+  /* Muted gradient to reduce brightness */
+  background: linear-gradient(180deg, rgba(30,155,74,0.95) 0%, rgba(39,174,96,0.9) 45%, rgba(241,196,15,0.85) 100%);
   color: #fff;
 }
 
@@ -102,9 +103,9 @@ body, h1, h2, h3, h4, h5, h6, p {
 }
 
 .gradient-sidebar .sidebar .nav-link.active {
-  background-color: rgba(255,255,255,0.08) !important;
+  background-color: rgba(0,0,0,0.06) !important; /* subtle darkened active */
   color: #fff !important;
-  border-left: 4px solid rgba(255,255,255,0.2);
+  border-left: 4px solid rgba(255,255,255,0.14);
 }
 
 .gradient-sidebar .border-top {
@@ -112,12 +113,51 @@ body, h1, h2, h3, h4, h5, h6, p {
 }
 
 .gradient-sidebar .p-3.border-bottom {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-bottom: 1px solid rgba(0,0,0,0.06) !important;
 }
 
 .gradient-sidebar .bg-white {
-  background: rgba(255,255,255,0.06) !important;
+  background: rgba(255,255,255,0.02) !important;
+}
+
+/* Brand area styling inside the gradient sidebar */
+.sidebar-brand {
+  background: transparent;
+  color: #fff;
+}
+
+.sidebar-brand-icon {
+  color: rgba(255,255,255,0.95);
+}
+
+.sidebar-brand-title {
+  color: #fff;
+}
+
+.sidebar-brand-sub {
+  color: rgba(255,255,255,0.85);
+}
+
+/* Nav item visual polish */
+.gradient-sidebar .nav-item {
+  margin-bottom: 6px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+}
+
+.gradient-sidebar .nav-item:hover {
+  background-color: rgba(255,255,255,0.04);
+  transform: translateX(3px);
+}
+
+.gradient-sidebar .nav-item .me-3 {
+  color: rgba(255,255,255,0.95);
+}
+
+.gradient-sidebar .p-3.border-top {
+  border-top: 1px solid rgba(0,0,0,0.06) !important;
 }
 
 .sidebar .nav-link {

@@ -84,13 +84,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
-        {/* Header (green section) */}
-        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
+        {/* Header (brand) */}
+        <div className="sidebar-brand p-3 border-bottom">
           <div className="d-flex align-items-center mb-1">
-            <BarChart size={26} className="me-2 text-white" />
-            <h5 className="mb-0 fw-bold">FreshGroup</h5>
+            <BarChart size={26} className="me-2 sidebar-brand-icon" />
+            <h5 className="mb-0 fw-bold sidebar-brand-title">FreshGroup</h5>
           </div>
-          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+          <p className="mb-0 small sidebar-brand-sub">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -105,17 +105,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 as={Link as any}
                 to={item.path}
                 onClick={onClose}
-                className="d-flex align-items-center sidebar-link"
-                style={{
-                  color: isActive ? '#27ae60' : '#555',
-                  fontWeight: isActive ? 600 : 400,
-                  backgroundColor: isActive ? '#e9f7ef' : 'transparent',
-                  marginBottom: '6px',
-                  padding: '10px 14px',
-                  borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
-                  borderRadius: '4px',
-                  transition: 'all 0.3s ease'
-                }}
+                className={`d-flex align-items-center sidebar-link nav-item ${isActive ? 'active' : ''}`}
               >
                 <IconComponent size={18} className="me-3" />
                 {item.label}
