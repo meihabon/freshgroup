@@ -3,16 +3,16 @@ import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { 
-  BarChart,      // Dashboard
-  Users,         // Students
-  Layers,        // Clusters
-  FileText,      // Reports
-  Database,      // Dataset History
-  HelpCircle,    // Help / User Guide
-  Settings,      // User Management
-  User,          // Profile
-  LogOut,        // Logout
-  Home           // Home
+  BarChart,     // ✅ matches Help.tsx (Dashboard)
+  Users, 
+  Layers,       // ✅ matches Help.tsx (Clusters)
+  FileText, 
+  Database, 
+  Settings,
+  User,
+  LogOut,
+  Home,
+  HelpCircle    // ✅ matches Help.tsx (Help)
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -32,7 +32,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
     { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
     { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
-    { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] },
+    { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
   ]
 
   const filteredMenuItems = menuItems.filter(item => 
@@ -46,8 +46,12 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      {isOpen && <div className="sidebar-backdrop d-md-none" onClick={onClose} />}
+      {isOpen && (
+        <div 
+          className="sidebar-backdrop d-md-none"
+          onClick={onClose}
+        />
+      )}
 
       <div 
         className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
@@ -55,18 +59,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           width: '240px',
           zIndex: 1000,
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
-          background: 'linear-gradient(180deg, #145a32 0%, #27ae60 50%, #a9dfbf 90%)',
-          borderRight: '1px solid rgba(255,255,255,0.2)',
+          backgroundColor: '#f9fafb',
+          borderRight: '1px solid #e5e5e5',
           transition: 'all 0.3s ease',
           height: '100vh',
-          color: '#fff'
         }}
       >
-        {/* Collapse button for mobile */}
-        <div 
-          className="d-md-none d-flex justify-content-end align-items-center p-2" 
-          style={{ background: 'rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
-        >
+        <div className="d-md-none d-flex justify-content-end align-items-center p-2" style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
           <button
             aria-label="Close sidebar"
             onClick={onClose}
@@ -74,7 +73,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               background: 'none',
               border: 'none',
               fontSize: '1.5rem',
-              color: '#fff',
+              color: '#888',
               cursor: 'pointer',
               lineHeight: 1,
             }}
@@ -83,21 +82,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Header */}
-        <div className="p-3 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
           <div className="d-flex align-items-center mb-1">
-            <BarChart size={26} className="me-2 text-warning" />
-            <h5 className="mb-0 fw-bold text-white">FreshGroup</h5>
+            <BarChart size={26} className="me-2 text-white" />
+            <h5 className="mb-0 fw-bold">FreshGroup</h5>
           </div>
-          <p className="mb-0 small text-white-50">Student Profiling System</p>
+          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
         </div>
 
-        {/* Navigation */}
         <Nav className="flex-column flex-grow-1 px-2 py-3">
           {filteredMenuItems.map((item) => {
             const IconComponent = item.icon
             const isActive = location.pathname === item.path
-
+            
             return (
               <Nav.Link
                 key={item.path}
@@ -106,13 +103,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
                 className="d-flex align-items-center sidebar-link"
                 style={{
-                  color: isActive ? '#f1c40f' : '#fff',
+                  color: isActive ? '#27ae60' : '#555',
                   fontWeight: isActive ? 600 : 400,
-                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  backgroundColor: isActive ? '#e9f7ef' : 'transparent',
                   marginBottom: '6px',
                   padding: '10px 14px',
-                  borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
-                  borderRadius: '6px',
+                  borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
+                  borderRadius: '4px',
                   transition: 'all 0.3s ease'
                 }}
               >
@@ -123,57 +120,37 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </Nav>
 
-        {/* Footer */}
-        <div className="p-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+        <div className="p-3 border-top bg-white">
           <div className="mb-3">
-            <div className="d-flex align-items-center mb-1">
-              <User size={16} className="me-2 text-white" />
-              <small className="fw-semibold text-white">
-                {user?.profile?.name || user?.email}
-              </small>
+            <div className="d-flex align-items-center text-dark mb-1">
+              <User size={16} className="me-2 text-muted" />
+              <small className="fw-semibold">{user?.profile?.name || user?.email}</small>
             </div>
             <small 
               className="badge rounded-pill px-3 py-1" 
-              style={{ backgroundColor: '#f1c40f', color: '#145a32', fontSize: '0.75rem' }}
+              style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem' }}
             >
               {user?.role}
             </small>
           </div>
 
           <div className="d-grid gap-2">
-            {/* Profile (Yellow) */}
             <Button 
+              variant="outline-success" 
               size="sm"
               as={Link as any} 
               to="/profile"
               onClick={onClose}
-              className="d-flex align-items-center justify-content-center"
-              style={{
-                backgroundColor: '#f1c40f',
-                color: '#145a32',
-                border: 'none',
-                fontWeight: 600,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f7dc6f')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f1c40f')}
+              className="d-flex align-items-center justify-content-center sidebar-btn"
             >
-              <User size={14} className="me-2" color="#145a32" />
+              <User size={14} className="me-2" />
               Profile
             </Button>
-
-            {/* Logout (Red) */}
             <Button 
+              variant="outline-danger" 
               size="sm" 
               onClick={handleLogout}
-              className="d-flex align-items-center justify-content-center"
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                color: '#ff6b6b',
-                border: 'none',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,107,107,0.25)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')}
+              className="d-flex align-items-center justify-content-center sidebar-btn"
             >
               <LogOut size={14} className="me-2" />
               Logout
