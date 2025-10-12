@@ -11,6 +11,7 @@ from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
 from dependencies import get_current_user
 from db import get_db_connection
+from ..utils_complete import filter_complete_students_df
 
 router = APIRouter()
 
@@ -72,10 +73,16 @@ async def cluster_playground(
     if k > len(students):
         raise HTTPException(status_code=400, detail="k cannot be greater than the number of students")
 
-    # Run clustering
+    # Run clustering only on complete students; still return all students saved if needed
     df = pd.DataFrame(students)
+    df = df.rename(columns={c: c for c in df.columns})
+    df_complete = filter_complete_students_df(df)
+
+    if df_complete.empty:
+        raise HTTPException(status_code=400, detail="No complete students available for clustering")
+
     features = ["GWA", "income"]
-    X = df[features].fillna(0)
+    X = df_complete[features].fillna(0)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -87,7 +94,9 @@ async def cluster_playground(
     centroids_scaled = kmeans.cluster_centers_
     centroids = scaler.inverse_transform(centroids_scaled).tolist()
 
-    df["Cluster"] = clusters
+    # attach cluster only to complete rows; keep others unassigned
+    df["Cluster"] = -1
+    df.loc[df_complete.index, "Cluster"] = clusters
 
     return {
         "students": df.to_dict(orient="records"),

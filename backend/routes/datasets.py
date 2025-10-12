@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_honors, classify_income
+from ..utils_complete import filter_complete_students_df, is_record_complete_row
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -123,10 +124,12 @@ async def elbow_preview(
 
         df = normalize_and_prepare_df(df)
 
-        features = ['gwa', 'income']
-        X = df[features].fillna(0)
+    # determine complete rows for clustering
+    features = ['gwa', 'income']
+    df_complete = filter_complete_students_df(df)
+    X = df_complete[features].fillna(0)
         scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+    X_scaled = scaler.fit_transform(X)
 
         wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
         recommended_k = recommend_k_by_curvature(wcss)
@@ -178,11 +181,14 @@ async def upload_dataset(
             wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
             k = recommend_k_by_curvature(wcss)
 
-        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        df['Cluster'] = kmeans.fit_predict(X_scaled)
-        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    preds = kmeans.fit_predict(X_scaled)
+    # assign predicted cluster only to complete rows; keep others unclustered/unassigned
+    df['Cluster'] = -1
+    df.loc[df_complete.index, 'Cluster'] = preds
+    df['Cluster'] = df['Cluster'].astype(int)
 
-        all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
+    all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
     # Keep only GWA (index 0) and income (index 1)
         centroids = [[c[0], c[1]] for c in all_centroids]
 

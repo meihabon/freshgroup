@@ -3,6 +3,8 @@ from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_income, classify_honors
+from ..utils_complete import is_record_complete_row, filter_complete_students_df
+from ..routes.clusters import recluster as recluster_endpoint
 
 router = APIRouter()
 
@@ -118,5 +120,45 @@ async def update_student(
     finally:
         cursor.close()
         connection.close()
+
+    # After update, check if the student became complete; if so, trigger recluster
+    # Fetch the freshly updated student row
+    conn2 = get_db_connection()
+    if conn2:
+        cur2 = conn2.cursor(dictionary=True)
+        cur2.execute("SELECT * FROM students WHERE id = %s", (student_id,))
+        updated = cur2.fetchone()
+        cur2.close(); conn2.close()
+
+        # Check completeness
+        became_complete = False
+        try:
+            was_complete_before = is_record_complete_row(student)
+            is_complete_now = is_record_complete_row(updated)
+            if (not was_complete_before) and is_complete_now:
+                became_complete = True
+        except Exception:
+            became_complete = False
+
+        if became_complete:
+            # Trigger recluster with k from latest clusters (if exists) or default k=3
+            try:
+                # find last k
+                conn3 = get_db_connection()
+                if conn3:
+                    cur3 = conn3.cursor(dictionary=True)
+                    cur3.execute("SELECT k FROM clusters WHERE dataset_id = (SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1) ORDER BY id DESC LIMIT 1")
+                    row = cur3.fetchone()
+                    cur3.close(); conn3.close()
+                    k_to_use = int(row["k"]) if row and row.get("k") else 3
+                else:
+                    k_to_use = 3
+
+                # Call recluster route function directly (it handles role checks and saving)
+                import asyncio
+                asyncio.create_task(recluster_endpoint(k=k_to_use, current_user=current_user))
+            except Exception as e:
+                # don't fail the update if recluster trigger failed; log instead
+                print("Recluster trigger failed:", e)
 
     return {"message": "Student updated successfully"}

@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import json
 from typing import List, Dict
+from ..utils_complete import filter_complete_students_df, is_record_complete_row
 
 router = APIRouter()
 
@@ -222,13 +223,16 @@ async def recluster(
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
+    # Only cluster on complete rows
+    df_complete = filter_complete_students_df(df)
+
     canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
     feature_cols = _pick_feature_columns(df, canonical_features)
     if not feature_cols:
         cursor.close(); connection.close()
         raise HTTPException(status_code=400, detail="No usable features for clustering")
 
-    X = df[feature_cols].fillna(0).astype(float)
+    X = df_complete[feature_cols].fillna(0).astype(float)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -255,10 +259,11 @@ async def recluster(
                    (dataset_id, k, json.dumps(centroids)))
         new_cluster_id = c2.lastrowid
 
-        for idx, row in enumerate(students):
-            student_id = int(row["id"])
+        # Only insert student_cluster for rows that were clustered (complete)
+        clustered_student_ids = df_complete['id'].astype(int).tolist()
+        for local_idx, student_id in enumerate(clustered_student_ids):
             c2.execute("INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                       (student_id, new_cluster_id, int(preds[idx])))
+                       (int(student_id), new_cluster_id, int(preds[local_idx])))
 
         conn2.commit()
         c2.close(); conn2.close()
@@ -266,10 +271,13 @@ async def recluster(
         return {"message": f"Official dataset re-clustered with k={k}"}
 
     elif role == "Viewer":
+        # Build preview output only for complete students
         out_students = []
-        for idx, s in enumerate(students):
-            s_copy = dict(s)
-            s_copy["Cluster"] = int(preds[idx])
+        clustered_student_ids = df_complete['id'].astype(int).tolist()
+        for local_idx, sid in enumerate(clustered_student_ids):
+            row = df_complete[df_complete['id'] == sid].iloc[0]
+            s_copy = row.to_dict()
+            s_copy["Cluster"] = int(preds[local_idx])
             out_students.append(s_copy)
 
         return {"message": f"Preview clustering with k={k} (not saved)", "students": out_students, "centroids": centroids}
@@ -323,6 +331,9 @@ async def pairwise_clusters(
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
+    # Only use complete students for pairwise clustering
+    df_complete = filter_complete_students_df(df)
+
     def actual_col(canon: str) -> str:
         if canon in {"sex", "program", "municipality", "shs_type"}:
             return f"{canon}_enc" if f"{canon}_enc" in df.columns else canon
@@ -334,7 +345,10 @@ async def pairwise_clusters(
     if x_col not in df.columns or y_col not in df.columns:
         raise HTTPException(status_code=400, detail=f"Missing columns in dataset: {x_col}, {y_col}")
 
-    X = df[[x_col, y_col]].fillna(0).astype(float)
+    if df_complete.empty:
+        raise HTTPException(status_code=400, detail="No complete students available for clustering")
+
+    X = df_complete[[x_col, y_col]].fillna(0).astype(float)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -343,10 +357,10 @@ async def pairwise_clusters(
     preds = kmeans.fit_predict(X_scaled)
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
-    df["Cluster"] = preds
+    df_complete["Cluster"] = preds
 
     students_out = []
-    for _, row in df.iterrows():
+    for _, row in df_complete.iterrows():
         students_out.append({
             "id": int(row.get("id", 0)),
             "firstname": row.get("firstname"),
