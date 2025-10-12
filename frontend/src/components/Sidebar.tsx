@@ -1,17 +1,18 @@
+import React from 'react'
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { 
-  Home,
-  BarChart,
-  Users,
-  Layers,
-  FileText,
-  Database,
-  HelpCircle,
-  Settings,
-  User,
-  LogOut,
+  BarChart,      // Dashboard
+  Users,         // Students
+  Layers,        // Clusters
+  FileText,      // Reports
+  Database,      // Dataset History
+  HelpCircle,    // Help / User Guide
+  Settings,      // User Management
+  User,          // Profile
+  LogOut,        // Logout
+  Home           // Home
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -31,7 +32,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
     { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
     { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
-    { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
+    { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] },
   ]
 
   const filteredMenuItems = menuItems.filter(item => 
@@ -51,15 +52,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div 
         className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
         style={{ 
-          width: '260px',
+          width: '240px',
           zIndex: 1000,
-          left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
-          height: '100vh',
-          transition: 'all 0.3s ease',
+          left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
           background: 'linear-gradient(180deg, #145a32 0%, #27ae60 50%, #a9dfbf 90%)',
-          color: '#fff',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
-          boxShadow: '3px 0 10px rgba(0,0,0,0.1)',
+          borderRight: '1px solid rgba(255,255,255,0.2)',
+          transition: 'all 0.3s ease',
+          height: '100vh',
+          color: '#fff'
         }}
       >
         {/* Collapse button for mobile */}
@@ -84,8 +84,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Header */}
-        <div className="sidebar-brand p-3 border-bottom" 
-          style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+        <div className="p-3 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.3)' }}>
           <div className="d-flex align-items-center mb-1">
             <BarChart size={26} className="me-2 text-warning" />
             <h5 className="mb-0 fw-bold text-white">FreshGroup</h5>
@@ -98,32 +97,27 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           {filteredMenuItems.map((item) => {
             const IconComponent = item.icon
             const isActive = location.pathname === item.path
-            
+
             return (
               <Nav.Link
                 key={item.path}
                 as={Link as any}
                 to={item.path}
                 onClick={onClose}
-                className={`d-flex align-items-center sidebar-link nav-item ${
-                  isActive ? 'active' : ''
-                }`}
+                className="d-flex align-items-center sidebar-link"
                 style={{
-                  color: '#fff',
-                  background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                  borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
+                  color: isActive ? '#f1c40f' : '#fff',
+                  fontWeight: isActive ? 600 : 400,
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                   marginBottom: '6px',
-                  transition: 'all 0.2s ease',
+                  padding: '10px 14px',
+                  borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
+                  borderRadius: '6px',
+                  transition: 'all 0.3s ease'
                 }}
               >
-                <IconComponent 
-                  size={18} 
-                  className="me-3"
-                  color={isActive ? '#f1c40f' : '#fff'}
-                />
-                <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
+                <IconComponent size={18} className="me-3" />
+                {item.label}
               </Nav.Link>
             )
           })}
@@ -134,29 +128,26 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="mb-3">
             <div className="d-flex align-items-center mb-1">
               <User size={16} className="me-2 text-white" />
-              <small className="fw-semibold text-white">{user?.profile?.name || user?.email}</small>
+              <small className="fw-semibold text-white">
+                {user?.profile?.name || user?.email}
+              </small>
             </div>
             <small 
               className="badge rounded-pill px-3 py-1" 
-              style={{ 
-                backgroundColor: '#f1c40f',
-                color: '#145a32',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-              }}
+              style={{ backgroundColor: '#f1c40f', color: '#145a32', fontSize: '0.75rem' }}
             >
               {user?.role}
             </small>
           </div>
 
           <div className="d-grid gap-2">
-            {/* Profile Button - yellow */}
+            {/* Profile (Yellow) */}
             <Button 
               size="sm"
               as={Link as any} 
               to="/profile"
               onClick={onClose}
-              className="d-flex align-items-center justify-content-center sidebar-btn"
+              className="d-flex align-items-center justify-content-center"
               style={{
                 backgroundColor: '#f1c40f',
                 color: '#145a32',
@@ -170,19 +161,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               Profile
             </Button>
 
-            {/* Logout Button - red */}
+            {/* Logout (Red) */}
             <Button 
               size="sm" 
               onClick={handleLogout}
-              className="d-flex align-items-center justify-content-center sidebar-btn"
+              className="d-flex align-items-center justify-content-center"
               style={{
-                background: 'rgba(255,255,255,0.15)',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 color: '#ff6b6b',
                 border: 'none',
                 fontWeight: 500,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,107,107,0.25)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,107,107,0.25)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')}
             >
               <LogOut size={14} className="me-2" />
               Logout
