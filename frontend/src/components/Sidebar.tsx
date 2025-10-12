@@ -1,4 +1,4 @@
-// React automatic JSX runtime is used; no default React import required
+import React from 'react'
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -8,11 +8,10 @@ import {
   Target, 
   FileText, 
   Database, 
-  
+  Settings,
   User,
   LogOut,
-  Home,
-  HelpCircle
+  Home
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -25,14 +24,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
 
   const menuItems = [
-  { path: '/home', icon: Home, label: 'Home', roles: ['Admin', 'Viewer'] },
-  { path: '/dashboard', icon: BarChart3, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
-  { path: '/students', icon: User, label: 'Students', roles: ['Admin', 'Viewer'] },
-  { path: '/clusters', icon: Target, label: 'Clusters', roles: ['Admin', 'Viewer'] },
-  { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
-  { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
-  { path: '/users', icon: Users, label: 'User Management', roles: ['Admin'] },
-  { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
+    { path: '/home', icon: FileText, label: 'Home', roles: ['Admin', 'Viewer'] },
+    { path: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
+    { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
+    { path: '/clusters', icon: Target, label: 'Clusters', roles: ['Admin', 'Viewer'] },
+    { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
+    { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
+    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
+    { path: '/help', icon: FileText, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
 
   ]
 
@@ -62,6 +61,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           width: '240px',
           zIndex: 1000,
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
+          backgroundColor: '#f9fafb',
+          borderRight: '1px solid #e5e5e5',
           transition: 'all 0.3s ease',
           height: '100vh',
         }}
@@ -83,14 +84,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
-        {/* Header */}
-        <div className="sidebar-header">
+        {/* Header (green section) */}
+        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
           <div className="d-flex align-items-center mb-1">
-            <BarChart3 size={22} className="me-2 text-white" />
+            <BarChart3 size={26} className="me-2 text-white" />
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
-            <span className="ms-2" style={{ background: 'var(--brand-yellow)', color: '#2c3e50', padding: '4px 8px', borderRadius: 6, fontWeight: 700 }}>Admin</span>
           </div>
-          <p className="mb-0 small" style={{ color: 'rgba(255,255,255,0.95)' }}>Student Profiling System</p>
+          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -105,9 +105,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 as={Link as any}
                 to={item.path}
                 onClick={onClose}
-                className={`d-flex align-items-center sidebar-link ${isActive ? 'active' : ''}`}
+                className="d-flex align-items-center sidebar-link"
+                style={{
+                  color: isActive ? '#27ae60' : '#555',
+                  fontWeight: isActive ? 600 : 400,
+                  backgroundColor: isActive ? '#e9f7ef' : 'transparent',
+                  marginBottom: '6px',
+                  padding: '10px 14px',
+                  borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
+                  borderRadius: '4px',
+                  transition: 'all 0.3s ease'
+                }}
               >
-                <IconComponent size={16} className="me-3 text-muted" />
+                <IconComponent size={18} className="me-3" />
                 {item.label}
               </Nav.Link>
             )
