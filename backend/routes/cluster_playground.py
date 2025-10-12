@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from dependencies import get_current_user
 from db import get_db_connection
 from utils_complete import filter_complete_students_df
+import routes.clusters as clusters_module
 
 router = APIRouter()
 
@@ -73,30 +74,39 @@ async def cluster_playground(
     if k > len(students):
         raise HTTPException(status_code=400, detail="k cannot be greater than the number of students")
 
-    # Run clustering only on complete students; still return all students saved if needed
+    # Use the same normalization/encoding and completeness filter as pairwise
     df = pd.DataFrame(students)
-    df = df.rename(columns={c: c for c in df.columns})
-    df_complete = filter_complete_students_df(df)
+    # normalize canonical columns and safely encode categoricals
+    df = clusters_module.normalize_dataframe_columns(df)
+    df = clusters_module.encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
 
+    # filter complete rows using the shared helper
+    df_complete = filter_complete_students_df(df)
     if df_complete.empty:
         raise HTTPException(status_code=400, detail="No complete students available for clustering")
 
-    features = ["GWA", "income"]
-    X = df_complete[features].fillna(0)
+    # For playground we cluster on canonical gwa/income (use encoders when present via actual_col)
+    def actual_col(canon: str) -> str:
+        if canon in {"sex", "program", "municipality", "shs_type"}:
+            return f"{canon}_enc" if f"{canon}_enc" in df_complete.columns else canon
+        return canon
+
+    x_col = actual_col("gwa")
+    y_col = actual_col("income")
+
+    X = df_complete[[x_col, y_col]].fillna(0).astype(float)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    clusters = kmeans.fit_predict(X_scaled)
+    preds = kmeans.fit_predict(X_scaled)
 
-    # convert centroids back to original scale
-    centroids_scaled = kmeans.cluster_centers_
-    centroids = scaler.inverse_transform(centroids_scaled).tolist()
+    centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
     # attach cluster only to complete rows; keep others unassigned
     df["Cluster"] = -1
-    df.loc[df_complete.index, "Cluster"] = clusters
+    df.loc[df_complete.index, "Cluster"] = preds
 
     return {
         "students": df.to_dict(orient="records"),

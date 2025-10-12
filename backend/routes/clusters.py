@@ -105,10 +105,11 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         connection.close()
         return {"clusters": {}, "plot_data": {}, "centroids": []}
 
+    # Only fetch students that have cluster assignments (clustered = complete)
     cursor.execute("""
         SELECT s.*, sc.cluster_number
         FROM students s
-        LEFT JOIN student_cluster sc ON s.id = sc.student_id
+        INNER JOIN student_cluster sc ON s.id = sc.student_id
         WHERE s.dataset_id = %s
     """, (cluster_info["dataset_id"],))
     students = cursor.fetchall()
@@ -116,6 +117,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
 
+    # Build plot data only from clustered students (these are complete by construction)
     plot_data = {
         "x": [s.get("GWA", 0) for s in students],
         "y": [s.get("income", 0) for s in students],
@@ -153,6 +155,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
         radar_data = []
 
+        # Use only clustered students as source for radar/averages
         df_all = pd.DataFrame(students)
         df_all = normalize_dataframe_columns(df_all)
         df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
