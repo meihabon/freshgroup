@@ -74,6 +74,15 @@ async def cluster_playground(
 
     # Run clustering
     df = pd.DataFrame(students)
+    # ✅ Only include students with complete essential info
+    df = df.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"])
+    df = df[
+        (df["income"] > 0) &
+        (df["GWA"] > 0) &
+        (df["municipality"].astype(str).str.strip() != "") &
+        (df["program"].astype(str).str.strip() != "")
+    ]
+
     features = ["GWA", "income"]
     X = df[features].fillna(0)
 

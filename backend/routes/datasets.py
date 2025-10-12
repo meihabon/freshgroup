@@ -167,7 +167,18 @@ async def upload_dataset(
             df = pd.read_excel(file_path)
 
         df = normalize_and_prepare_df(df)
+        # ✅ Only include students with complete essential info for clustering
+        required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
+        df_complete = df.dropna(subset=required_cols)
+        df_complete = df_complete[
+            (df_complete["income"] > 0) &
+            (df_complete["gwa"] > 0) &
+            (df_complete["municipality"].astype(str).str.strip() != "") &
+            (df_complete["program"].astype(str).str.strip() != "")
+        ]
 
+        # Use df_complete instead of df for clustering
+        df = df_complete.copy()
         features = ['gwa', 'income']
         X = df[features].fillna(0)
         scaler = StandardScaler()

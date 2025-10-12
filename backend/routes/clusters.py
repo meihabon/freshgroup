@@ -221,6 +221,14 @@ async def recluster(
     df = pd.DataFrame(students)
     df = normalize_dataframe_columns(df)
     df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
+    # ✅ Filter out incomplete student records before clustering
+    df = df.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"])
+    df = df[
+        (df["income"] > 0) &
+        (df["gwa"] > 0) &
+        (df["municipality"].astype(str).str.strip() != "") &
+        (df["program"].astype(str).str.strip() != "")
+    ]
 
     canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
     feature_cols = _pick_feature_columns(df, canonical_features)
