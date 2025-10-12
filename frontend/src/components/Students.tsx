@@ -54,8 +54,8 @@ function Students() {
 
   useEffect(() => {
     applyFilters()
-    setCurrentPage(1) // reset to page 1 when filters change
-  }, [students, searchTerm, programFilter, sexFilter, municipalityFilter, incomeFilter, shsFilter, honorsFilter])
+    setCurrentPage(1)
+  }, [students, searchTerm, programFilter, sexFilter, municipalityFilter, incomeFilter, shsFilter, honorsFilter, areaTypeFilter])
 
   const fetchStudents = async () => {
     try {
@@ -161,26 +161,24 @@ function Students() {
       default: return 'secondary'
     }
   }
-  // 🏔️ Determine Area Type based on Municipality
-  const getAreaType = (municipality: string) => {
-    const uplandMunicipalities = [
-      // 📍 Ilocos Sur
-      "Cervantes", "Sigay", "Suyo", "Alilem", "Sugpon", "Banayoyo",
-      "San Emilio", "Gregorio del Pilar", "Quirino", "Galimuyod",
-      "Lidlidda", "Burgos", "Nagbukel", "Santa Lucia", "Salcedo",
-      "San Esteban", "Santa", "Narvacan", "San Ildefonso",
 
-      // 📍 La Union
-      "Bagulin", "Pugo", "San Gabriel", "Sudipen", "Tubao", "Bacnotan",
-      "Santol"
+  const getAreaType = (municipality: string) => {
+    if (!municipality || municipality.trim() === "") return "No Municipality Entered";
+
+    const uplandMunicipalities = [
+    // 📍 Ilocos Sur (14 official upland)
+    "Alilem", "Banayoyo", "Burgos", "Cervantes", "Galimuyod",
+    "Gregorio del Pilar", "Lidlidda", "Nagbukel", "Quirino",
+    "Salcedo", "San Emilio", "Sigay", "Sugpon", "Suyo",
+
+    // 📍 La Union (mountainous upland)
+    "Bagulin", "Burgos", "Naguilian", "San Gabriel", "Santol", "Sudipen", "Tubao"
     ];
 
-    if (!municipality) return "Unknown";
-
-    // Normalize municipality name (handles "Sta. Maria", "Santa Lucia", etc.)
+    // Normalize municipality name
     const normalized = municipality
-      .replace(/^sta\.?\s*/i, "santa ") // convert "Sta." → "Santa"
-      .replace(/^sto\.?\s*/i, "santo ") // convert "Sto." → "Santo"
+      .replace(/^sta\.?\s*/i, "santa ")
+      .replace(/^sto\.?\s*/i, "santo ")
       .trim()
       .toLowerCase();
 
@@ -433,11 +431,18 @@ function Students() {
                       </td>
 
                       <td>
-                        <Badge bg={getAreaType(student.municipality) === "Upland" ? "success" : "info"}>
+                        <Badge
+                          bg={
+                            getAreaType(student.municipality) === "Upland"
+                              ? "success"
+                              : getAreaType(student.municipality) === "Lowland"
+                              ? "info"
+                              : "secondary"
+                          }
+                        >
                           {getAreaType(student.municipality)}
                         </Badge>
                       </td>
-
 
                       {/* Income */}
                       <td>
