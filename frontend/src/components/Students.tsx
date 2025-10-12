@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
   InputGroup, Badge, Spinner, Alert, Modal 
@@ -383,11 +383,11 @@ function Students() {
                   <th>First Name</th>
                   <th>Last Name</th>
                   <th>Sex</th>
-                  <th className="d-none d-md-table-cell">Program</th>
-                  <th className="d-none d-md-table-cell">Municipality</th>
-                  <th className="d-none d-md-table-cell">Area Type</th>
-                  <th className="d-none d-md-table-cell">Income</th>
-                  <th className="d-none d-md-table-cell">Senior High School Type</th>
+                  <th>Program</th>
+                  <th>Municipality</th>
+                  <th>Area Type</th>
+                  <th>Income</th>
+                  <th>Senior High School Type</th>
                   <th>General Weighted Average (GWA)</th>
                   <th className="d-none d-md-table-cell">Honors</th>
                   <th className="d-none d-md-table-cell">Income Category</th>
@@ -419,20 +419,20 @@ function Students() {
                       </td>
 
                       {/* Program */}
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         {student.program && student.program !== "Incomplete"
                           ? student.program
                           : <Badge bg="danger">No Program</Badge>}
                       </td>
 
                       {/* Municipality */}
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         {student.municipality && student.municipality !== "Incomplete"
                           ? student.municipality
                           : <Badge bg="danger">No Municipality</Badge>}
                       </td>
 
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         <Badge
                           bg={
                             getAreaType(student.municipality) === "Upland"
@@ -447,14 +447,14 @@ function Students() {
                       </td>
 
                       {/* Income */}
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         {student.income === -1 || student.income === null
                           ? <Badge bg="danger">No Income Entered</Badge>
                           : `₱${student.income.toLocaleString()}`}
                       </td>
 
                       {/* SHS Type */}
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         {student.SHS_type && student.SHS_type !== "Incomplete"
                           ? student.SHS_type
                           : <Badge bg="danger">No SHS Type</Badge>}
@@ -468,7 +468,7 @@ function Students() {
                       </td>
 
                       {/* Honors */}
-                      <td className="d-none d-md-table-cell">
+                      <td>
                         <Badge bg={getHonorsBadgeVariant(student.Honors)}>
                           {student.Honors && student.Honors !== "Incomplete" ? student.Honors : "No Honors"}
                         </Badge>

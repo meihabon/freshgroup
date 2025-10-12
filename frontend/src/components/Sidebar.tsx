@@ -1,4 +1,4 @@
-import React from 'react'
+// React automatic JSX runtime is used; no default React import required
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -8,10 +8,11 @@ import {
   Target, 
   FileText, 
   Database, 
-  Settings,
+  
   User,
   LogOut,
-  Home
+  Home,
+  HelpCircle
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -24,14 +25,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
 
   const menuItems = [
-    { path: '/home', icon: FileText, label: 'Home', roles: ['Admin', 'Viewer'] },
-    { path: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
-    { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
-    { path: '/clusters', icon: Target, label: 'Clusters', roles: ['Admin', 'Viewer'] },
-    { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
-    { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
-    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
-    { path: '/help', icon: FileText, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
+  { path: '/home', icon: Home, label: 'Home', roles: ['Admin', 'Viewer'] },
+  { path: '/dashboard', icon: BarChart3, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
+  { path: '/students', icon: User, label: 'Students', roles: ['Admin', 'Viewer'] },
+  { path: '/clusters', icon: Target, label: 'Clusters', roles: ['Admin', 'Viewer'] },
+  { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
+  { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
+  { path: '/users', icon: Users, label: 'User Management', roles: ['Admin'] },
+  { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
 
   ]
 
@@ -83,13 +84,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
         {/* Header */}
-        <div className="p-3 border-bottom d-flex flex-column" style={{ background: 'transparent' }}>
+        <div className="sidebar-header">
           <div className="d-flex align-items-center mb-1">
-            <BarChart3 size={22} className="me-2 text-muted" />
+            <BarChart3 size={22} className="me-2 text-white" />
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
-            <span className="ms-2 brand-badge">Admin</span>
+            <span className="ms-2" style={{ background: 'var(--brand-yellow)', color: '#2c3e50', padding: '4px 8px', borderRadius: 6, fontWeight: 700 }}>Admin</span>
           </div>
-          <p className="mb-0 small muted">Student Profiling System</p>
+          <p className="mb-0 small" style={{ color: 'rgba(255,255,255,0.95)' }}>Student Profiling System</p>
         </div>
 
         {/* Navigation */}
