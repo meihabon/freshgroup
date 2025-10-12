@@ -168,31 +168,8 @@ async def upload_dataset(
 
         df = normalize_and_prepare_df(df)
 
-        # 🔹 Save all students
-        df_all = df.copy()
-
-        # 🔹 Filter only complete students for clustering
-        required_cols = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
-        # 🔹 Identify truly complete records (not "Incomplete", not -1, not empty)
-        def is_complete(row):
-            required = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
-            for col in required:
-                val = row.get(col)
-                if pd.isna(val) or str(val).strip().lower() in ["", "incomplete", "n/a", "na", "none", "-1"]:
-                    return False
-            try:
-                if float(row.get("income", 0)) <= 0 or float(row.get("gwa", 0)) <= 0:
-                    return False
-            except Exception:
-                return False
-            return True
-
-        df_complete = df[df.apply(is_complete, axis=1)].copy()
-
-
-        # 🧠 Clustering will only use df_complete
         features = ['gwa', 'income']
-        X = df_complete[features].fillna(0)
+        X = df[features].fillna(0)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
@@ -202,13 +179,10 @@ async def upload_dataset(
             k = recommend_k_by_curvature(wcss)
 
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        df_complete['Cluster'] = kmeans.fit_predict(X_scaled)
-        df_complete['Cluster'] = df_complete['Cluster'].astype(int)
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        df['Cluster'] = df['Cluster'].astype(int)   # force int, not string
 
-        # convert centroids back to original scale
         all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
-        centroids = [[c[0], c[1]] for c in all_centroids]
-
     # Keep only GWA (index 0) and income (index 1)
         centroids = [[c[0], c[1]] for c in all_centroids]
 
@@ -230,7 +204,7 @@ async def upload_dataset(
         )
         cluster_id = cursor.lastrowid
 
-        for _, row in df_all.iterrows():
+        for _, row in df.iterrows():
             # Handle text fields (if blank/N/A → "Incomplete")
             def safe_text(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
@@ -278,13 +252,10 @@ async def upload_dataset(
 
 
             student_id = cursor.lastrowid
-
-            # ✅ Only insert into student_cluster if this student was part of clustering
-            if row.get("Cluster") is not None and not pd.isna(row["Cluster"]):
-                cursor.execute(
-                    "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                    (student_id, cluster_id, int(row["Cluster"]))
-                )
+            cursor.execute(
+                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                (student_id, cluster_id, int(row['Cluster']))
+            )
 
 
         connection.commit()

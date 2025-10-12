@@ -74,21 +74,14 @@ async def cluster_playground(
 
     # Run clustering
     df = pd.DataFrame(students)
-    # ✅ Only include complete student records
-    def is_complete(row):
-        required = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
-        for col in required:
-            val = row.get(col)
-            if pd.isna(val) or str(val).strip().lower() in ["", "incomplete", "n/a", "na", "none", "-1"]:
-                return False
-        try:
-            if float(row.get("income", 0)) <= 0 or float(row.get("GWA", 0)) <= 0:
-                return False
-        except Exception:
-            return False
-        return True
-
-    df = df[df.apply(is_complete, axis=1)].copy()
+    # ✅ Only include students with complete essential info
+    df = df.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"])
+    df = df[
+        (df["income"] > 0) &
+        (df["GWA"] > 0) &
+        (df["municipality"].astype(str).str.strip() != "") &
+        (df["program"].astype(str).str.strip() != "")
+    ]
 
     features = ["GWA", "income"]
     X = df[features].fillna(0)
