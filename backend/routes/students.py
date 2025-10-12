@@ -4,7 +4,7 @@ from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_income, classify_honors
 from fastapi import BackgroundTasks
-from clusters import recluster
+from .clusters import recluster
 
 router = APIRouter()
 
