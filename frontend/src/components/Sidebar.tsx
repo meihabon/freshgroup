@@ -3,15 +3,16 @@ import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { 
-  BarChart3, 
-  Users, 
-  Target, 
-  FileText, 
-  Database, 
+  Home,
+  BarChart,
+  Users,
+  Layers,
+  FileText,
+  Database,
+  HelpCircle,
   Settings,
   User,
   LogOut,
-  Home
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -24,14 +25,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
 
   const menuItems = [
-    { path: '/home', icon: FileText, label: 'Home', roles: ['Admin', 'Viewer'] },
-    { path: '/dashboard', icon: Home, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
-    { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
-    { path: '/clusters', icon: Target, label: 'Clusters', roles: ['Admin', 'Viewer'] },
-    { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
-    { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
-    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
-    { path: '/help', icon: FileText, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
+  { path: '/home', icon: Home, label: 'Home', roles: ['Admin', 'Viewer'] },
+  { path: '/dashboard', icon: BarChart, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
+  { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
+  { path: '/clusters', icon: Layers, label: 'Clusters', roles: ['Admin', 'Viewer'] },
+  { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
+  { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
+  { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
+  { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
 
   ]
 
@@ -87,7 +88,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Header (green section) */}
         <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
           <div className="d-flex align-items-center mb-1">
-            <BarChart3 size={26} className="me-2 text-white" />
+            <BarChart size={26} className="me-2 text-white" />
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
           </div>
           <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
