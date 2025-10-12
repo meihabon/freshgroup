@@ -152,45 +152,44 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
             print("Error parsing centroids:", exc)
             centroids = []
 
+    # ------------------------
+    # RADAR (SPIDER) CHART DATA
+    # ------------------------
+    feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
+    radar_data = []
 
-        # ------------------------
-        # RADAR (SPIDER) CHART DATA
-        # ------------------------
-        feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
-        radar_data = []
-
-        # Use only clustered students as source for radar/averages
+    # Use only clustered students as source for radar/averages
     df_all = df_students.copy()
     # ensure canonical column names available for radar calculation
     df_all = normalize_dataframe_columns(df_all)
     df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
-        # Normalize each feature 0–1 for fair comparison
-        for col in feature_names:
-            if col in df_all.columns:
-                min_val, max_val = df_all[col].min(), df_all[col].max()
-                if max_val != min_val:
-                    df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
-                else:
-                    df_all[col] = 0.0
+    # Normalize each feature 0–1 for fair comparison
+    for col in feature_names:
+        if col in df_all.columns:
+            min_val, max_val = df_all[col].min(), df_all[col].max()
+            if max_val != min_val:
+                df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
+            else:
+                df_all[col] = 0.0
 
-        for cnum, members in clusters.items():
-            member_ids = [m["id"] for m in members if "id" in m]
-            df_c = df_all[df_all["id"].isin(member_ids)]
-            avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
-            radar_data.append({
-                "cluster": int(cnum),
-                "features": feature_names,
-                "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
-            })
+    for cnum, members in clusters.items():
+        member_ids = [m["id"] for m in members if "id" in m]
+        df_c = df_all[df_all["id"].isin(member_ids)]
+        avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
+        radar_data.append({
+            "cluster": int(cnum),
+            "features": feature_names,
+            "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
+        })
 
-        return {
-            "clusters": clusters,
-            "plot_data": plot_data,
-            "centroids": centroids,
-            "radar_data": radar_data,
-            "k": cluster_info["k"],
-        }
+    return {
+        "clusters": clusters,
+        "plot_data": plot_data,
+        "centroids": centroids,
+        "radar_data": radar_data,
+        "k": cluster_info["k"],
+    }
 
 
 
