@@ -11,7 +11,7 @@ from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
 from dependencies import get_current_user
 from db import get_db_connection
-from ..utils_complete import filter_complete_students_df
+from utils_complete import filter_complete_students_df
 
 router = APIRouter()
 

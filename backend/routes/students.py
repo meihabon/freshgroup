@@ -3,8 +3,8 @@ from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_income, classify_honors
-from ..utils_complete import is_record_complete_row, filter_complete_students_df
-from ..routes.clusters import recluster as recluster_endpoint
+from utils_complete import is_record_complete_row, filter_complete_students_df
+import routes.clusters as clusters_module
 
 router = APIRouter()
 
@@ -156,7 +156,7 @@ async def update_student(
 
                 # Call recluster route function directly (it handles role checks and saving)
                 import asyncio
-                asyncio.create_task(recluster_endpoint(k=k_to_use, current_user=current_user))
+                asyncio.create_task(clusters_module.recluster(k=k_to_use, current_user=current_user))
             except Exception as e:
                 # don't fail the update if recluster trigger failed; log instead
                 print("Recluster trigger failed:", e)

@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import json
 from typing import List, Dict
-from ..utils_complete import filter_complete_students_df, is_record_complete_row
+from utils_complete import filter_complete_students_df, is_record_complete_row
 
 router = APIRouter()
 
