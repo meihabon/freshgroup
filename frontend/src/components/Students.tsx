@@ -376,21 +376,21 @@ function Students() {
       <Card>
         <Card.Body className="p-0">
 
-          <div className="table-responsive">
-            <Table striped hover className="mb-0">
+          <div className="table-responsive-sm">
+            <Table striped hover responsive className="mb-0">
               <thead>
                 <tr>
                   <th>First Name</th>
                   <th>Last Name</th>
                   <th>Sex</th>
-                  <th>Program</th>
-                  <th>Municipality</th>
-                  <th>Area Type</th>
-                  <th>Income</th>
-                  <th>Senior High School Type</th>
+                  <th className="d-none d-md-table-cell">Program</th>
+                  <th className="d-none d-md-table-cell">Municipality</th>
+                  <th className="d-none d-md-table-cell">Area Type</th>
+                  <th className="d-none d-md-table-cell">Income</th>
+                  <th className="d-none d-md-table-cell">Senior High School Type</th>
                   <th>General Weighted Average (GWA)</th>
-                  <th>Honors</th>
-                  <th>Income Category</th>
+                  <th className="d-none d-md-table-cell">Honors</th>
+                  <th className="d-none d-md-table-cell">Income Category</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -419,20 +419,20 @@ function Students() {
                       </td>
 
                       {/* Program */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         {student.program && student.program !== "Incomplete"
                           ? student.program
                           : <Badge bg="danger">No Program</Badge>}
                       </td>
 
                       {/* Municipality */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         {student.municipality && student.municipality !== "Incomplete"
                           ? student.municipality
                           : <Badge bg="danger">No Municipality</Badge>}
                       </td>
 
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         <Badge
                           bg={
                             getAreaType(student.municipality) === "Upland"
@@ -447,14 +447,14 @@ function Students() {
                       </td>
 
                       {/* Income */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         {student.income === -1 || student.income === null
                           ? <Badge bg="danger">No Income Entered</Badge>
                           : `₱${student.income.toLocaleString()}`}
                       </td>
 
                       {/* SHS Type */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         {student.SHS_type && student.SHS_type !== "Incomplete"
                           ? student.SHS_type
                           : <Badge bg="danger">No SHS Type</Badge>}
@@ -468,14 +468,14 @@ function Students() {
                       </td>
 
                       {/* Honors */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         <Badge bg={getHonorsBadgeVariant(student.Honors)}>
                           {student.Honors && student.Honors !== "Incomplete" ? student.Honors : "No Honors"}
                         </Badge>
                       </td>
 
                       {/* Income Category */}
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         <Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>
                           {student.IncomeCategory && student.IncomeCategory !== "Incomplete"
                             ? student.IncomeCategory
@@ -500,45 +500,66 @@ function Students() {
                       {/* Pagination Controls */}
           <div className="d-flex flex-column align-items-center mt-3">
             <div className="mb-2 text-muted">
-              Showing {currentStudents.length} of {filteredStudents.length} students
+              Showing {Math.min(indexOfFirst + 1, filteredStudents.length)} - {Math.min(indexOfLast, filteredStudents.length)} of {filteredStudents.length} students
               {filteredStudents.length > studentsPerPage && ` (Page ${currentPage} of ${totalPages})`}
             </div>
 
-            {totalPages > 1 && (
-              <div className="d-flex gap-2 flex-wrap justify-content-center">
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
+            {totalPages > 1 && (() => {
+              const pageChunkSize = 10
+              const currentChunk = Math.floor((currentPage - 1) / pageChunkSize)
+              const startPage = currentChunk * pageChunkSize + 1
+              const endPage = Math.min(startPage + pageChunkSize - 1, totalPages)
 
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = i + 1
-                  return (
-                    <Button
-                      key={page}
-                      size="sm"
-                      variant={currentPage === page ? 'success' : 'outline-success'}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
+              return (
+                <div className="d-flex gap-2 flex-wrap justify-content-center align-items-center">
+                  <Button
+                    size="sm"
+                    variant="outline-success"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Prev
+                  </Button>
+
+                  {/* previous chunk jump */}
+                  {startPage > 1 && (
+                    <Button size="sm" variant="outline-success" onClick={() => setCurrentPage(startPage - 1)}>
+                      &hellip;
                     </Button>
-                  )
-                })}
+                  )}
 
-                <Button
-                  size="sm"
-                  variant="outline-success"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
+                  {[...Array(endPage - startPage + 1)].map((_, i) => {
+                    const page = startPage + i
+                    return (
+                      <Button
+                        key={page}
+                        size="sm"
+                        variant={currentPage === page ? 'success' : 'outline-success'}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
+
+                  {/* next chunk jump */}
+                  {endPage < totalPages && (
+                    <Button size="sm" variant="outline-success" onClick={() => setCurrentPage(endPage + 1)}>
+                      Next
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline-success"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next Page
+                  </Button>
+                </div>
+              )
+            })()}
           </div>
           </div>
 

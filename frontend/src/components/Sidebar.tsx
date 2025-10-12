@@ -61,8 +61,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           width: '240px',
           zIndex: 1000,
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
-          backgroundColor: '#f9fafb',
-          borderRight: '1px solid #e5e5e5',
           transition: 'all 0.3s ease',
           height: '100vh',
         }}
@@ -84,13 +82,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
-        {/* Header (green section) */}
-        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
+        {/* Header */}
+        <div className="p-3 border-bottom d-flex flex-column" style={{ background: 'transparent' }}>
           <div className="d-flex align-items-center mb-1">
-            <BarChart3 size={26} className="me-2 text-white" />
+            <BarChart3 size={22} className="me-2 text-muted" />
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
+            <span className="ms-2 brand-badge">Admin</span>
           </div>
-          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+          <p className="mb-0 small muted">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -105,19 +104,9 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 as={Link as any}
                 to={item.path}
                 onClick={onClose}
-                className="d-flex align-items-center sidebar-link"
-                style={{
-                  color: isActive ? '#27ae60' : '#555',
-                  fontWeight: isActive ? 600 : 400,
-                  backgroundColor: isActive ? '#e9f7ef' : 'transparent',
-                  marginBottom: '6px',
-                  padding: '10px 14px',
-                  borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
-                  borderRadius: '4px',
-                  transition: 'all 0.3s ease'
-                }}
+                className={`d-flex align-items-center sidebar-link ${isActive ? 'active' : ''}`}
               >
-                <IconComponent size={18} className="me-3" />
+                <IconComponent size={16} className="me-3 text-muted" />
                 {item.label}
               </Nav.Link>
             )

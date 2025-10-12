@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -58,7 +58,10 @@ function AppContent() {
                 ☰
               </button>
               <div className="flex-grow-1" style={{ marginLeft: window.innerWidth > 768 ? '250px' : '0' }}>
-                <div className="container-fluid p-4">
+                <div className="container p-4">
+                  <header className="app-header mb-3">
+                    <div />
+                  </header>
                   <Routes>
                     <Route path="/" element={<Navigate to="/home" replace />} />
                     <Route path="/home" element={<Home />} />

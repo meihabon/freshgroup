@@ -1,352 +1,111 @@
+:root{
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --text: #111827;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --accent: #111827; /* neutral dark accent like Vercel */
+  --accent-2: #16a34a; /* optional green for highlights */
+  --glass: rgba(255,255,255,0.6);
+  --radius: 12px;
+  --container-max: 1100px;
+}
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 🌿 FreshGroup — Clean Gradient Background */
-body {
-  background:
-    linear-gradient(135deg, #fefefe 0%, #f9fff9 25%, #fefae8 55%, #f4fff6 100%),
-    radial-gradient(circle at 85% 15%, rgba(27, 150, 73, 0.1) 0%, transparent 60%),
-    radial-gradient(circle at 15% 85%, rgba(255, 221, 87, 0.15) 0%, transparent 65%),
-    repeating-linear-gradient(45deg, rgba(39, 174, 96, 0.03) 0px, rgba(39, 174, 96, 0.03) 1px, transparent 1px, transparent 25px);
-  background-blend-mode: lighten, normal, normal, overlay;
-  background-attachment: fixed;
-  background-size: cover;
-  color: #212529;
-  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+/* Page container */
+.container, .container-fluid {
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
-/* 🌫️ Dashboard transparency + polish */
-.fade-in,
-.container-fluid,
-.main-content {
-  background: transparent !important;
+/* Minimal header used by layout */
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #eef2f7;
+  background: transparent;
 }
 
-/* 🪟 Glass-style cards */
-.card {
-  backdrop-filter: blur(5px);
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Sidebar — smaller and flatter */
+.sidebar{
+  background: transparent;
+  min-height:100vh;
+  padding-top: 18px;
+}
+.sidebar .nav-link{
+  color:var(--muted) !important;
+  padding: 10px 12px;
+  margin: 6px 6px;
+  border-radius:8px;
+}
+.sidebar .nav-link.active{
+  color: var(--accent);
+  background: rgba(17,24,39,0.04);
+  font-weight:600;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+/* Cards */
+.card{
+  background: var(--card) !important;
+  border-radius: var(--radius);
+  border: 1px solid #eef2f7;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.04);
 }
+.card .card-body{padding:18px}
 
-/* Optional: smoother font and spacing */
-body, h1, h2, h3, h4, h5, h6, p {
-  letter-spacing: 0.2px;
-}
-
-.clickable-card:hover {
-  box-shadow: 0 0 10px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-  transition: all 0.2s ease;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Sidebar styles */
-.sidebar {
-  background: #f9fafb; /* subtle off-white background */
-  min-height: 100vh;
-  transition: all 0.3s ease;
-  border-right: 1px solid #e5e5e5; /* subtle divider */
-}
-
-.sidebar .nav-link {
-  color: #444 !important; /* neutral dark gray */
-  transition: all 0.2s ease;
-  border-radius: 6px;
-  margin: 2px 8px;
-  padding: 12px 16px;
-  font-weight: 500;
-}
-
-.sidebar .nav-link:hover {
-  background-color: #f1f8f4; /* light green tint on hover */
-  color: #27ae60 !important; /* brand green */
-}
-
-.sidebar .nav-link.active {
-  background-color: #e9f7ef; /* soft green highlight */
-  color: #27ae60 !important;
-  font-weight: 600;
-  border-left: 4px solid #27ae60; /* modern active indicator */
-  border-radius: 0;
-}
-
-/* Sidebar link hover animation */
-.sidebar-link {
-  transition: background-color 0.3s, color 0.3s, transform 0.2s;
-}
-
-.sidebar-link:hover {
-  background-color: #f1f8f4;
-  color: #27ae60 !important;
-  transform: translateX(4px); /* subtle slide */
-}
-
-/* Buttons hover effect */
-.sidebar-btn {
-  transition: all 0.2s ease-in-out;
-}
-
-.sidebar-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-}
-
-
-/* Card enhancements */
-.card {
+/* Buttons (clean, flat) */
+.btn-primary{
+  background: linear-gradient(180deg, #111827 0%, #0f1724 100%);
   border: none;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.stat-card {
-  cursor: pointer;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-}
-
-.stat-card:hover {
-  background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
-}
-
-/* Brand Button Styles */
-
-/* Sign In (green) */
-.btn-primary {
-  background: linear-gradient(135deg, #27ae60 0%, #219150 100%);
-  border: none;
-  color: #fff;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, #219150 0%, #1e8449 100%);
-  transform: translateY(-1px);
-}
-
-/* Register (yellow) */
-.btn-warning {
-  background: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%);
-  border: none;
-  color: #2c3e50;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-.btn-warning:hover {
-  background: linear-gradient(135deg, #d4ac0d 0%, #b7950b 100%);
-  transform: translateY(-1px);
-}
-
-/* Secondary (gray for neutral buttons) */
-.btn-secondary {
-  background: #ecf0f1;
-  color: #2c3e50;
-  border: none;
-  font-weight: 500;
-}
-.btn-secondary:hover {
-  background: #dcdde1;
-  color: #2c3e50;
-}
-
-/* Danger (logout, delete) */
-.btn-danger {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-  border: none;
-  color: #fff;
-}
-.btn-danger:hover {
-  background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
-}
-
-
-/* Table enhancements */
-.table {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.table thead th {
-  background-color: #495057;
   color: white;
-  border: none;
-  font-weight: 600;
-  padding: 16px;
+  font-weight:600;
 }
+.btn-outline-success{border-color: #e6f4ea;color:var(--accent-2)}
 
-.table tbody tr {
-  transition: background-color 0.2s ease;
-}
+/* Tables — lighter, simpler header */
+.table{background:transparent;border-radius:8px}
+.table thead th{background:transparent;color:var(--muted);border-bottom:1px solid #eef2f7;padding:12px;font-weight:600}
+.table tbody td{vertical-align:middle;padding:12px}
+.table tbody tr:hover{background:rgba(16,24,40,0.02)}
 
-.table tbody tr:hover {
-  background-color: rgba(13, 110, 253, 0.05);
-}
+/* Forms */
+.form-control,.form-select{border-radius:8px;border:1px solid #eaedf2;padding:10px}
 
-/* Form styles */
-.form-control, .form-select {
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 12px 16px;
-  transition: all 0.2s ease;
-}
-
-.form-control:focus, .form-select:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-}
-
-/* Login page styles */
-.login-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-}
-
-.login-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Chart container */
-.chart-container {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-}
-
-/* Loading states */
-.loading-spinner {
-  color: #0d6efd;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px;
-    width: 250px;
-    z-index: 1000;
-    transition: left 0.3s ease;
-  }
-  
-  .sidebar.show {
-    left: 0;
-  }
-  
-  .main-content {
-    margin-left: 0 !important;
-  }
-}
-
-/* Animation classes */
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-/* Custom badges */
-.badge-honors {
-  background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-  color: #333;
-}
-
-.badge-income-high {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-}
-
-.badge-income-middle {
-  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-}
-
-.badge-income-lower {
-  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
-}
-
-/* Filter section */
-.filter-section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* Profile section */
-.profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 20px;
-}
+/* Filter section and smaller cards */
+.filter-section{padding:16px;border:1px solid #eef2f7;background:var(--surface)}
 
 /* Upload area */
-.upload-area {
-  border: 2px dashed #dee2e6;
-  border-radius: 12px;
-  padding: 40px;
-  text-align: center;
-  background: #fafafa;
-  transition: all 0.3s ease;
+.upload-area{border:1px dashed #eef2f7;border-radius:10px;padding:28px;background:#fbfdff}
+
+/* Responsive tweaks: keep sidebar off-canvas on small screens */
+@media (max-width: 768px){
+  .sidebar{position:fixed;left:-280px;top:0;width:260px;z-index:1200;background:var(--card);box-shadow:0 12px 40px rgba(2,6,23,0.08)}
+  .sidebar.show{left:0}
+  .main-content{margin-left:0 !important}
 }
 
-.upload-area:hover {
-  border-color: #0d6efd;
-  background: rgba(13, 110, 253, 0.05);
-}
+/* Subtle animations */
+.fade-in{animation:fadeIn 320ms ease-in}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-.upload-area.dragover {
-  border-color: #0d6efd;
-  background: rgba(13, 110, 253, 0.1);
-}
+/* Small utilities */
+.muted{color:var(--muted)}
+.brand-badge{background:var(--accent-2);color:white;padding:4px 8px;border-radius:6px;font-weight:600}
+
+/* Keep older class names compatible */
+.table-responsive-sm{overflow:auto}
