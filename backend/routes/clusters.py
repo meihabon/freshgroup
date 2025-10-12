@@ -117,28 +117,34 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
 
-    # Build plot data only from clustered students (these are complete by construction)
-    # Normalize column names to lowercase so we pick up 'gwa' consistently
+    # Build plot data from clustered students but verify completeness using the shared helper.
     df_students = pd.DataFrame(students)
+    # normalize column names to lowercase and canonical columns
     df_students.columns = [c.lower() for c in df_students.columns]
+    df_students = normalize_dataframe_columns(df_students)
+    df_students = encode_categorical_safe(df_students, ["sex", "program", "municipality", "shs_type"])
 
-    plot_data = {
-        "x": [float(s.get("gwa", 0) or 0) for _, s in df_students.iterrows()],
-        "y": [float(s.get("income", 0) or 0) for _, s in df_students.iterrows()],
-        "colors": [int(s.get("cluster_number", 0) or 0) for _, s in df_students.iterrows()],
-        "text": [
-            f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
-            f"Income: {s.get('incomecategory','-')}<br>Honors: {s.get('honors','-')}<br>SHS: {s.get('shs_type','-')}"
-            for _, s in df_students.iterrows()
-        ]
-    }
+    # enforce completeness (safety): only use rows that satisfy the completeness rules
+    df_complete = filter_complete_students_df(df_students)
 
+    # Build clusters mapping using only complete/clustered students
     clusters: Dict[int, List[dict]] = {}
-    for student in students:
+    for _, row in df_complete.iterrows():
+        student = row.to_dict()
         cnum = int(student.get("cluster_number", 0))
-        # ✅ enforce integer cluster IDs in the student dict itself
         student["cluster_number"] = cnum
         clusters.setdefault(cnum, []).append(student)
+
+    plot_data = {
+        "x": [float(r.get("gwa", 0) or 0) for _, r in df_complete.iterrows()],
+        "y": [float(r.get("income", 0) or 0) for _, r in df_complete.iterrows()],
+        "colors": [int(r.get("cluster_number", 0) or 0) for _, r in df_complete.iterrows()],
+        "text": [
+            f"{r.get('firstname','')} {r.get('lastname','')}<br>Program: {r.get('program','-')}<br>Municipality: {r.get('municipality','-')}<br>"
+            f"Income: {r.get('incomecategory','-')}<br>Honors: {r.get('honors','-')}<br>SHS: {r.get('shs_type','-')}"
+            for _, r in df_complete.iterrows()
+        ]
+    }
 
     centroids = []
     if cluster_info.get("centroids"):
