@@ -191,7 +191,7 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
 # ------------------------
 @router.post("/clusters/recluster")
 async def recluster(
-    k: int = Query(..., ge=2),
+    k: int | None = Query(None, ge=2),
     current_user: dict = Depends(get_current_user)
 ):
     role = current_user.get("role", "")
@@ -201,6 +201,7 @@ async def recluster(
         raise HTTPException(status_code=500, detail="Database connection failed")
     cursor = connection.cursor(dictionary=True)
 
+    # 🔹 1. Get latest dataset
     cursor.execute("SELECT id FROM datasets ORDER BY upload_date DESC LIMIT 1")
     latest = cursor.fetchone()
     if not latest:
@@ -208,82 +209,103 @@ async def recluster(
         raise HTTPException(status_code=404, detail="No dataset found")
     dataset_id = latest["id"]
 
+    # 🔹 2. Get previous cluster info to reuse k if not provided
+    cursor.execute("SELECT k FROM clusters WHERE dataset_id = %s ORDER BY id DESC LIMIT 1", (dataset_id,))
+    existing_cluster = cursor.fetchone()
+    if not k:
+        k = existing_cluster["k"] if existing_cluster else 3
+
+    # 🔹 3. Fetch all students (complete + incomplete)
     cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
     students = cursor.fetchall()
     if not students:
         cursor.close(); connection.close()
         raise HTTPException(status_code=404, detail="No students found for latest dataset")
 
-    if k > len(students):
-        cursor.close(); connection.close()
-        raise HTTPException(status_code=400, detail="k cannot be greater than number of students")
+    df_all = pd.DataFrame(students)
+    df_all = normalize_dataframe_columns(df_all)
+    df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
-    df = pd.DataFrame(students)
-    df = normalize_dataframe_columns(df)
-    df = encode_categorical_safe(df, ["sex", "program", "municipality", "shs_type"])
-    # ✅ Filter out incomplete student records before clustering
-    df = df.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"])
-    df = df[
-        (df["income"] > 0) &
-        (df["gwa"] > 0) &
-        (df["municipality"].astype(str).str.strip() != "") &
-        (df["program"].astype(str).str.strip() != "")
+    # 🔹 4. Keep only complete students for clustering
+    df_complete = df_all.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"])
+    df_complete = df_complete[
+        (df_complete["income"] > 0) &
+        (df_complete["gwa"] > 0) &
+        (df_complete["municipality"].astype(str).str.strip() != "") &
+        (df_complete["program"].astype(str).str.strip() != "")
     ]
 
+    if df_complete.empty:
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="No complete records available for clustering")
+
     canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
-    feature_cols = _pick_feature_columns(df, canonical_features)
+    feature_cols = _pick_feature_columns(df_complete, canonical_features)
     if not feature_cols:
         cursor.close(); connection.close()
         raise HTTPException(status_code=400, detail="No usable features for clustering")
 
-    X = df[feature_cols].fillna(0).astype(float)
+    X = df_complete[feature_cols].fillna(0).astype(float)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    if k > len(df_complete):
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="k cannot be greater than number of complete students")
+
+    # 🔹 5. Perform clustering
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     preds = kmeans.fit_predict(X_scaled)
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
     cursor.close(); connection.close()
 
+    # 🔹 6. Save results for Admin
     if role == "Admin":
         conn2 = get_db_connection()
         if not conn2:
             raise HTTPException(status_code=500, detail="Database connection failed")
         c2 = conn2.cursor(dictionary=True)
 
+        # Clear previous clusters for this dataset
         c2.execute("SELECT id FROM clusters WHERE dataset_id = %s", (dataset_id,))
         olds = c2.fetchall() or []
         for oc in olds:
             c2.execute("DELETE FROM student_cluster WHERE cluster_id = %s", (oc["id"],))
         c2.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
 
-        c2.execute("INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
-                   (dataset_id, k, json.dumps(centroids)))
+        # Insert new cluster record
+        c2.execute(
+            "INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
+            (dataset_id, k, json.dumps(centroids))
+        )
         new_cluster_id = c2.lastrowid
 
-        for idx, row in enumerate(students):
+        # ✅ Only insert complete students
+        for idx, (_, row) in enumerate(df_complete.iterrows()):
             student_id = int(row["id"])
-            c2.execute("INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                       (student_id, new_cluster_id, int(preds[idx])))
+            c2.execute(
+                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                (student_id, new_cluster_id, int(preds[idx]))
+            )
 
         conn2.commit()
         c2.close(); conn2.close()
+        return {"message": f"Reclustered {len(df_complete)} complete students with k={k}"}
 
-        return {"message": f"Official dataset re-clustered with k={k}"}
-
+    # 🔹 7. For viewer preview only (not saved)
     elif role == "Viewer":
         out_students = []
-        for idx, s in enumerate(students):
+        for idx, (_, s) in enumerate(df_complete.iterrows()):
             s_copy = dict(s)
             s_copy["Cluster"] = int(preds[idx])
             out_students.append(s_copy)
-
         return {"message": f"Preview clustering with k={k} (not saved)", "students": out_students, "centroids": centroids}
 
     else:
         raise HTTPException(status_code=403, detail="Unauthorized role")
+
 
 
 # ------------------------

@@ -150,9 +150,24 @@ async def update_student(
         "income": income,
     }
 
-    # ✅ Step 3: Trigger reclustering in background (admin only)
+    # ✅ Step 3: If complete, trigger reclustering + log info
     if is_record_complete(updated_record) and current_user.get("role") == "Admin":
-        background_tasks.add_task(recluster, k=3, current_user=current_user)
-        return {"message": "Student updated successfully. Record is now complete → re-clustering triggered."}
+        student_name = f"{firstname} {lastname}".strip()
+        admin_email = current_user.get("email", "Unknown Admin")
+
+        log_message = f"Record completed: {student_name} → reclustering started by {admin_email}"
+        print(log_message)  # 👀 visible in backend logs
+
+        # Pass context to recluster
+        background_tasks.add_task(
+            recluster,
+            k=None,  # use dynamic k
+            current_user=current_user
+        )
+
+        return {
+            "message": f"Student updated successfully. Record is now complete → reclustering triggered.",
+            "log": log_message
+        }
 
     return {"message": "Student updated successfully."}
