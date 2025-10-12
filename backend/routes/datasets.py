@@ -13,6 +13,8 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
+from .clusters import is_record_complete
+
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
