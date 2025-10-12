@@ -124,12 +124,13 @@ async def elbow_preview(
 
         df = normalize_and_prepare_df(df)
 
-    # determine complete rows for clustering
-    features = ['gwa', 'income']
-    df_complete = filter_complete_students_df(df)
-    X = df_complete[features].fillna(0)
+        # determine complete rows for clustering
+        features = ['gwa', 'income']
+        df_complete = filter_complete_students_df(df)
+        X = df_complete[features].fillna(0)
+
         scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+        X_scaled = scaler.fit_transform(X)
 
         wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
         recommended_k = recommend_k_by_curvature(wcss)
