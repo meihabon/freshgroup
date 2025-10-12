@@ -211,8 +211,8 @@ function DatasetHistory() {
   const handleDownloadTemplateExcel = () => {
     const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
     const rows = [
-      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", 15000, "Academic", 85],
-      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", 8000, "TVL", 90],
+      ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", 15000, "Private", 85],
+      ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", 8000, "Public", 90],
     ]
 
     const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows])
