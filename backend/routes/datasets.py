@@ -135,10 +135,13 @@ async def elbow_preview(
 
         return {"wcss": wcss, "recommended_k": recommended_k}
 
+    import traceback
+
     except Exception as e:
-        import traceback
-        traceback.print_exc()  # <-- prints full error with line numbers
-        raise HTTPException(status_code=500, detail=f"Error computing elbow: {str(e)}")
+        traceback.print_exc()  # ✅ show full error in console
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(status_code=500, detail=f"Error processing dataset: {repr(e)}")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
