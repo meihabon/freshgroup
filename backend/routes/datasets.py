@@ -168,10 +168,17 @@ async def upload_dataset(
 
         df = normalize_and_prepare_df(df)
 
+        # ✅ Filter only complete records for clustering
+        complete_df = df[df.apply(lambda row: is_record_complete(row.to_dict()), axis=1)]
+
+        if complete_df.empty:
+            raise HTTPException(status_code=400, detail="No complete student records found for clustering")
+
         features = ['gwa', 'income']
-        X = df[features].fillna(0)
+        X = complete_df[features].astype(float)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
+
 
         # auto-select k if not provided
         if k is None:
@@ -205,13 +212,12 @@ async def upload_dataset(
         cluster_id = cursor.lastrowid
 
         for _, row in df.iterrows():
-            # Handle text fields (if blank/N/A → "Incomplete")
+            # ---------- Handle text and numeric cleanup ----------
             def safe_text(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return "Incomplete"
                 return str(val).strip()
 
-            # Handle numeric fields (if blank/N/A → -1)
             def safe_num(val):
                 if pd.isna(val) or str(val).strip() == "" or str(val).lower() in ["n/a", "na", "none"]:
                     return -1
@@ -220,19 +226,20 @@ async def upload_dataset(
                 except Exception:
                     return -1
 
-            firstname = safe_text(row.get('firstname'))
-            lastname = safe_text(row.get('lastname'))
-            sex = safe_text(row.get('sex'))
-            program = safe_text(row.get('program'))
-            municipality = safe_text(row.get('municipality'))
-            shs_type = safe_text(row.get('shs_type'))
+            firstname = safe_text(row.get("firstname"))
+            lastname = safe_text(row.get("lastname"))
+            sex = safe_text(row.get("sex"))
+            program = safe_text(row.get("program"))
+            municipality = safe_text(row.get("municipality"))
+            shs_type = safe_text(row.get("shs_type"))
 
-            income_val = safe_num(row.get('income'))
-            gwa_val = safe_num(row.get('gwa'))
+            income_val = safe_num(row.get("income"))
+            gwa_val = safe_num(row.get("gwa"))
 
-            honors = safe_text(row.get('Honors'))
-            income_category = safe_text(row.get('IncomeCategory'))
+            honors = safe_text(row.get("Honors"))
+            income_category = safe_text(row.get("IncomeCategory"))
 
+            # ---------- Insert every student record ----------
             cursor.execute("""
                 INSERT INTO students (firstname, lastname, sex, program, municipality, income, shs_type, gwa, Honors, IncomeCategory, dataset_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -249,13 +256,48 @@ async def upload_dataset(
                 income_category,
                 dataset_id
             ))
-
-
             student_id = cursor.lastrowid
-            cursor.execute(
-                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (student_id, cluster_id, int(row['Cluster']))
-            )
+
+            # ---------- Check if record is complete ----------
+            def is_record_complete_local(row_dict):
+                required = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"]
+                placeholders = {"", "n/a", "na", "none", "incomplete", None, -1}
+                for f in required:
+                    val = row_dict.get(f)
+                    if isinstance(val, str) and val.strip().lower() in placeholders:
+                        return False
+                    if val in placeholders:
+                        return False
+                    if f in ["income", "gwa"]:
+                        try:
+                            num = float(val)
+                            if num <= 0:
+                                return False
+                        except Exception:
+                            return False
+                return True
+
+            # ---------- Only link complete students to clusters ----------
+            if is_record_complete_local({
+                "firstname": firstname,
+                "lastname": lastname,
+                "sex": sex,
+                "program": program,
+                "municipality": municipality,
+                "income": income_val,
+                "shs_type": shs_type,
+                "gwa": gwa_val
+            }):
+                # Match cluster assignment from complete_df if available
+                if _ in complete_df.index:
+                    cluster_num = int(complete_df.loc[_]["Cluster"])
+                else:
+                    cluster_num = 0
+                cursor.execute(
+                    "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                    (student_id, cluster_id, cluster_num)
+                )
+
 
 
         connection.commit()

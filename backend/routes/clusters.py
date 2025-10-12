@@ -13,6 +13,32 @@ router = APIRouter()
 # ------------------------
 # Helpers: normalize and safe encoding
 # ------------------------
+# ✅ Helper to check record completeness
+def is_record_complete(row: dict) -> bool:
+    """Check if a student record is complete for clustering."""
+    required = ["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "GWA"]
+    placeholders = {"", "n/a", "na", "none", "incomplete", None, -1}
+
+    for field in required:
+        val = row.get(field)
+        if isinstance(val, str) and val.strip().lower() in placeholders:
+            return False
+        if val in placeholders:
+            return False
+        if field in ["income", "GWA"]:
+            try:
+                num = float(val)
+                if num <= 0:
+                    return False
+            except Exception:
+                return False
+    return True
+
+
+def filter_complete_students(records: list[dict]) -> list[dict]:
+    """Return only complete student records."""
+    return [r for r in records if is_record_complete(r)]
+
 def _standard_col_name(name: str) -> str:
     """Return canonical lowercase name used internally."""
     return name.strip().lower()
@@ -213,6 +239,11 @@ async def recluster(
     if not students:
         cursor.close(); connection.close()
         raise HTTPException(status_code=404, detail="No students found for latest dataset")
+    students = filter_complete_students(students)
+
+    if not students:
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="No complete records found for clustering")
 
     if k > len(students):
         cursor.close(); connection.close()
@@ -316,6 +347,11 @@ async def pairwise_clusters(
 
     if not students:
         raise HTTPException(status_code=404, detail="No students found for latest dataset")
+        # ✅ Filter only complete student records
+    students = filter_complete_students(students)
+    if not students:
+        raise HTTPException(status_code=400, detail="No complete records found for clustering")
+
     if k > len(students):
         raise HTTPException(status_code=400, detail="k cannot be greater than number of students")
 

@@ -3,7 +3,8 @@ from typing import Optional
 from db import get_db_connection
 from dependencies import get_current_user
 from utils import classify_income, classify_honors
-
+from .clusters import recluster, is_record_complete
+import asyncio
 router = APIRouter()
 
 @router.get("/students")
@@ -118,5 +119,22 @@ async def update_student(
     finally:
         cursor.close()
         connection.close()
+        record_data = {
+        "firstname": firstname,
+        "lastname": lastname,
+        "sex": sex,
+        "program": program,
+        "municipality": municipality,
+        "income": income,
+        "shs_type": shs_type,
+        "GWA": gwa
+    }
 
+    if is_record_complete(record_data):
+        try:
+            # ⚙️ Automatically recluster complete records (k=3 default, adjust as needed)
+            await recluster(k=3, current_user=current_user)
+        except Exception as e:
+            print("⚠️ Auto-recluster failed:", str(e))
+            
     return {"message": "Student updated successfully"}
