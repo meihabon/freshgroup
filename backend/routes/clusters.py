@@ -213,28 +213,28 @@ async def recluster(
         raise HTTPException(status_code=404, detail="No dataset found")
     dataset_id = latest["id"]
 
-    # 🔹 2. Get previous cluster info to reuse k if not provided
+    # 🔹 2. Reuse last k value if not specified
     cursor.execute("SELECT k FROM clusters WHERE dataset_id = %s ORDER BY id DESC LIMIT 1", (dataset_id,))
-    existing_cluster = cursor.fetchone()
+    last_cluster = cursor.fetchone()
     if not k:
-        k = existing_cluster["k"] if existing_cluster else 3
+        k = last_cluster["k"] if last_cluster else 3
 
-    # 🔹 3. Fetch all students (complete + incomplete)
+    # 🔹 3. Get all students for this dataset
     cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
     students = cursor.fetchall()
     if not students:
         cursor.close(); connection.close()
-        raise HTTPException(status_code=404, detail="No students found for latest dataset")
+        raise HTTPException(status_code=404, detail="No students found")
 
-    df_all = pd.DataFrame(students)
-    df_all = normalize_dataframe_columns(df_all)
-    df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
+    df = pd.DataFrame(students)
+    df = normalize_dataframe_columns(df)
 
-    # 🔹 4. Keep only complete students for clustering
-    df_complete = df_all.dropna(subset=["firstname", "lastname", "sex", "program", "municipality", "income", "shs_type", "gwa"])
+    # 🔹 4. Identify complete records only
+    required_fields = ["firstname", "lastname", "sex", "program", "municipality", "shs_type", "GWA", "income"]
+    df_complete = df.dropna(subset=required_fields)
     df_complete = df_complete[
+        (df_complete["GWA"] > 0) &
         (df_complete["income"] > 0) &
-        (df_complete["gwa"] > 0) &
         (df_complete["municipality"].astype(str).str.strip() != "") &
         (df_complete["program"].astype(str).str.strip() != "")
     ]
@@ -243,73 +243,58 @@ async def recluster(
         cursor.close(); connection.close()
         raise HTTPException(status_code=400, detail="No complete records available for clustering")
 
-    canonical_features = ["gwa", "income", "sex", "program", "municipality", "shs_type"]
-    feature_cols = _pick_feature_columns(df_complete, canonical_features)
-    if not feature_cols:
-        cursor.close(); connection.close()
-        raise HTTPException(status_code=400, detail="No usable features for clustering")
+    # 🔹 5. Prepare features
+    df_complete = encode_categorical_safe(df_complete, ["sex", "program", "municipality", "shs_type"])
+    X = df_complete[["GWA", "income", "sex", "program", "municipality", "shs_type"]].fillna(0).astype(float)
 
-    X = df_complete[feature_cols].fillna(0).astype(float)
+    if k > len(df_complete):
+        cursor.close(); connection.close()
+        raise HTTPException(status_code=400, detail="k cannot exceed number of complete students")
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    if k > len(df_complete):
-        cursor.close(); connection.close()
-        raise HTTPException(status_code=400, detail="k cannot be greater than number of complete students")
-
-    # 🔹 5. Perform clustering
+    # 🔹 6. Run clustering
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     preds = kmeans.fit_predict(X_scaled)
     centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
 
     cursor.close(); connection.close()
 
-    # 🔹 6. Save results for Admin
+    # 🔹 7. Save cluster results for complete records only
     if role == "Admin":
         conn2 = get_db_connection()
-        if not conn2:
-            raise HTTPException(status_code=500, detail="Database connection failed")
         c2 = conn2.cursor(dictionary=True)
 
-        # Clear previous clusters for this dataset
-        c2.execute("SELECT id FROM clusters WHERE dataset_id = %s", (dataset_id,))
-        olds = c2.fetchall() or []
-        for oc in olds:
-            c2.execute("DELETE FROM student_cluster WHERE cluster_id = %s", (oc["id"],))
+        # Remove previous clusters only for this dataset
+        c2.execute("DELETE FROM student_cluster WHERE student_id IN (SELECT id FROM students WHERE dataset_id = %s)", (dataset_id,))
         c2.execute("DELETE FROM clusters WHERE dataset_id = %s", (dataset_id,))
 
-        # Insert new cluster record
+        # Insert new cluster info
         c2.execute(
             "INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
             (dataset_id, k, json.dumps(centroids))
         )
         new_cluster_id = c2.lastrowid
 
-        # ✅ Only insert complete students
+        # ✅ Insert only complete students into student_cluster
         for idx, (_, row) in enumerate(df_complete.iterrows()):
-            student_id = int(row["id"])
             c2.execute(
                 "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (student_id, new_cluster_id, int(preds[idx]))
+                (int(row["id"]), new_cluster_id, int(preds[idx]))
             )
 
         conn2.commit()
         c2.close(); conn2.close()
-        return {"message": f"Reclustered {len(df_complete)} complete students with k={k}"}
 
-    # 🔹 7. For viewer preview only (not saved)
-    elif role == "Viewer":
-        out_students = []
-        for idx, (_, s) in enumerate(df_complete.iterrows()):
-            s_copy = dict(s)
-            s_copy["Cluster"] = int(preds[idx])
-            out_students.append(s_copy)
-        return {"message": f"Preview clustering with k={k} (not saved)", "students": out_students, "centroids": centroids}
+        return {
+            "message": f"Reclustered {len(df_complete)} complete students (others left unclustered)",
+            "complete_records": len(df_complete),
+            "incomplete_records": len(df) - len(df_complete)
+        }
 
     else:
         raise HTTPException(status_code=403, detail="Unauthorized role")
-
 
 
 # ------------------------
