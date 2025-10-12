@@ -164,29 +164,33 @@ function Students() {
   // 🏔️ Determine Area Type based on Municipality
   const getAreaType = (municipality: string) => {
     const uplandMunicipalities = [
-      "Vigan City", "Bantay", "Santa Catalina", "San Vicente", "Caoayan",
-      "Santa", "Santa Maria", "Santa Lucia", "Santiago", "San Esteban",
-      "San Juan", "San Ildefonso", "Narvacan", "Santa Cruz", "Santa Barbara",
-      "Sugpon", "Cervantes", "Quirino", "Galimuyod", "Gregorio del Pilar",
-      "Sigay", "Alilem", "Suyo", "Tagudin",
-      "Agoo", "Aringay", "Bacnotan", "Bagulin", "Balaoan", "Bangar", "Bauang",
-      "Burgos", "Caba", "Luna", "Naguilian", "Pugo", "Rosario", "San Fernando City",
-      "San Gabriel", "San Juan", "Santo Tomas", "Sudipen", "Tubao"
+      // 📍 Ilocos Sur
+      "Cervantes", "Sigay", "Suyo", "Alilem", "Sugpon", "Banayoyo",
+      "San Emilio", "Gregorio del Pilar", "Quirino", "Galimuyod",
+      "Lidlidda", "Burgos", "Nagbukel", "Santa Lucia", "Salcedo",
+      "San Esteban", "Santa", "Narvacan", "San Ildefonso",
+
+      // 📍 La Union
+      "Bagulin", "Pugo", "San Gabriel", "Sudipen", "Tubao", "Bacnotan",
+      "Santol"
     ];
 
     if (!municipality) return "Unknown";
 
-    const muniLower = municipality.toLowerCase();
-    const isStaPrefix =
-      muniLower.startsWith("sta") ||
-      muniLower.startsWith("santa") ||
-      muniLower.startsWith("santo");
+    // Normalize municipality name (handles "Sta. Maria", "Santa Lucia", etc.)
+    const normalized = municipality
+      .replace(/^sta\.?\s*/i, "santa ") // convert "Sta." → "Santa"
+      .replace(/^sto\.?\s*/i, "santo ") // convert "Sto." → "Santo"
+      .trim()
+      .toLowerCase();
 
-    const isUpland =
-      uplandMunicipalities.some((m) => m.toLowerCase() === muniLower) || isStaPrefix;
+    const isUpland = uplandMunicipalities.some(
+      (m) => m.toLowerCase() === normalized
+    );
 
     return isUpland ? "Upland" : "Lowland";
   };
+
 
   const getIncomeBadgeVariant = (income: string) => {
     switch (income) {
