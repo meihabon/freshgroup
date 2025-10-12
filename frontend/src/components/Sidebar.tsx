@@ -1,4 +1,3 @@
-// React import not required with newer JSX transforms
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -25,15 +24,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
 
   const menuItems = [
-  { path: '/home', icon: Home, label: 'Home', roles: ['Admin', 'Viewer'] },
-  { path: '/dashboard', icon: BarChart, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
-  { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
-  { path: '/clusters', icon: Layers, label: 'Clusters', roles: ['Admin', 'Viewer'] },
-  { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
-  { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
-  { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
-  { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
-
+    { path: '/home', icon: Home, label: 'Home', roles: ['Admin', 'Viewer'] },
+    { path: '/dashboard', icon: BarChart, label: 'Dashboard', roles: ['Admin', 'Viewer'] },
+    { path: '/students', icon: Users, label: 'Students', roles: ['Admin', 'Viewer'] },
+    { path: '/clusters', icon: Layers, label: 'Clusters', roles: ['Admin', 'Viewer'] },
+    { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
+    { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
+    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
+    { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
   ]
 
   const filteredMenuItems = menuItems.filter(item => 
@@ -47,7 +45,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-
       {/* Backdrop for mobile */}
       {isOpen && (
         <div 
@@ -57,18 +54,24 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <div 
-        className={`sidebar gradient-sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
+        className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
         style={{ 
           width: '260px',
           zIndex: 1000,
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
-          borderRight: '1px solid rgba(0,0,0,0.06)',
-          transition: 'all 0.3s ease',
           height: '100vh',
+          transition: 'all 0.3s ease',
+          background: 'linear-gradient(180deg, #1c1f2a 0%, #22263a 100%)',
+          color: '#ffffff',
+          borderRight: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: '2px 0 10px rgba(0,0,0,0.2)',
         }}
       >
         {/* Collapse button for mobile */}
-        <div className="d-md-none d-flex justify-content-end align-items-center p-2" style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+        <div 
+          className="d-md-none d-flex justify-content-end align-items-center p-2" 
+          style={{ background: '#1c1f2a', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+        >
           <button
             aria-label="Close sidebar"
             onClick={onClose}
@@ -76,7 +79,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               background: 'none',
               border: 'none',
               fontSize: '1.5rem',
-              color: '#888',
+              color: '#bbb',
               cursor: 'pointer',
               lineHeight: 1,
             }}
@@ -84,13 +87,15 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
+
         {/* Header (brand) */}
-        <div className="sidebar-brand p-3 border-bottom">
+        <div className="sidebar-brand p-3 border-bottom" 
+          style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="d-flex align-items-center mb-1">
-            <BarChart size={26} className="me-2 sidebar-brand-icon" />
-            <h5 className="mb-0 fw-bold sidebar-brand-title">FreshGroup</h5>
+            <BarChart size={26} className="me-2 text-success" />
+            <h5 className="mb-0 fw-bold text-white">FreshGroup</h5>
           </div>
-          <p className="mb-0 small sidebar-brand-sub">Student Profiling System</p>
+          <p className="mb-0 small text-muted">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -105,25 +110,44 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 as={Link as any}
                 to={item.path}
                 onClick={onClose}
-                className={`d-flex align-items-center sidebar-link nav-item ${isActive ? 'active' : ''}`}
+                className={`d-flex align-items-center sidebar-link nav-item ${
+                  isActive ? 'active' : ''
+                }`}
+                style={{
+                  color: isActive ? '#ffffff' : '#cfd3e1',
+                  background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  marginBottom: '6px',
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <IconComponent size={18} className="me-3" />
-                {item.label}
+                <IconComponent 
+                  size={18} 
+                  className="me-3" 
+                  color={isActive ? '#00e676' : '#cfd3e1'} 
+                />
+                <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
               </Nav.Link>
             )
           })}
         </Nav>
 
         {/* Footer */}
-        <div className="p-3 border-top bg-white">
+        <div className="p-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="mb-3">
-            <div className="d-flex align-items-center text-dark mb-1">
-              <User size={16} className="me-2 text-muted" />
-              <small className="fw-semibold">{user?.profile?.name || user?.email}</small>
+            <div className="d-flex align-items-center mb-1">
+              <User size={16} className="me-2 text-light" />
+              <small className="fw-semibold text-white">{user?.profile?.name || user?.email}</small>
             </div>
             <small 
               className="badge rounded-pill px-3 py-1" 
-              style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem' }}
+              style={{ 
+                backgroundColor: '#00e676',
+                color: '#1c1f2a', 
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
             >
               {user?.role}
             </small>
@@ -131,21 +155,31 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className="d-grid gap-2">
             <Button 
-              variant="outline-success" 
+              variant="light" 
               size="sm"
               as={Link as any} 
               to="/profile"
               onClick={onClose}
               className="d-flex align-items-center justify-content-center sidebar-btn"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+              }}
             >
               <User size={14} className="me-2" />
               Profile
             </Button>
             <Button 
-              variant="outline-danger" 
+              variant="light" 
               size="sm" 
               onClick={handleLogout}
               className="d-flex align-items-center justify-content-center sidebar-btn"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                color: '#ff6b6b',
+                border: 'none',
+              }}
             >
               <LogOut size={14} className="me-2" />
               Logout
