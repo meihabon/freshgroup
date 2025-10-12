@@ -172,26 +172,34 @@ async def upload_dataset(
 
         df = normalize_and_prepare_df(df)
 
+        # Only use complete students for clustering, but save all students
         features = ['gwa', 'income']
-        X = df[features].fillna(0)
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+        df_complete = filter_complete_students_df(df)
 
-        # auto-select k if not provided
-        if k is None:
-            wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
-            k = recommend_k_by_curvature(wcss)
+        if df_complete.empty:
+            # No complete rows; still save all rows but create an empty clusters record
+            k_final = k or 3
+            preds = []
+            centroids = []
+        else:
+            X = df_complete[features].fillna(0)
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
 
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    preds = kmeans.fit_predict(X_scaled)
-    # assign predicted cluster only to complete rows; keep others unclustered/unassigned
-    df['Cluster'] = -1
-    df.loc[df_complete.index, 'Cluster'] = preds
-    df['Cluster'] = df['Cluster'].astype(int)
+            # auto-select k if not provided
+            if k is None:
+                wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
+                k = recommend_k_by_curvature(wcss)
 
-    all_centroids = scaler.inverse_transform(kmeans.cluster_centers_)
-    # Keep only GWA (index 0) and income (index 1)
-        centroids = [[c[0], c[1]] for c in all_centroids]
+            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+            preds = kmeans.fit_predict(X_scaled)
+            centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
+
+        # assign predicted cluster only to complete rows; keep others unclustered/unassigned (-1)
+        df['Cluster'] = -1
+        if not df_complete.empty:
+            df.loc[df_complete.index, 'Cluster'] = preds
+        df['Cluster'] = df['Cluster'].astype(int)
 
         connection = get_db_connection()
         if not connection:
@@ -207,7 +215,7 @@ async def upload_dataset(
 
         cursor.execute(
             "INSERT INTO clusters (dataset_id, k, centroids) VALUES (%s, %s, %s)",
-            (dataset_id, k, json.dumps(centroids))
+            (dataset_id, k if k is not None else None, json.dumps(centroids) if centroids else json.dumps([]))
         )
         cluster_id = cursor.lastrowid
 
@@ -257,13 +265,13 @@ async def upload_dataset(
                 dataset_id
             ))
 
-
             student_id = cursor.lastrowid
-            cursor.execute(
-                "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
-                (student_id, cluster_id, int(row['Cluster']))
-            )
-
+            cluster_number = int(row['Cluster']) if 'Cluster' in row and row['Cluster'] is not None else -1
+            if cluster_number != -1:
+                cursor.execute(
+                    "INSERT INTO student_cluster (student_id, cluster_id, cluster_number) VALUES (%s, %s, %s)",
+                    (student_id, cluster_id, int(cluster_number))
+                )
 
         connection.commit()
         cursor.close()
