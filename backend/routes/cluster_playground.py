@@ -63,10 +63,6 @@ async def cluster_playground(
     # Get students for this dataset
     cursor.execute("SELECT * FROM students WHERE dataset_id = %s", (dataset_id,))
     students = cursor.fetchall()
-    students = filter_complete_students(students)
-    if not students:
-        raise HTTPException(status_code=400, detail="No complete student records for clustering")
-
     cursor.close()
     connection.close()
 
