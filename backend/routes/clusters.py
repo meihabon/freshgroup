@@ -153,6 +153,9 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         connection.close()
         return {"clusters": {}, "plot_data": {}, "centroids": []}
 
+    # ✅ FIX: define dataset_id here before using it
+    dataset_id = cluster_info["dataset_id"]
+
     cursor.execute("""
         SELECT s.*, sc.cluster_number
         FROM students s
@@ -169,8 +172,12 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
         "y": [s.get("income", 0) for s in students],
         "colors": [s.get("cluster_number", 0) for s in students],
         "text": [
-            f"{s.get('firstname','')} {s.get('lastname','')}<br>Program: {s.get('program','-')}<br>Municipality: {s.get('municipality','-')}<br>"
-            f"Income: {s.get('IncomeCategory','-')}<br>Honors: {s.get('Honors','-')}<br>SHS: {s.get('SHS_type','-')}"
+            f"{s.get('firstname','')} {s.get('lastname','')}<br>"
+            f"Program: {s.get('program','-')}<br>"
+            f"Municipality: {s.get('municipality','-')}<br>"
+            f"Income: {s.get('IncomeCategory','-')}<br>"
+            f"Honors: {s.get('Honors','-')}<br>"
+            f"SHS: {s.get('SHS_type','-')}"
             for s in students
         ]
     }
@@ -178,7 +185,6 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     clusters: Dict[int, List[dict]] = {}
     for student in students:
         cnum = int(student.get("cluster_number", 0))
-        # ✅ enforce integer cluster IDs in the student dict itself
         student["cluster_number"] = cnum
         clusters.setdefault(cnum, []).append(student)
 
@@ -186,54 +192,48 @@ async def get_clusters(current_user: dict = Depends(get_current_user)):
     if cluster_info.get("centroids"):
         try:
             parsed = json.loads(cluster_info["centroids"])
-            # parsed is list of full feature centroids [gwa, income, sex_enc, program_enc, ...]
             for c in parsed:
                 if len(c) >= 2:
-                    centroids.append([float(c[0]), float(c[1])])  # only GWA (x) and Income (y)
+                    centroids.append([float(c[0]), float(c[1])])
         except Exception as exc:
             print("Error parsing centroids:", exc)
             centroids = []
 
+    # ------------------------
+    # RADAR (SPIDER) CHART DATA
+    # ------------------------
+    feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
+    radar_data = []
 
-        # ------------------------
-        # RADAR (SPIDER) CHART DATA
-        # ------------------------
-        feature_names = ["gwa", "income", "sex_enc", "program_enc", "municipality_enc", "shs_type_enc"]
-        radar_data = []
+    df_all = pd.DataFrame(students)
+    df_all = normalize_dataframe_columns(df_all)
+    df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
 
-        df_all = pd.DataFrame(students)
-        df_all = normalize_dataframe_columns(df_all)
-        df_all = encode_categorical_safe(df_all, ["sex", "program", "municipality", "shs_type"])
+    for col in feature_names:
+        if col in df_all.columns:
+            min_val, max_val = df_all[col].min(), df_all[col].max()
+            if max_val != min_val:
+                df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
+            else:
+                df_all[col] = 0.0
 
-        # Normalize each feature 0–1 for fair comparison
-        for col in feature_names:
-            if col in df_all.columns:
-                min_val, max_val = df_all[col].min(), df_all[col].max()
-                if max_val != min_val:
-                    df_all[col] = (df_all[col] - min_val) / (max_val - min_val)
-                else:
-                    df_all[col] = 0.0
+    for cnum, members in clusters.items():
+        member_ids = [m["id"] for m in members if "id" in m]
+        df_c = df_all[df_all["id"].isin(member_ids)]
+        avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
+        radar_data.append({
+            "cluster": int(cnum),
+            "features": feature_names,
+            "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
+        })
 
-        for cnum, members in clusters.items():
-            member_ids = [m["id"] for m in members if "id" in m]
-            df_c = df_all[df_all["id"].isin(member_ids)]
-            avg_values = [df_c[f].mean() if f in df_c.columns else 0 for f in feature_names]
-            radar_data.append({
-                "cluster": int(cnum),
-                "features": feature_names,
-                "values": [round(float(v), 3) if pd.notna(v) else 0 for v in avg_values],
-            })
-
-        return {
-            "clusters": clusters,
-            "plot_data": plot_data,
-            "centroids": centroids,
-            "radar_data": radar_data,
-            "k": cluster_info["k"],
-        }
-
-
-
+    return {
+        "clusters": clusters,
+        "plot_data": plot_data,
+        "centroids": centroids,
+        "radar_data": radar_data,
+        "k": cluster_info["k"],
+    }
 
 # ------------------------
 # RE-CLUSTER DATASET
