@@ -70,7 +70,7 @@ function Reports() {
 
       {/* ✅ Introductory explanation */}
       <div className="mb-4 p-3 border rounded bg-light text-muted">
-        <h6 className="fw-bold mb-2">ℹ️ About Reports</h6>
+        <h6 className="fw-bold mb-2">About Reports</h6>
         <p className="mb-0">
           Reports let you export data-driven insights from the system. 
           Use <strong>PDF</strong> for polished documents with charts and tables, 

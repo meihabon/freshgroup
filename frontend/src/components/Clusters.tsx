@@ -117,6 +117,32 @@ function Clusters() {
     ]
     return palette[clusterId % palette.length]
   }
+  // 🏔️ Determine Area Type based on Municipality
+const getAreaType = (municipality?: string) => {
+  if (!municipality || municipality.trim() === "") return "No Municipality Entered";
+
+  const uplandMunicipalities = [
+    // 📍 Ilocos Sur — 14 official upland
+    "Alilem", "Banayoyo", "Burgos", "Cervantes", "Galimuyod",
+    "Gregorio del Pilar", "Lidlidda", "Nagbukel", "Quirino",
+    "Salcedo", "San Emilio", "Sigay", "Sugpon", "Suyo",
+
+    // 📍 La Union — known upland
+    "Bagulin", "Burgos", "Naguilian", "San Gabriel", "Santol", "Sudipen", "Tubao"
+  ];
+
+  const normalized = municipality
+    .replace(/^sta\.?\s*/i, "santa ")
+    .replace(/^sto\.?\s*/i, "santo ")
+    .trim()
+    .toLowerCase();
+
+  const isUpland = uplandMunicipalities.some(
+    (m) => m.toLowerCase() === normalized
+  );
+
+  return isUpland ? "Upland" : "Lowland";
+};
 
 const getClusterLabel = (students: Student[], clusterId?: number) => {
   if (!students || students.length === 0) return "Unclassified Cluster";
@@ -143,15 +169,13 @@ const getClusterLabel = (students: Student[], clusterId?: number) => {
 
   // --- Municipality type detection ---
   const uplandMunicipalities = [
-    "Vigan City", "Bantay", "Santa Catalina", "San Vicente", "Caoayan",
-    "Santa", "Santa Maria", "Santa Lucia", "Santiago", "San Esteban",
-    "San Juan", "San Ildefonso", "Narvacan", "Santa Cruz", "Santa Barbara",
-    "Sugpon", "Cervantes", "Quirino", "Galimuyod", "Gregorio del Pilar",
-    "Sigay", "Alilem", "Suyo", "Tagudin",
-    // La Union municipalities
-    "Agoo", "Aringay", "Bacnotan", "Bagulin", "Balaoan", "Bangar", "Bauang",
-    "Burgos", "Caba", "Luna", "Naguilian", "Pugo", "Rosario", "San Fernando City",
-    "San Gabriel", "San Juan", "Santo Tomas", "Sudipen", "Tubao",
+    // 📍 Ilocos Sur — 14 official upland municipalities
+    "Alilem", "Banayoyo", "Burgos", "Cervantes", "Galimuyod",
+    "Gregorio del Pilar", "Lidlidda", "Nagbukel", "Quirino",
+    "Salcedo", "San Emilio", "Sigay", "Sugpon", "Suyo",
+
+    // 📍 La Union — known upland / hilly municipalities
+    "Bagulin", "Burgos", "Naguilian", "San Gabriel", "Santol", "Sudipen", "Tubao"
   ];
 
   // Count how many are upland vs lowland
@@ -482,7 +506,7 @@ const renderClusterSection = (
                 size="sm"
                 onClick={() => setShowScatterInfo(true)}
               >
-                ℹ️ About Scatterplot
+                About Scatterplot
               </Button>
             </Card.Header>
               <Card.Body>
@@ -600,6 +624,7 @@ const renderClusterSection = (
                       <th>Last Name</th>
                       <th>Program</th>
                       <th>Municipality</th>
+                      <th>Area Type</th>
                       <th>GWA</th>
                       <th>Honors</th>
                       <th>Income</th>
@@ -616,6 +641,19 @@ const renderClusterSection = (
                           <td>{s.lastname}</td>
                           <td>{s.program}</td>
                           <td>{s.municipality}</td>
+                          <td>
+                            <span
+                              className={
+                                getAreaType(s.municipality) === "Upland"
+                                  ? "badge bg-success"
+                                  : getAreaType(s.municipality) === "Lowland"
+                                  ? "badge bg-info text-dark"
+                                  : "badge bg-secondary"
+                              }
+                            >
+                              {getAreaType(s.municipality)}
+                            </span>
+                          </td>
                           <td>{s.GWA}</td>
                           <td>{s.Honors}</td>
                           <td>₱{(s.income ?? 0).toLocaleString?.() ?? s.income}</td>
@@ -648,7 +686,7 @@ const renderClusterSection = (
         <Tab eventKey="official" title="Official Clusters">
           
           <div className="mb-3 p-3 bg-light border rounded">
-            <h6 className="fw-bold">ℹ️ Why GWA and Income?</h6>
+            <h6 className="fw-bold">Why GWA and Income?</h6>
             <p className="mb-0 text-muted">
               The official clusters use <strong>General Weighted Average (GWA)</strong> and 
               <strong> household income</strong> as the main features because they provide the clearest picture 
