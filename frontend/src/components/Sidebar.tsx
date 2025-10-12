@@ -45,7 +45,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Backdrop for mobile */}
       {isOpen && (
         <div 
           className="sidebar-backdrop d-md-none"
@@ -61,9 +60,9 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
           height: '100vh',
           transition: 'all 0.3s ease',
-          background: 'linear-gradient(180deg, #27ae60 0%, #2ecc71 80%)',
+          background: 'linear-gradient(180deg, #2ecc71 0%, #27ae60 90%)',
           color: '#fff',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
+          borderRight: '2px solid rgba(255,255,255,0.15)',
           boxShadow: '3px 0 10px rgba(0,0,0,0.1)',
         }}
       >
@@ -95,7 +94,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             <BarChart size={26} className="me-2 text-warning" />
             <h5 className="mb-0 fw-bold text-white">FreshGroup</h5>
           </div>
-          <p className="mb-0 small text-white-50">Student Profiling System</p>
+          <p className="mb-0 small text-white">Student Profiling System</p>
         </div>
 
         {/* Navigation */}
@@ -114,8 +113,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                   isActive ? 'active' : ''
                 }`}
                 style={{
-                  color: isActive ? '#fff' : '#f4f4f4',
-                  background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  color: '#fff',
+                  background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
                   borderLeft: isActive ? '4px solid #f1c40f' : '4px solid transparent',
                   borderRadius: '8px',
                   padding: '10px 12px',
@@ -145,7 +144,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="badge rounded-pill px-3 py-1" 
               style={{ 
                 backgroundColor: '#f1c40f',
-                color: '#1c1f2a', 
+                color: '#2c3e50', 
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
@@ -162,7 +161,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={onClose}
               className="d-flex align-items-center justify-content-center sidebar-btn"
               style={{
-                background: 'rgba(255,255,255,0.15)',
+                background: 'rgba(255,255,255,0.25)',
                 color: '#fff',
                 border: 'none',
                 fontWeight: 500,
@@ -176,8 +175,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={handleLogout}
               className="d-flex align-items-center justify-content-center sidebar-btn"
               style={{
-                background: 'rgba(255,255,255,0.15)',
-                color: '#ff6b6b',
+                background: 'rgba(255,255,255,0.25)',
+                color: '#fff',
                 border: 'none',
                 fontWeight: 500,
               }}
