@@ -209,7 +209,7 @@ function DatasetHistory() {
 
   // --- 📄 Download Dataset Template (Excel) ---
   const handleDownloadTemplateExcel = () => {
-    const header = ["firstname", "laststname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
+    const header = ["firstname", "lastname", "sex", "program", "municipality", "income", "SHS_type", "GWA"]
     const rows = [
       ["Juan", "Dela Cruz", "Male", "BSIT", "Tagudin", 15000, "Academic", 85],
       ["Maria", "Santos", "Female", "BSBA", "Sta. Cruz", 8000, "TVL", 90],
