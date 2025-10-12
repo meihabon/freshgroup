@@ -1,4 +1,4 @@
-import React from 'react'
+// React import not required with newer JSX transforms
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -57,13 +57,12 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <div 
-        className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
+        className={`sidebar gradient-sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
         style={{ 
-          width: '240px',
+          width: '260px',
           zIndex: 1000,
-          left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-240px'),
-          backgroundColor: '#f9fafb',
-          borderRight: '1px solid #e5e5e5',
+          left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
+          borderRight: '1px solid rgba(0,0,0,0.06)',
           transition: 'all 0.3s ease',
           height: '100vh',
         }}

@@ -71,10 +71,53 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 /* Sidebar styles */
 .sidebar {
-  background: #f9fafb; /* subtle off-white background */
+  background: #f9fafb; /* fallback */
   min-height: 100vh;
   transition: all 0.3s ease;
   border-right: 1px solid #e5e5e5; /* subtle divider */
+}
+
+/* Gradient sidebar for stronger separation */
+.gradient-sidebar {
+  background: linear-gradient(180deg, #1e9b4a 0%, #27ae60 35%, #f1c40f 100%);
+  color: #fff;
+}
+
+.gradient-sidebar .nav-link {
+  color: rgba(255,255,255,0.95) !important;
+}
+
+.gradient-sidebar .nav-link:hover {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: #fff !important;
+}
+
+.gradient-sidebar .sidebar-link {
+  color: rgba(255,255,255,0.95) !important;
+}
+
+.gradient-sidebar .sidebar-link:hover {
+  transform: translateX(4px);
+  background-color: rgba(255,255,255,0.06);
+}
+
+.gradient-sidebar .sidebar .nav-link.active {
+  background-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  border-left: 4px solid rgba(255,255,255,0.2);
+}
+
+.gradient-sidebar .border-top {
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.gradient-sidebar .p-3.border-bottom {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.gradient-sidebar .bg-white {
+  background: rgba(255,255,255,0.06) !important;
 }
 
 .sidebar .nav-link {
@@ -215,6 +258,46 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 .table tbody tr:hover {
   background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Students table — compact variant to display more columns on desktop */
+.students-table-wrapper {
+  /* allow more horizontal space but keep responsiveness */
+  max-width: 1200px; /* increase as needed */
+  margin: 0 auto;
+}
+
+.students-table {
+  font-size: 0.85rem; /* slightly smaller text */
+}
+
+.students-table thead th {
+  padding: 10px 12px;
+}
+
+.students-table tbody td {
+  padding: 8px 10px;
+}
+
+@media (min-width: 992px) {
+  /* on desktop make the wrapper wider to show more columns */
+  .students-table-wrapper {
+    max-width: 1400px;
+  }
+
+  /* slightly tighter column widths for less important cols */
+  .students-table .col-first { width: 120px; }
+  .students-table .col-last { width: 120px; }
+  .students-table .col-sex { width: 80px; }
+  .students-table .col-program { width: 200px; }
+  .students-table .col-muni { width: 160px; }
+  .students-table .col-area { width: 90px; }
+  .students-table .col-income { width: 110px; }
+  .students-table .col-shs { width: 140px; }
+  .students-table .col-gwa { width: 100px; }
+  .students-table .col-honors { width: 150px; }
+  .students-table .col-income-cat { width: 140px; }
+  .students-table .col-actions { width: 100px; }
 }
 
 /* Form styles */

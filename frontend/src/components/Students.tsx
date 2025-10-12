@@ -376,22 +376,22 @@ function Students() {
       <Card>
         <Card.Body className="p-0">
 
-          <div className="table-responsive-sm">
-            <Table striped hover responsive className="mb-0">
+          <div className="table-responsive-sm students-table-wrapper">
+            <Table striped hover responsive className="mb-0 students-table table-sm">
               <thead>
                 <tr>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Sex</th>
-                  <th>Program</th>
-                  <th>Municipality</th>
-                  <th>Area Type</th>
-                  <th>Income</th>
-                  <th>Senior High School Type</th>
-                  <th>General Weighted Average (GWA)</th>
-                  <th className="d-none d-md-table-cell">Honors</th>
-                  <th className="d-none d-md-table-cell">Income Category</th>
-                  <th>Actions</th>
+                  <th className="col-first">First Name</th>
+                  <th className="col-last">Last Name</th>
+                  <th className="col-sex">Sex</th>
+                  <th className="col-program">Program</th>
+                  <th className="col-muni">Municipality</th>
+                  <th className="col-area">Area Type</th>
+                  <th className="col-income">Income</th>
+                  <th className="col-shs">Senior High School Type</th>
+                  <th className="col-gwa">GWA</th>
+                  <th className="d-none d-md-table-cell col-honors">Honors</th>
+                  <th className="d-none d-md-table-cell col-income-cat">Income Category</th>
+                  <th className="col-actions">Actions</th>
                 </tr>
               </thead>
                 <tbody>
