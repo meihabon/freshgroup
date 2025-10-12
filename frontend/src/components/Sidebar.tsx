@@ -45,9 +45,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {isOpen && (
-        <div className="sidebar-backdrop d-md-none" onClick={onClose} />
-      )}
+      {/* Backdrop for mobile */}
+      {isOpen && <div className="sidebar-backdrop d-md-none" onClick={onClose} />}
 
       <div 
         className={`sidebar position-fixed d-flex flex-column${isOpen ? ' show' : ''}`}
@@ -57,7 +56,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           left: window.innerWidth > 768 ? '0' : (isOpen ? '0' : '-260px'),
           height: '100vh',
           transition: 'all 0.3s ease',
-          background: 'linear-gradient(180deg, #145a32 0%, #27ae60 50%, #a9dfbf 90%)', // 🌿 richer green
+          background: 'linear-gradient(180deg, #145a32 0%, #27ae60 50%, #a9dfbf 90%)',
           color: '#fff',
           borderRight: '2px solid rgba(255,255,255,0.2)',
           boxShadow: '3px 0 10px rgba(0,0,0,0.1)',
@@ -141,7 +140,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="badge rounded-pill px-3 py-1" 
               style={{ 
                 backgroundColor: '#f1c40f',
-                color: '#1c1f2a', 
+                color: '#145a32',
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
@@ -151,6 +150,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           <div className="d-grid gap-2">
+            {/* Profile Button - yellow */}
             <Button 
               size="sm"
               as={Link as any} 
@@ -158,15 +158,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={onClose}
               className="d-flex align-items-center justify-content-center sidebar-btn"
               style={{
-                background: 'rgba(255,255,255,0.15)',
-                color: '#fff',
+                backgroundColor: '#f1c40f',
+                color: '#145a32',
                 border: 'none',
-                fontWeight: 500,
+                fontWeight: 600,
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f7dc6f')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f1c40f')}
             >
-              <User size={14} className="me-2" />
+              <User size={14} className="me-2" color="#145a32" />
               Profile
             </Button>
+
+            {/* Logout Button - red */}
             <Button 
               size="sm" 
               onClick={handleLogout}
@@ -177,6 +181,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 border: 'none',
                 fontWeight: 500,
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,107,107,0.25)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
             >
               <LogOut size={14} className="me-2" />
               Logout
