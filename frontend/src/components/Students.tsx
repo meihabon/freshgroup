@@ -641,14 +641,18 @@ function Students() {
 
               <Form.Group className="mb-3">
                 <Form.Label>SHS Type</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={selectedStudent.SHS_type}
+                <Form.Select
+                  value={selectedStudent.SHS_type || ""}
                   onChange={(e) =>
                     setSelectedStudent({ ...selectedStudent, SHS_type: e.target.value })
                   }
-                />
+                >
+                  <option value="">Select SHS Type</option>
+                  <option value="Public">Public</option>
+                  <option value="Private">Private</option>
+                </Form.Select>
               </Form.Group>
+
 
               <Form.Group className="mb-3">
                 <Form.Label>Income</Form.Label>
