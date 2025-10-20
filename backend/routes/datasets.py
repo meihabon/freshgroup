@@ -28,7 +28,7 @@ def normalize_and_prepare_df(df: pd.DataFrame) -> pd.DataFrame:
         "program": "program", "course": "program",
         "municipality": "municipality", "city": "municipality",
         "income": "income", "family income": "income",
-        "shs_type": "shs_type", "strand": "shs_type",
+        "shs_type": "shs_type", "senior high": "shs_type",
         "gwa": "gwa", "general weighted average": "gwa",
         "firstname": "firstname", "first name": "firstname", "fname": "firstname",
         "lastname": "lastname", "last name": "lastname", "surname": "lastname", "lname": "lastname",

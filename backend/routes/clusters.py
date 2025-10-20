@@ -25,7 +25,7 @@ _CANONICAL_MAP = {
     "program": ["program", "course"],
     "municipality": ["municipality", "city", "town"],
     "income": ["income", "family income", "family_income", "household_income"],
-    "shs_type": ["shs_type", "shs type", "strand", "senior high", "shs"],
+    "shs_type": ["shs_type", "shs type", "senior high", "shs"],
     "gwa": ["gwa", "general weighted average", "general_weighted_average", "general_weighted_average_gwa"],
     "name": ["name", "fullname", "student name", "student_name"],
 }

@@ -55,7 +55,7 @@ function Reports() {
     {
       key: "shs_report",
       title: "Senior High School Background",
-      description: "Looks at SHS strands (STEM, ABM, HUMSS, TVL) with student counts and performance comparisons.",
+      description: "Looks at students based on their Senior High School type (Public or Private), showing student counts and performance comparisons.",
     },
     {
       key: "cluster_analysis",
