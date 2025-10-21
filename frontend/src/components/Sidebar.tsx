@@ -1,4 +1,4 @@
-import React from 'react'
+// React default import not required with newer JSX transforms
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -10,7 +10,6 @@ import {
   Database, 
   Settings,
   User,
-  LogOut,
   Home,
   HelpCircle    // ✅ matches Help.tsx (Help)
 } from 'lucide-react'
@@ -88,6 +87,27 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
           </div>
           <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+
+          {/* Compact user block under the brand */}
+          <div className="mt-3 d-flex align-items-center gap-2 sidebar-user">
+            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={20} className="text-white" />
+            </div>
+            <div className="flex-grow-1">
+              <div className="d-flex align-items-center justify-content-between">
+                <small className="fw-semibold text-white">{user?.profile?.name || user?.email}</small>
+                <small className="badge rounded-pill px-2 py-1" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.7rem' }}>{user?.role}</small>
+              </div>
+              <div className="mt-2 d-flex gap-2">
+                <Button variant="outline-light" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
+                  Profile
+                </Button>
+                <Button variant="light" size="sm" onClick={handleLogout} className="py-1">
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Nav className="flex-column flex-grow-1 px-2 py-3">
@@ -120,43 +140,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </Nav>
 
-        <div className="p-3 border-top bg-white">
-          <div className="mb-3">
-            <div className="d-flex align-items-center text-dark mb-1">
-              <User size={16} className="me-2 text-muted" />
-              <small className="fw-semibold">{user?.profile?.name || user?.email}</small>
-            </div>
-            <small 
-              className="badge rounded-pill px-3 py-1" 
-              style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem' }}
-            >
-              {user?.role}
-            </small>
-          </div>
-
-          <div className="d-grid gap-2">
-            <Button 
-              variant="outline-success" 
-              size="sm"
-              as={Link as any} 
-              to="/profile"
-              onClick={onClose}
-              className="d-flex align-items-center justify-content-center sidebar-btn"
-            >
-              <User size={14} className="me-2" />
-              Profile
-            </Button>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={handleLogout}
-              className="d-flex align-items-center justify-content-center sidebar-btn"
-            >
-              <LogOut size={14} className="me-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
+        {/* footer area removed; user controls moved under brand for a neater layout */}
       </div>
     </>
   )
