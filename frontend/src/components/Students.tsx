@@ -428,9 +428,9 @@ function Students() {
                             {getAreaType(student.municipality)}
                           </Badge>
                         </td>
-                        <td data-label="Income" className="text-truncate" style={{ maxWidth: 120 }}>{student.income === -1 || student.income === null ? <Badge bg="danger">No Income Entered</Badge> : `₱${student.income.toLocaleString()}`}</td>
+                        <td data-label="Income" className="text-truncate" style={{ maxWidth: 120 }}>{student.income === -1 || student.income === null || typeof student.income !== 'number' ? <Badge bg="danger">No Income Entered</Badge> : `₱${student.income.toLocaleString()}`}</td>
                         <td data-label="SHS Type" className="text-truncate" style={{ maxWidth: 130 }}>{student.SHS_type && student.SHS_type !== 'Incomplete' ? student.SHS_type : <Badge bg="danger">No SHS Type</Badge>}</td>
-                        <td data-label="GWA" className="text-truncate" style={{ maxWidth: 80 }}>{student.GWA === -1 || student.GWA === null ? <Badge bg="danger">No GWA Entered</Badge> : student.GWA}</td>
+                        <td data-label="GWA" className="text-truncate" style={{ maxWidth: 80 }}>{student.GWA === -1 || student.GWA === null || typeof student.GWA !== 'number' ? <Badge bg="danger">No GWA Entered</Badge> : student.GWA}</td>
                         <td data-label="Honors" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getHonorsBadgeVariant(student.Honors)}>{student.Honors && student.Honors !== 'Incomplete' ? student.Honors : 'No Honors'}</Badge></td>
                         <td data-label="Income Category" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>{student.IncomeCategory && student.IncomeCategory !== 'Incomplete' ? student.IncomeCategory : 'No Income Category'}</Badge></td>
                         <td data-label="Actions" style={{ maxWidth: 90 }}><Button variant="outline-primary" size="sm" onClick={(e) => { e.stopPropagation(); handleEditClick(student); }}>Edit</Button></td>
