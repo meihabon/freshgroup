@@ -175,33 +175,39 @@ function Login() {
                       <Form onSubmit={handleSubmit}>
                         {!isLogin && (
                           <>
-                            <InputGroup className="mb-3">
-                              <InputGroup.Text style={{ borderRadius: 10 }}>
-                                <User size={16} />
-                              </InputGroup.Text>
-                              <Form.Control
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required={!isLogin}
-                                placeholder="Full name"
-                                style={{ borderRadius: 10 }}
-                              />
-                            </InputGroup>
-
-                            <InputGroup className="mb-3">
-                              <InputGroup.Text style={{ borderRadius: 10 }}>
-                                <Lock size={16} />
-                              </InputGroup.Text>
-                              <Form.Control
-                                type="text"
-                                value={department}
-                                onChange={(e) => setDepartment(e.target.value)}
-                                required={!isLogin}
-                                placeholder="Department"
-                                style={{ borderRadius: 10 }}
-                              />
-                            </InputGroup>
+                            {/* Two-column row for short fields on md+ screens */}
+                            <Row className="g-2 mb-3">
+                              <Col md={6}>
+                                <InputGroup>
+                                  <InputGroup.Text style={{ borderRadius: 10 }}>
+                                    <User size={16} />
+                                  </InputGroup.Text>
+                                  <Form.Control
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required={!isLogin}
+                                    placeholder="Full name"
+                                    style={{ borderRadius: 10 }}
+                                  />
+                                </InputGroup>
+                              </Col>
+                              <Col md={6}>
+                                <InputGroup>
+                                  <InputGroup.Text style={{ borderRadius: 10 }}>
+                                    <Lock size={16} />
+                                  </InputGroup.Text>
+                                  <Form.Control
+                                    type="text"
+                                    value={department}
+                                    onChange={(e) => setDepartment(e.target.value)}
+                                    required={!isLogin}
+                                    placeholder="Department"
+                                    style={{ borderRadius: 10 }}
+                                  />
+                                </InputGroup>
+                              </Col>
+                            </Row>
                           </>
                         )}
 
@@ -242,17 +248,40 @@ function Login() {
 
                         {!isLogin && (
                           <>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Confirm Password</Form.Label>
-                              <Form.Control
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required={!isLogin}
-                                placeholder="Confirm password"
-                                style={{ borderRadius: 10 }}
-                              />
-                            </Form.Group>
+                            {/* Two-column row: Password + Confirm on md+ */}
+                            <Row className="g-2 mb-3">
+                              <Col md={6}>
+                                <Form.Group>
+                                  <Form.Label>Password</Form.Label>
+                                  <InputGroup>
+                                    <InputGroup.Text style={{ borderRadius: 10 }}>
+                                      <Lock size={16} />
+                                    </InputGroup.Text>
+                                    <Form.Control
+                                      type={showPassword ? 'text' : 'password'}
+                                      value={password}
+                                      onChange={(e) => setPassword(e.target.value)}
+                                      required={!isLogin}
+                                      placeholder="Password"
+                                      style={{ borderRadius: 10 }}
+                                    />
+                                  </InputGroup>
+                                </Form.Group>
+                              </Col>
+                              <Col md={6}>
+                                <Form.Group>
+                                  <Form.Label>Confirm</Form.Label>
+                                  <Form.Control
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required={!isLogin}
+                                    placeholder="Confirm password"
+                                    style={{ borderRadius: 10 }}
+                                  />
+                                </Form.Group>
+                              </Col>
+                            </Row>
 
                             {/* Terms & Conditions */}
                             <Form.Group className="mb-3">
