@@ -98,6 +98,10 @@ const Help: React.FC = () => {
               The <b>Students</b> section is a searchable, filterable student database.  
               Here you can browse profiles in detail and export records if needed.
             </p>
+            <p>
+              <Badge bg="secondary" className="me-2">i</Badge>
+              This is an example badge used in the Students walkthrough.
+            </p>
             <ol>
               <li>
                 <b>Paginated List:</b>  
@@ -271,6 +275,29 @@ const Help: React.FC = () => {
                 Keep datasets up-to-date to avoid basing analysis 
                 on outdated information.
               </p>
+            </Accordion.Body>
+          </Accordion.Item>
+        )}
+
+        {/* USER MANAGEMENT (ADMIN ONLY) */}
+        {isAdmin && (
+          <Accordion.Item eventKey="6">
+            <Accordion.Header>
+              <Users size={18} className="me-2 text-primary" />
+              User Management (Admin Only)
+            </Accordion.Header>
+            <Accordion.Body>
+              <p>
+                <b>User Management</b> is where Admins manage application users, roles, and credentials.
+              </p>
+              <ol>
+                <li><b>Add / Edit Users:</b> Create new user accounts or update existing profiles (name, department, position, and role).</li>
+                <li><b>Reset Passwords:</b> Admins can reset a user's password via the Reset action. Use the password strength meter to choose a secure password.</li>
+                <li><b>Roles & Permissions:</b> Assign Admin or Viewer roles. Admins have full access to management functions.</li>
+                <li><b>Export & Audit:</b> Export the user list to CSV, PDF, or Excel for audits. Keep a log of changes and periodically review user roles.</li>
+                <li><b>Deactivate/Delete:</b> For security, remove or deactivate users who no longer require access.</li>
+              </ol>
+              <p className="text-muted"><b>Tip:</b> Use role assignment carefully. Only Admins should retain Admin rights to avoid accidental configuration changes.</p>
             </Accordion.Body>
           </Accordion.Item>
         )}
