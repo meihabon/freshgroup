@@ -265,8 +265,8 @@ function Students() {
 
   return (
     <div className="fade-in">
-  <div className="students-layout mb-4 d-flex align-items-start">
-        <div className="filters-column">
+  <div className="students-layout mb-4 d-flex align-items-start" style={{ gap: 16 }}>
+        <div className="filters-column" style={{ width: 240, flexShrink: 0 }}>
           <Card className="filter-section mb-4">
             <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
               <div>
@@ -379,7 +379,7 @@ function Students() {
           />
         </div>
 
-        <div className="main-column">
+  <div className="main-column" style={{ flex: 1, minWidth: 0 }}>
           {/* Top row: title and search */}
           <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
             <h2 className="fw-bold mb-0">Students</h2>
@@ -419,21 +419,21 @@ function Students() {
           <Card>
             <Card.Body className="p-0">
               <div className="table-responsive-sm students-table-wrapper">
-                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%' }}>
+                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%', fontSize: '0.88rem' }}>
                   <thead>
                     <tr>
-                      <th className="col-first" style={{ width: '9%' }}>First Name</th>
-                      <th className="col-last" style={{ width: '9%' }}>Last Name</th>
-                      <th className="col-sex" style={{ width: '5%' }}>Sex</th>
-                      <th className="col-program" style={{ width: '18%' }}>Program</th>
-                      <th className="col-muni" style={{ width: '14%' }}>Municipality</th>
-                      <th className="col-area" style={{ width: '7%' }}>Area Type</th>
-                      <th className="col-income" style={{ width: '9%' }}>Income</th>
+                      <th className="col-first" style={{ width: '8%' }}>First Name</th>
+                      <th className="col-last" style={{ width: '8%' }}>Last Name</th>
+                      <th className="col-sex" style={{ width: '4%' }}>Sex</th>
+                      <th className="col-program" style={{ width: '16%' }}>Program</th>
+                      <th className="col-muni" style={{ width: '12%' }}>Municipality</th>
+                      <th className="col-area" style={{ width: '6%' }}>Area Type</th>
+                      <th className="col-income" style={{ width: '8%' }}>Income</th>
                       <th className="col-shs" style={{ width: '8%' }}>Senior High School Type</th>
                       <th className="col-gwa" style={{ width: '5%' }}>HS GWA</th>
                       <th className="d-none d-md-table-cell col-honors" style={{ width: '8%' }}>Honors</th>
                       <th className="d-none d-md-table-cell col-income-cat" style={{ width: '8%' }}>Income Category</th>
-                      <th className="col-actions" style={{ width: '8%' }}>Actions</th>
+                      <th className="col-actions" style={{ width: '7%' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
