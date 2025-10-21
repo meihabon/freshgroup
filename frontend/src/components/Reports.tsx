@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Button, Card, Row, Col, Alert, Spinner } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
 
@@ -67,6 +67,12 @@ function Reports() {
   return (
     <div className="fade-in">
       <h2 className="fw-bold mb-4">Reports</h2>
+      <Card className="mb-3">
+        <Card.Body>
+          <h6 className="mb-1">About this page</h6>
+          <p className="mb-0 text-muted small">Export curated datasets and formatted reports. Choose CSV for raw data or PDF for printable summaries with charts.</p>
+        </Card.Body>
+      </Card>
 
       {/* ✅ Introductory explanation */}
       <div className="mb-4 p-3 border rounded bg-light text-muted">

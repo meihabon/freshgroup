@@ -337,6 +337,12 @@ const handleResetPassword = async () => {
     <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
+        <Card className="mb-3">
+          <Card.Body>
+            <h6 className="mb-1">About this page</h6>
+            <p className="mb-0 text-muted small">Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins.</p>
+          </Card.Body>
+        </Card>
         <div className="btn-group" role="group" aria-label="Download options">
           <Button variant="success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
             <Download size={16} className="me-2" /> CSV

@@ -47,7 +47,7 @@ function Students() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const studentsPerPage = 25
+  const [studentsPerPage, setStudentsPerPage] = useState<number>(10)
 
   useEffect(() => {
     fetchStudents()
@@ -377,7 +377,13 @@ function Students() {
           />
         </div>
 
-        <div>
+        <div className="main-column">
+          <Card className="mb-3">
+            <Card.Body>
+              <h6 className="mb-1">About this page</h6>
+              <p className="mb-0 text-muted small">Browse and filter student profiles. Use the filters on the left to refine results, change rows per page, or export the current selection as CSV. Click any row to view details.</p>
+            </Card.Body>
+          </Card>
           {/* Top row: title and search */}
           <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
             <h2 className="fw-bold mb-0">Students</h2>
@@ -393,10 +399,18 @@ function Students() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </InputGroup>
-              <div className="btn-group" role="group" aria-label="Export options">
-                <Button variant="success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
-                  <Download size={18} className="me-2" /> Export CSV
-                </Button>
+              <div className="d-flex align-items-center gap-2">
+                <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(parseInt(e.target.value)); setCurrentPage(1); }} style={{ width: 110 }} aria-label="Rows per page">
+                  <option value={10}>10 rows</option>
+                  <option value={20}>20 rows</option>
+                  <option value={30}>30 rows</option>
+                </Form.Select>
+
+                <div className="btn-group" role="group" aria-label="Export options">
+                  <Button variant="success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
+                    <Download size={18} className="me-2" /> Export CSV
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -415,7 +429,7 @@ function Students() {
                       <th className="col-area">Area Type</th>
                       <th className="col-income">Income</th>
                       <th className="col-shs">Senior High School Type</th>
-                      <th className="col-gwa">GWA</th>
+                      <th className="col-gwa">HS GWA</th>
                       <th className="d-none d-md-table-cell col-honors">Honors</th>
                       <th className="d-none d-md-table-cell col-income-cat">Income Category</th>
                       <th className="col-actions">Actions</th>

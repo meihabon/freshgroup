@@ -93,15 +93,22 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'linear-gradient(90deg, #f7d27a 0%, #f1c40f 100%)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.08)', flexShrink: 0 }}>
                 {/* Initials avatar */}
-                <div style={{ width: 44, height: 44, borderRadius: 8, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '0.95rem', lineHeight: 1 }}>
-                  {user?.profile?.name ? (user.profile.name.split(' ').map((n: string) => n[0]).slice(0,2).join('')) : (user?.email || 'U').slice(0,2).toUpperCase()}
+                <div style={{ width: 52, height: 52, borderRadius: 10, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '1.05rem', lineHeight: 1 }}>
+                  {(() => {
+                    const fullName = user?.profile?.name || ''
+                    if (!fullName) return (user?.email || 'U').slice(0,2).toUpperCase()
+                    const parts = fullName.trim().split(/\s+/)
+                    // If the full name is short (<= 18 chars) show full name; otherwise show first name
+                    if (fullName.length <= 18) return fullName
+                    return parts[0]
+                  })()}
                 </div>
               </div>
               <div className="flex-grow-1" style={{ minWidth: 0 }}>
                 <div className="d-flex align-items-center justify-content-between">
                   <div style={{ minWidth: 0 }}>
-                    <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 160 }}>{user?.profile?.name || user?.email}</div>
-                    <div className="small text-dark-800 text-truncate" style={{ maxWidth: 200 }}>{user?.email}</div>
+                    <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 220 }}>{user?.profile?.name || user?.email}</div>
+                    <div className="small text-dark-800 text-truncate" style={{ maxWidth: 220 }}>{user?.email}</div>
                   </div>
                   <div>
                     <span className="badge rounded-pill" style={{ backgroundColor: '#ffffff', color: '#1b2b24', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>

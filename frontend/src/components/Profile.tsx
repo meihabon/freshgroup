@@ -129,7 +129,14 @@ function Profile() {
   return (
     <div className="fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold">Profile Settings</h2>
+        <div>
+          <h2 className="fw-bold">Profile Settings</h2>
+          <Card className="mt-2">
+            <Card.Body>
+              <p className="mb-0 text-muted small">Update your profile and change your password. Keep your contact and department information current for accurate reporting.</p>
+            </Card.Body>
+          </Card>
+        </div>
         <div className="d-flex align-items-center">
           <User size={20} className="me-2 text-muted" />
           <span className="text-muted">{user?.email}</span>

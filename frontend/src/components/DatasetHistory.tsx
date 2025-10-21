@@ -349,6 +349,12 @@ const elbowPlot = () => {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="fw-bold">Dataset History</h2>
+        <Card className="mb-3">
+          <Card.Body>
+            <h6 className="mb-1">About this page</h6>
+            <p className="mb-0 text-muted small">Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts.</p>
+          </Card.Body>
+        </Card>
         <Button variant="primary" onClick={() => setShowUpload(true)}>
           <Upload size={18} className="me-2" />
           Upload New Dataset

@@ -698,6 +698,12 @@ const renderClusterSection = (
   return (
     <div className="fade-in">
       <h2 className="fw-bold mb-4">Student Clusters</h2>
+      <Card className="mb-3">
+        <Card.Body>
+          <h6 className="mb-1">About this page</h6>
+          <p className="mb-0 text-muted small">Visualize student groups computed by k-means clustering. Toggle tabs to view official clusters, playground, or pairwise analyses.</p>
+        </Card.Body>
+      </Card>
 
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "official")} className="mb-3">
         <Tab eventKey="official" title="Official Clusters">
