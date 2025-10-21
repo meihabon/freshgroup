@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
-import { Container, Row, Col, Card, Form, Button, Alert, Nav, Modal } from 'react-bootstrap'
-import { Eye, EyeOff } from 'lucide-react'
+import { Container, Row, Col, Card, Form, Button, Alert, Nav, Modal, InputGroup } from 'react-bootstrap'
+import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 function Login() {
@@ -81,40 +81,52 @@ function Login() {
       style={{
         minHeight: "100vh",
         background:
-          "linear-gradient(120deg, #f8f9fa 0%, #e9f7ef 50%, #e3e6f3 100%), repeating-linear-gradient(135deg, rgba(39,174,96,0.04) 0px, rgba(39,174,96,0.04) 2px, transparent 2px, transparent 24px)",
+          "linear-gradient(120deg, #f8f9fa 0%, #eef6f1 50%, #eef0f6 100%)",
         backgroundAttachment: "fixed"
       }}
     >
       <Container fluid className="h-100">
         <Row className="h-100 g-0">
-          
+
           {/* Left Side (Form) */}
-          <Col 
-            md={5} 
-            className="d-flex flex-column bg-white"
-            style={{ 
-              minHeight: "100vh", 
-              boxShadow: "2px 0 8px rgba(0,0,0,0.05)" 
+          <Col
+            md={5}
+            className="d-flex flex-column"
+            style={{
+              minHeight: "100vh",
+              boxShadow: "2px 0 18px rgba(0,0,0,0.06)",
+              background: "rgba(255,255,255,0.9)"
             }}
           >
             <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-              <Card className="border-0 w-100" style={{ maxWidth: "420px" }}>
-                <Card.Body className="p-5">
-                  
-                {/* Brand */}
-                <div className="mb-4 text-center">
-                  <img 
-                    src="https://www.ispsc.edu.ph/images/misc/logo.png" 
-                    alt="ISPSC Logo" 
-                    style={{ width: "80px", marginBottom: "10px" }} 
-                  />
-                  <h2 className="fw-bold" style={{ color: "#27ae60" }}>
-                    FreshGroup
-                  </h2>
-                  <p className="text-muted mb-0">
-                    Student Profiling & Clustering System
-                  </p>
-                </div>
+              <Card className="border-0 w-100" style={{ maxWidth: "480px" }}>
+                <Card.Body className="p-5" style={{ borderRadius: 12 }}>
+
+                  {/* Brand */}
+                  <div className="mb-4 text-center">
+                    <div style={{
+                      width: 84,
+                      height: 84,
+                      margin: "0 auto 10px",
+                      borderRadius: 18,
+                      background: "linear-gradient(135deg,#27ae60,#1e8449)",
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 6px 18px rgba(39,174,96,0.18)'
+                    }}>
+                      <img
+                        src="https://www.ispsc.edu.ph/images/misc/logo.png"
+                        alt="ISPSC Logo"
+                        style={{ width: 46 }}
+                      />
+                    </div>
+
+                    <h2 className="fw-bold" style={{ color: "#2c3e50", letterSpacing: 0.4 }}>
+                      FreshGroup
+                    </h2>
+                    <p className="text-muted mb-0">Student Profiling & Clustering</p>
+                  </div>
 
                   {!showReset ? (
                     <>
@@ -127,12 +139,14 @@ function Login() {
                             className="px-4"
                             style={{
                               borderRadius: "8px",
-                              backgroundColor: isLogin ? "#27ae60" : "#f8f9fa",
-                              color: isLogin ? "#fff" : "#333",
-                              fontWeight: 500
+                              backgroundColor: isLogin ? "#27ae60" : "#f2f4f6",
+                              color: isLogin ? "#fff" : "#495057",
+                              fontWeight: 600,
+                              boxShadow: isLogin ? '0 6px 18px rgba(39,174,96,0.12)' : 'none',
+                              border: 'none'
                             }}
                           >
-                            Login
+                            Sign In
                           </Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
@@ -142,12 +156,13 @@ function Login() {
                             className="px-4"
                             style={{
                               borderRadius: "8px",
-                              backgroundColor: !isLogin ? "#f1c40f" : "#f8f9fa",
-                              color: !isLogin ? "#2c3e50" : "#333",
-                              fontWeight: 500
+                              backgroundColor: !isLogin ? "#f1c40f" : "#f2f4f6",
+                              color: !isLogin ? "#2c3e50" : "#495057",
+                              fontWeight: 600,
+                              border: 'none'
                             }}
                           >
-                            Register
+                            Create Account
                           </Nav.Link>
                         </Nav.Item>
                       </Nav>
@@ -160,59 +175,70 @@ function Login() {
                       <Form onSubmit={handleSubmit}>
                         {!isLogin && (
                           <>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Full Name</Form.Label>
+                            <InputGroup className="mb-3">
+                              <InputGroup.Text style={{ borderRadius: 10 }}>
+                                <User size={16} />
+                              </InputGroup.Text>
                               <Form.Control
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required={!isLogin}
-                                placeholder="Enter your full name"
+                                placeholder="Full name"
+                                style={{ borderRadius: 10 }}
                               />
-                            </Form.Group>
+                            </InputGroup>
 
-                            <Form.Group className="mb-3">
-                              <Form.Label>Department</Form.Label>
+                            <InputGroup className="mb-3">
+                              <InputGroup.Text style={{ borderRadius: 10 }}>
+                                <Lock size={16} />
+                              </InputGroup.Text>
                               <Form.Control
                                 type="text"
                                 value={department}
                                 onChange={(e) => setDepartment(e.target.value)}
                                 required={!isLogin}
-                                placeholder="Enter your department"
+                                placeholder="Department"
+                                style={{ borderRadius: 10 }}
                               />
-                            </Form.Group>
+                            </InputGroup>
                           </>
                         )}
 
-                        <Form.Group className="mb-3">
-                          <Form.Label>Email</Form.Label>
+                        <InputGroup className="mb-3">
+                          <InputGroup.Text style={{ borderRadius: 10 }}>
+                            <Mail size={16} />
+                          </InputGroup.Text>
                           <Form.Control
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="Enter your email"
+                            placeholder="Email"
+                            style={{ borderRadius: 10 }}
                           />
-                        </Form.Group>
+                        </InputGroup>
 
-                        <Form.Group className="mb-3">
-                          <Form.Label>Password</Form.Label>
-                          <div className="input-group">
-                            <Form.Control
-                              type={showPassword ? 'text' : 'password'}
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              required
-                              placeholder="Enter your password"
-                            />
-                            <Button
-                              variant="outline-secondary"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </Button>
-                          </div>
-                        </Form.Group>
+                        <InputGroup className="mb-3">
+                          <InputGroup.Text style={{ borderRadius: 10 }}>
+                            <Lock size={16} />
+                          </InputGroup.Text>
+                          <Form.Control
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            placeholder="Password"
+                            style={{ borderRadius: 10 }}
+                          />
+                          <Button
+                            variant="outline-secondary"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{ marginLeft: 8, borderRadius: 10 }}
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </Button>
+                        </InputGroup>
 
                         {!isLogin && (
                           <>
@@ -223,7 +249,8 @@ function Login() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required={!isLogin}
-                                placeholder="Confirm your password"
+                                placeholder="Confirm password"
+                                style={{ borderRadius: 10 }}
                               />
                             </Form.Group>
 
@@ -233,18 +260,18 @@ function Login() {
                                 type="checkbox"
                                 label={
                                   <>
-                                    I agree to the{" "}
-                                    <Button 
-                                      variant="link" 
-                                      size="sm" 
+                                    I agree to the{' '}
+                                    <Button
+                                      variant="link"
+                                      size="sm"
                                       onClick={() => setShowModal(true)}
                                     >
                                       Terms & Conditions
-                                    </Button>{" "}
-                                    and{" "}
-                                    <Button 
-                                      variant="link" 
-                                      size="sm" 
+                                    </Button>{' '}
+                                    and{' '}
+                                    <Button
+                                      variant="link"
+                                      size="sm"
                                       onClick={() => setShowModal(true)}
                                     >
                                       Privacy Policy
@@ -275,10 +302,14 @@ function Login() {
                           size="lg"
                           className="w-100 mt-3"
                           style={{
-                            backgroundColor: isLogin ? "#27ae60" : "#f1c40f",
-                            border: "none",
-                            color: "#fff",
-                            fontWeight: 600
+                            background: isLogin
+                              ? 'linear-gradient(135deg,#27ae60,#1e8449)'
+                              : 'linear-gradient(135deg,#f1c40f,#d4ac0d)',
+                            border: 'none',
+                            color: '#fff',
+                            fontWeight: 700,
+                            borderRadius: 12,
+                            padding: '12px 16px',
                           }}
                           disabled={loading}
                         >
@@ -305,6 +336,7 @@ function Login() {
                             onChange={(e) => setResetEmail(e.target.value)}
                             required
                             placeholder="Enter your registered email"
+                            style={{ borderRadius: 10 }}
                           />
                         </Form.Group>
                         <div className="d-flex justify-content-end">
@@ -332,10 +364,7 @@ function Login() {
             md={7}
             className="d-none d-md-flex align-items-center justify-content-center"
             style={{
-              backgroundImage: `
-                linear-gradient(rgba(39, 174, 96, 0.7), rgba(241, 196, 15, 0.7)),
-                url('https://www.ispsctagudin.info/library/img/campus.jpg')
-              `,
+              backgroundImage: `url('https://www.ispsctagudin.info/library/img/campus.jpg')`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               color: "#fff",
@@ -343,12 +372,27 @@ function Login() {
             }}
           >
 
-            <div className="text-center px-5">
+            <div style={{
+              maxWidth: 640,
+              width: '100%',
+              padding: 32,
+              background: 'linear-gradient(180deg, rgba(11,34,24,0.55), rgba(11,34,24,0.28))',
+              borderRadius: 14,
+              boxShadow: '0 12px 30px rgba(0,0,0,0.3)'
+            }}>
               <h1 className="fw-bold mb-3">Welcome to FreshGroup</h1>
-              <p className="lead">
-                Empowering institutions with insights on student performance and demographics.  
-                Log in or create your account to explore analytics and clustering results.
-              </p>
+              <p className="lead mb-4">Empowering institutions with insights on student performance and demographics.</p>
+
+              <ul className="text-white mb-4" style={{ lineHeight: 1.9 }}>
+                <li>• Cluster students using advanced algorithms</li>
+                <li>• Visualize performance trends and demographics</li>
+                <li>• Export reports and share insights securely</li>
+              </ul>
+
+              <div className="d-flex">
+                <Button variant="light" style={{ color: '#2c3e50', fontWeight: 600, borderRadius: 10 }} className="me-3">Learn More</Button>
+                <Button variant="outline-light" style={{ borderRadius: 10 }}>Contact Us</Button>
+              </div>
             </div>
           </Col>
         </Row>
