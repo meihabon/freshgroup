@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
-  InputGroup, Badge, Spinner, Alert, Modal, Accordion 
+  InputGroup, Badge, Modal, Accordion 
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import RecordViewModal from './RecordViewModal'
@@ -27,8 +27,7 @@ function Students() {
   const { API } = useAuth()
   const [students, setStudents] = useState<Student[]>([])
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  // removed loading/error UI; errors will be logged to console
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -73,9 +72,8 @@ function Students() {
     setShsTypes(uniqueShsTypes as string[])
 
     } catch (error: any) {
-      setError(error.response?.data?.detail || 'Failed to fetch students')
-    } finally {
-      setLoading(false)
+      // log error for debugging; avoid throwing UI-blocking state
+      console.error(error.response?.data?.detail || error.message || 'Failed to fetch students')
     }
   }
 
@@ -273,15 +271,20 @@ function Students() {
             <Card.Body>
               <Row className="align-items-center gy-2">
                 <Col xs={12} md={6} lg={5}>
-                  <Form.Control
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by name, municipality, or program..."
-                    size="sm"
-                  />
+                  <InputGroup size="sm">
+                    <InputGroup.Text>
+                      <Search size={14} />
+                    </InputGroup.Text>
+                    <Form.Control
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search by name, municipality, or program..."
+                    />
+                  </InputGroup>
                 </Col>
 
                 <Col xs={6} md={3} lg={2}>
+                <Form.Label className="small fw-semibold">Show:</Form.Label>
                   <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
                     <option value={10}>10 rows</option>
                     <option value={20}>20 rows</option>
