@@ -93,15 +93,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'linear-gradient(90deg, #f7d27a 0%, #f1c40f 100%)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.08)', flexShrink: 0 }}>
                 {/* Initials avatar */}
-                <div style={{ width: 52, height: 52, borderRadius: 10, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '1.05rem', lineHeight: 1 }}>
-                  {(() => {
-                    const fullName = user?.profile?.name || ''
-                    if (!fullName) return (user?.email || 'U').slice(0,2).toUpperCase()
-                    const parts = fullName.trim().split(/\s+/)
-                    // If the full name is short (<= 18 chars) show full name; otherwise show first name
-                    if (fullName.length <= 18) return fullName
-                    return parts[0]
-                  })()}
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '1rem', lineHeight: 1 }}>
+                  {(user?.profile?.name || user?.email || 'U').trim().charAt(0).toUpperCase()}
                 </div>
               </div>
               <div className="flex-grow-1" style={{ minWidth: 0 }}>

@@ -5,6 +5,8 @@ import {
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import RecordViewModal from './RecordViewModal'
+import PageAbout from './PageAbout'
+import { Search as SearchIcon } from 'lucide-react'
 import { useAuth } from "../context/AuthContext"
 import { updateStudent } from "../api"
 interface Student {
@@ -378,12 +380,7 @@ function Students() {
         </div>
 
         <div className="main-column">
-          <Card className="mb-3">
-            <Card.Body>
-              <h6 className="mb-1">About this page</h6>
-              <p className="mb-0 text-muted small">Browse and filter student profiles. Use the filters on the left to refine results, change rows per page, or export the current selection as CSV. Click any row to view details.</p>
-            </Card.Body>
-          </Card>
+          <PageAbout text="Browse and filter student profiles. Use the filters on the left to refine results, change rows per page, or export the current selection as CSV. Click any row to view details." icon={SearchIcon} accentColor="#27ae60" />
           {/* Top row: title and search */}
           <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
             <h2 className="fw-bold mb-0">Students</h2>

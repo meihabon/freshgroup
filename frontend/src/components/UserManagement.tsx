@@ -21,7 +21,9 @@ import {
   Eye,
   EyeOff,
   Download,
+  Settings,
 } from "lucide-react"
+import PageAbout from './PageAbout'
 import { useAuth } from "../context/AuthContext"
 import RecordViewModal from './RecordViewModal'
 import jsPDF from "jspdf"
@@ -214,14 +216,6 @@ const handleResetPassword = async () => {
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to delete user")
     }
-  }
-
-    // --- 📊 Download CSV ---
-  const handleDownloadCSV = () => {
-    if (users.length === 0) {
-      setError("No users available to download")
-      return
-    }
     const header = ["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"] 
     const rows = users.map((u) => [
       u.id,
@@ -274,6 +268,33 @@ const handleResetPassword = async () => {
     })
 
     doc.save("users.pdf")
+  }
+
+  const handleDownloadCSV = () => {
+    if (users.length === 0) {
+      setError("No users available to download")
+      return
+    }
+    const header = ["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"]
+    const rows = users.map((u) => [
+      u.id,
+      u.email,
+      u.role,
+      u.profile?.name || "",
+      u.profile?.department || "",
+      u.profile?.position || "",
+      u.active ? "Active" : "Inactive",
+      new Date(u.created_at).toLocaleString(),
+    ])
+    const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", "users.csv")
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
 
@@ -337,12 +358,7 @@ const handleResetPassword = async () => {
     <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
-        <Card className="mb-3">
-          <Card.Body>
-            <h6 className="mb-1">About this page</h6>
-            <p className="mb-0 text-muted small">Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins.</p>
-          </Card.Body>
-        </Card>
+        <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
         <div className="btn-group" role="group" aria-label="Download options">
           <Button variant="success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
             <Download size={16} className="me-2" /> CSV

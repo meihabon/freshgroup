@@ -4,6 +4,7 @@ import {
   Spinner, Alert, Badge, ProgressBar, Accordion
 } from 'react-bootstrap'
 import { Upload, Trash2, Eye, Database, Download } from 'lucide-react'
+import PageAbout from './PageAbout'
 import { useAuth } from '../context/AuthContext'
 import Plot from 'react-plotly.js'
 import * as XLSX from 'xlsx'
@@ -349,12 +350,7 @@ const elbowPlot = () => {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="fw-bold">Dataset History</h2>
-        <Card className="mb-3">
-          <Card.Body>
-            <h6 className="mb-1">About this page</h6>
-            <p className="mb-0 text-muted small">Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts.</p>
-          </Card.Body>
-        </Card>
+          <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
         <Button variant="primary" onClick={() => setShowUpload(true)}>
           <Upload size={18} className="me-2" />
           Upload New Dataset

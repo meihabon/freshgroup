@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Row, Col, Card, Spinner, Alert, Modal, Table } from 'react-bootstrap'
 import { Users, GraduationCap, MapPin, DollarSign, School, Award, User } from 'lucide-react'
+import PageAbout from './PageAbout'
 import Plot from 'react-plotly.js'
 import { useAuth } from "../context/AuthContext"
 interface DashboardStats {
@@ -108,12 +109,7 @@ function Dashboard() {
       {/* Title */}
       <div className="mb-4">
         <h2 className="fw-bold">DASHBOARD</h2>
-        <Card className="mb-3">
-          <Card.Body>
-            <h6 className="mb-1">About this page</h6>
-            <p className="mb-0 text-muted small">Overview of key metrics and charts. Use filters to narrow down and click cards to explore related records.</p>
-          </Card.Body>
-        </Card>
+        <PageAbout text="Overview of key metrics and charts. Use filters to narrow down and click cards to explore related records." icon={Users} accentColor="#27ae60" />
         <p className="text-muted">A comprehensive overview of student demographics and performance indicators.</p>
       </div>
 
