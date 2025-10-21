@@ -278,6 +278,12 @@ body, h1, h2, h3, h4, h5, h6, p {
     margin-right: 8px;
     width: 45%;
   }
+
+  /* users table mobile card support */
+  .users-table thead { display: none; }
+  .users-table tbody tr { display: block; margin-bottom: 12px; background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 12px; }
+  .users-table tbody td { display: flex; justify-content: space-between; padding: 6px 0; border: none !important; }
+  .users-table tbody td:before { content: attr(data-label); font-weight: 600; color: #333; margin-right: 8px; width: 45%; }
 }
 
 .sidebar .nav-link {

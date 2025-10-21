@@ -9,7 +9,6 @@ import {
   FileText, 
   Database, 
   Settings,
-  User,
   Home,
   HelpCircle    // ✅ matches Help.tsx (Help)
 } from 'lucide-react'
@@ -89,16 +88,24 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
         </div>
 
-        {/* Separate user block beneath the brand header */}
+        {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
-          <div className="d-flex align-items-center gap-2 sidebar-user">
-            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(44,62,80,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={20} className="text-dark" />
+          <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'rgba(255,255,255,0.95)', padding: 12, borderRadius: 10 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+              {/* Initials avatar */}
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f3f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#2c3e50' }}>
+                {user?.profile?.name ? (user.profile.name.split(' ').map((n: string) => n[0]).slice(0,2).join('')) : (user?.email || 'U').slice(0,2).toUpperCase()}
+              </div>
             </div>
             <div className="flex-grow-1">
               <div className="d-flex align-items-center justify-content-between">
-                <small className="fw-semibold text-dark">{user?.profile?.name || user?.email}</small>
-                <small className="badge rounded-pill px-2 py-1" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.7rem' }}>{user?.role}</small>
+                <div>
+                  <div className="fw-semibold text-dark">{user?.profile?.name || user?.email}</div>
+                  <div className="small text-muted">{user?.email}</div>
+                </div>
+                <div>
+                  <span className="badge rounded-pill" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>
+                </div>
               </div>
               <div className="mt-2 d-flex gap-2">
                 <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">

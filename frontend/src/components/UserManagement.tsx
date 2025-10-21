@@ -23,6 +23,7 @@ import {
   Download,
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import RecordViewModal from './RecordViewModal'
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import * as XLSX from "xlsx"
@@ -74,6 +75,9 @@ function UserManagement() {
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
+
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewedUser, setViewedUser] = useState<UserType | null>(null)
 
   const totalUsers = users.length
   const adminCount = users.filter((u) => u.role === "Admin").length
@@ -393,7 +397,7 @@ const handleResetPassword = async () => {
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive">
-            <Table striped hover className="mb-0">
+            <Table striped hover className="mb-0 users-table table-sm">
               <thead>
                 <tr>
                   <th>User</th>
@@ -408,31 +412,31 @@ const handleResetPassword = async () => {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>
+                  <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
+                    <td data-label="User">
                       <div>
                         <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
                         <small className="text-muted">ID: {u.id}</small>
                       </div>
                     </td>
-                    <td>{u.email}</td>
-                    <td><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
-                    <td>{u.profile?.department || "N/A"}</td>
-                    <td>{u.profile?.position || "N/A"}</td>   
-                    <td>
+                    <td data-label="Email">{u.email}</td>
+                    <td data-label="Role"><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
+                    <td data-label="Department">{u.profile?.department || "N/A"}</td>
+                    <td data-label="Position">{u.profile?.position || "N/A"}</td>   
+                    <td data-label="Status">
                       <Badge bg={u.active ? "success" : "secondary"}>
                         {u.active ? "Active" : "Inactive"}
                       </Badge>
                     </td>
-                    <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowEdit(u)}>
+                    <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
+                    <td data-label="Actions">
+                      <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
                         <Edit size={14} />
                       </Button>
-                      <Button variant="outline-secondary" size="sm" className="me-2" onClick={() => handleShowResetPassword(u)}>
+                      <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
                         <Key size={14} />
                       </Button>
-                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteUser(u.id)}>
+                      <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
                         <Trash size={14} />
                       </Button>
                     </td>
@@ -443,6 +447,22 @@ const handleResetPassword = async () => {
           </div>
         </Card.Body>
       </Card>
+
+      {/* Read-only view modal for users */}
+      <RecordViewModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title={viewedUser ? `${viewedUser.profile?.name || viewedUser.email}` : 'User Details'}
+        fields={viewedUser ? [
+          { label: 'Name', value: viewedUser.profile?.name || '—' },
+          { label: 'Email', value: viewedUser.email },
+          { label: 'Role', value: viewedUser.role },
+          { label: 'Department', value: viewedUser.profile?.department || '—' },
+          { label: 'Position', value: viewedUser.profile?.position || '—' },
+          { label: 'Status', value: viewedUser.active ? 'Active' : 'Inactive' },
+          { label: 'Created', value: new Date(viewedUser.created_at).toLocaleString() },
+        ] : []}
+      />
 
       {/* Add/Edit User Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>

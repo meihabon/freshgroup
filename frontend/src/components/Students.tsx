@@ -235,7 +235,7 @@ function Students() {
 
     try {
       const res = await updateStudent(selectedStudent.id, payload)
-      alert(res.data.message || "Student updated successfully")  // 👈 show backend message
+      alert(res.data.message || "Student updated successfully")  
       setShowEditModal(false)
       fetchStudents()
     } catch (error: any) {
@@ -266,11 +266,20 @@ function Students() {
       <div className="students-layout mb-4">
         <div className="filters-column">
           <Card className="filter-section mb-4">
+            <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="mb-0">Filters</h6>
+                <small className="text-muted">Refine the list of students</small>
+              </div>
+              <Button variant="outline-secondary" size="sm" onClick={clearFilters}>
+                <Filter size={14} className="me-1" /> Reset
+              </Button>
+            </div>
             <Card.Body>
-              <Row className="g-3">
+              <Row className="g-2">
                 <Col xs={12}>
-                  <Form.Label>Program</Form.Label>
-                  <Form.Select value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}>
+                  <Form.Label className="small fw-semibold">Program</Form.Label>
+                  <Form.Select value={programFilter} onChange={(e) => setProgramFilter(e.target.value)} size="sm">
                     <option value="">All Programs</option>
                     {programs.map(program => (
                       <option key={program} value={program}>{program}</option>
@@ -278,9 +287,9 @@ function Students() {
                   </Form.Select>
                 </Col>
 
-                <Col xs={12}>
-                  <Form.Label>Sex</Form.Label>
-                  <Form.Select value={sexFilter} onChange={(e) => setSexFilter(e.target.value)}>
+                <Col xs={6}>
+                  <Form.Label className="small fw-semibold">Sex</Form.Label>
+                  <Form.Select value={sexFilter} onChange={(e) => setSexFilter(e.target.value)} size="sm">
                     <option value="">All</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -288,9 +297,18 @@ function Students() {
                   </Form.Select>
                 </Col>
 
+                <Col xs={6}>
+                  <Form.Label className="small fw-semibold">Area Type</Form.Label>
+                  <Form.Select value={areaTypeFilter} onChange={(e) => setAreaTypeFilter(e.target.value)} size="sm">
+                    <option value="">All Areas</option>
+                    <option value="Upland">Upland</option>
+                    <option value="Lowland">Lowland</option>
+                  </Form.Select>
+                </Col>
+
                 <Col xs={12}>
-                  <Form.Label>Municipality</Form.Label>
-                  <Form.Select value={municipalityFilter} onChange={(e) => setMunicipalityFilter(e.target.value)}>
+                  <Form.Label className="small fw-semibold">Municipality</Form.Label>
+                  <Form.Select value={municipalityFilter} onChange={(e) => setMunicipalityFilter(e.target.value)} size="sm">
                     <option value="">All Municipalities</option>
                     {municipalities.map(municipality => (
                       <option key={municipality} value={municipality}>{municipality}</option>
@@ -299,20 +317,8 @@ function Students() {
                 </Col>
 
                 <Col xs={12}>
-                  <Form.Label>Area Type</Form.Label>
-                  <Form.Select
-                    value={areaTypeFilter}
-                    onChange={(e) => setAreaTypeFilter(e.target.value)}
-                  >
-                    <option value="">All Areas</option>
-                    <option value="Upland">Upland</option>
-                    <option value="Lowland">Lowland</option>
-                  </Form.Select>
-                </Col>
-
-                <Col xs={12}>
-                  <Form.Label>Income Category</Form.Label>
-                  <Form.Select value={incomeFilter} onChange={(e) => setIncomeFilter(e.target.value)}>
+                  <Form.Label className="small fw-semibold">Income Category</Form.Label>
+                  <Form.Select value={incomeFilter} onChange={(e) => setIncomeFilter(e.target.value)} size="sm">
                     <option value="">All Income Levels</option>
                     <option value="Poor">Poor</option>
                     <option value="Low-Income">Low-Income</option>
@@ -326,8 +332,8 @@ function Students() {
                 </Col>
 
                 <Col xs={12}>
-                  <Form.Label>SHS Type</Form.Label>
-                  <Form.Select value={shsFilter} onChange={(e) => setShsFilter(e.target.value)}>
+                  <Form.Label className="small fw-semibold">SHS Type</Form.Label>
+                  <Form.Select value={shsFilter} onChange={(e) => setShsFilter(e.target.value)} size="sm">
                     <option value="">All SHS Types</option>
                     {shsTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
@@ -336,8 +342,8 @@ function Students() {
                 </Col>
 
                 <Col xs={12}>
-                  <Form.Label>Honors</Form.Label>
-                  <Form.Select value={honorsFilter} onChange={(e) => setHonorsFilter(e.target.value)}>
+                  <Form.Label className="small fw-semibold">Honors</Form.Label>
+                  <Form.Select value={honorsFilter} onChange={(e) => setHonorsFilter(e.target.value)} size="sm">
                     <option value="">All Honors</option>
                     <option value="Average">Average</option>
                     <option value="With Honors">With Honors</option>
@@ -345,13 +351,6 @@ function Students() {
                     <option value="With Highest Honors">With Highest Honors</option>
                     <option value="Unknown">Unknown</option>
                   </Form.Select>
-                </Col>
-
-                <Col xs={12} className="d-grid mt-2">
-                  <Button variant="outline-secondary" onClick={clearFilters} className="w-100">
-                    <Filter size={16} className="me-2" />
-                    Clear Filters
-                  </Button>
                 </Col>
               </Row>
             </Card.Body>
