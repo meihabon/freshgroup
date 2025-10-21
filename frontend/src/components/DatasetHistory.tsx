@@ -348,20 +348,24 @@ const elbowPlot = () => {
   return (
     <div className="fade-in">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-2">
         <h2 className="fw-bold">Dataset History</h2>
-          <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
-        <Button variant="primary" onClick={() => setShowUpload(true)}>
+        <Button variant="outline-primary" onClick={() => setShowUpload(true)}>
           <Upload size={18} className="me-2" />
           Upload New Dataset
         </Button>
+      </div>
+
+      {/* About card directly under heading */}
+      <div className="mb-4">
+        <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
       </div>
 
       {/* 🔹 Distinct Template Download Section */}
       <div className="mb-4">
         <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
         <div className="d-flex gap-2">
-          <Button variant="success" onClick={handleDownloadTemplateCSV}>
+          <Button variant="outline-success" onClick={handleDownloadTemplateCSV}>
             <Download size={16} className="me-2" /> CSV Template
           </Button>
           <Button variant="outline-success" onClick={handleDownloadTemplateExcel}>
@@ -615,7 +619,7 @@ const elbowPlot = () => {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowUpload(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleUpload} disabled={!selectedFile || uploadLoading}>
+          <Button variant={uploadLoading ? 'primary' : 'outline-primary'} onClick={handleUpload} disabled={!selectedFile || uploadLoading}>
             {uploadLoading ? (
               <>
                 <Spinner size="sm" className="me-2" /> Processing...

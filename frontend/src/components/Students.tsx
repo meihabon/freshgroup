@@ -265,7 +265,7 @@ function Students() {
 
   return (
     <div className="fade-in">
-      <div className="students-layout mb-4">
+  <div className="students-layout mb-4 d-flex align-items-start">
         <div className="filters-column">
           <Card className="filter-section mb-4">
             <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
@@ -380,9 +380,8 @@ function Students() {
         </div>
 
         <div className="main-column">
-          <PageAbout text="Browse and filter student profiles. Use the filters on the left to refine results, change rows per page, or export the current selection as CSV. Click any row to view details." icon={SearchIcon} accentColor="#27ae60" />
           {/* Top row: title and search */}
-          <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+          <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
             <h2 className="fw-bold mb-0">Students</h2>
             <div className="d-flex align-items-center gap-2">
               <InputGroup className="me-2" style={{ minWidth: 260 }}>
@@ -404,12 +403,17 @@ function Students() {
                 </Form.Select>
 
                 <div className="btn-group" role="group" aria-label="Export options">
-                  <Button variant="success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
+                  <Button variant="outline-success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
                     <Download size={18} className="me-2" /> Export CSV
                   </Button>
                 </div>
               </div>
             </div>
+
+          {/* About card placed directly under heading */}
+          <div className="mb-4">
+            <PageAbout text="Browse and filter student profiles. Use the filters on the left to refine results, change rows per page, or export the current selection as CSV. Click any row to view details." icon={SearchIcon} accentColor="#27ae60" />
+          </div>
           </div>
 
           <Card>

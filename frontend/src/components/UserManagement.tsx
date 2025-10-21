@@ -355,25 +355,29 @@ const handleResetPassword = async () => {
 
   return (
   <div className="fade-in">
-    <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
-        <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
         <div className="btn-group" role="group" aria-label="Download options">
-          <Button variant="success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
+          <Button variant="outline-success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
             <Download size={16} className="me-2" /> CSV
           </Button>
-          <Button variant="danger" onClick={handleDownloadPDF} className="d-flex align-items-center px-3 py-2">
+          <Button variant="outline-danger" onClick={handleDownloadPDF} className="d-flex align-items-center px-3 py-2">
             <Download size={16} className="me-2" /> PDF
           </Button>
-          <Button variant="info" onClick={handleDownloadExcel} className="d-flex align-items-center px-3 py-2">
+          <Button variant="outline-info" onClick={handleDownloadExcel} className="d-flex align-items-center px-3 py-2">
             <Download size={16} className="me-2" /> Excel
           </Button>
         </div>
       </div>
-      <Button variant="primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
+      <Button variant="outline-primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
         <UserPlus size={16} className="me-2" /> Add User
       </Button>
+    </div>
+
+    {/* About card directly under heading */}
+    <div className="mb-4">
+      <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
     </div>
 
 
