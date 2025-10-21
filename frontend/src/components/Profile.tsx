@@ -134,10 +134,6 @@ function Profile() {
           <h2 className="fw-bold">Profile Settings</h2>
             <PageAbout text="Update your profile and change your password. Keep your contact and department information current for accurate reporting." icon={User} accentColor="#6f42c1" />
         </div>
-        <div className="d-flex align-items-center">
-          <User size={20} className="me-2 text-muted" />
-          <span className="text-muted">{user?.email}</span>
-        </div>
       </div>
 
       {success && <Alert variant="success">{success}</Alert>}

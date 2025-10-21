@@ -401,6 +401,7 @@ const elbowPlot = () => {
             <option value="Active">Active</option>
             <option value="Archived">Archived</option>
           </Form.Select>
+          <Form.Label className="small fw-semibold">Show:</Form.Label>
           <Form.Select size="sm" value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
             <option value={5}>5 rows</option>
             <option value={10}>10 rows</option>
