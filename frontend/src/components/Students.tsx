@@ -254,7 +254,6 @@ function Students() {
           <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
             <div>
               <h2 className="fw-bold mb-0">Students</h2>
-              <small className="text-muted">Manage enrolled students and their attributes</small>
             </div>
 
             <div>
