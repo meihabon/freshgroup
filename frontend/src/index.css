@@ -162,9 +162,9 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 /* Sidebar user block (compact) */
 .sidebar-user {
-  background: rgba(0,0,0,0.06);
-  padding: 10px;
-  border-radius: 8px;
+  background: rgba(255,255,255,0.9);
+  padding: 12px;
+  border-radius: 10px;
 }
 
 .sidebar-user .fw-semibold {
@@ -192,6 +192,92 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 .sidebar-user .btn-light:hover {
   filter: brightness(0.98);
+}
+
+/* Make outline-success/danger readable on colored sidebar header */
+.sidebar-user .btn-outline-success {
+  border-color: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+.sidebar-user .btn-outline-success:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.sidebar-user .btn-outline-danger {
+  border-color: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+.sidebar-user .btn-outline-danger:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+/* ensure header separation */
+.sidebar-header {
+  border-bottom: 0;
+}
+
+/* Students layout helpers: left filters column, top search */
+.students-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+}
+
+.filters-column {
+  position: sticky;
+  top: 80px;
+}
+
+@media (max-width: 991px) {
+  .students-layout {
+    grid-template-columns: 1fr;
+  }
+  .filters-column {
+    position: static;
+  }
+}
+
+/* Mobile: render table rows as cards */
+@media (max-width: 767px) {
+  .students-table thead,
+  .datasets-table thead,
+  .clusters-table thead {
+    display: none;
+  }
+
+  .students-table tbody tr,
+  .datasets-table tbody tr,
+  .clusters-table tbody tr {
+    display: block;
+    margin-bottom: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .students-table tbody td,
+  .datasets-table tbody td,
+  .clusters-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border: none !important;
+  }
+
+  .students-table tbody td:before,
+  .datasets-table tbody td:before,
+  .clusters-table tbody td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+    width: 45%;
+  }
 }
 
 .sidebar .nav-link {

@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
 import Plot from "react-plotly.js"
+import RecordViewModal from './RecordViewModal'
 
 /**
  * Types
@@ -82,6 +83,9 @@ function Clusters() {
 
   const [currentPage, setCurrentPage] = useState<number>(1)
   const studentsPerPage = 20
+
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewedStudent, setViewedStudent] = useState<Student | null>(null)
 
   const pairableFeatures = ["GWA", "income", "sex", "program", "municipality", "shs_type"]
 
@@ -612,7 +616,7 @@ const renderClusterSection = (
               </div>
 
               <div className="table-responsive">
-                <Table striped hover responsive>
+                <Table striped hover responsive className="mb-0 clusters-table table-sm">
                   <thead>
                     <tr>
                       <th>First Name</th>
@@ -631,12 +635,12 @@ const renderClusterSection = (
                     {data.clusters[selectedCluster]
                       .slice((currentPage - 1) * studentsPerPage, currentPage * studentsPerPage)
                       .map((s) => (
-                        <tr key={s.id}>
-                          <td>{s.firstname}</td>
-                          <td>{s.lastname}</td>
-                          <td>{s.program}</td>
-                          <td>{s.municipality}</td>
-                          <td>
+                        <tr key={s.id} onClick={() => { setViewedStudent(s); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
+                          <td data-label="First Name">{s.firstname}</td>
+                          <td data-label="Last Name">{s.lastname}</td>
+                          <td data-label="Program">{s.program}</td>
+                          <td data-label="Municipality">{s.municipality}</td>
+                          <td data-label="Area Type">
                             <span
                               className={
                                 getAreaType(s.municipality) === "Upland"
@@ -649,11 +653,11 @@ const renderClusterSection = (
                               {getAreaType(s.municipality)}
                             </span>
                           </td>
-                          <td>{s.GWA}</td>
-                          <td>{s.Honors}</td>
-                          <td>₱{(s.income ?? 0).toLocaleString?.() ?? s.income}</td>
-                          <td>{s.IncomeCategory}</td>
-                          <td>{s.SHS_type}</td>
+                          <td data-label="GWA">{s.GWA}</td>
+                          <td data-label="Honors">{s.Honors}</td>
+                          <td data-label="Income">₱{(s.income ?? 0).toLocaleString?.() ?? s.income}</td>
+                          <td data-label="Income Category">{s.IncomeCategory}</td>
+                          <td data-label="SHS Type">{s.SHS_type}</td>
                         </tr>
                       ))}
                   </tbody>
@@ -668,6 +672,24 @@ const renderClusterSection = (
             </Card.Body>
           </Card>
         )}
+        {/* Read-only modal for viewing student details */}
+        <RecordViewModal
+          show={showViewModal}
+          onHide={() => setShowViewModal(false)}
+          title={viewedStudent ? `${viewedStudent.firstname} ${viewedStudent.lastname}` : 'Student Details'}
+          fields={viewedStudent ? [
+            { label: 'First Name', value: viewedStudent.firstname || '—' },
+            { label: 'Last Name', value: viewedStudent.lastname || '—' },
+            { label: 'Program', value: viewedStudent.program || '—' },
+            { label: 'Municipality', value: viewedStudent.municipality || '—' },
+            { label: 'Area Type', value: getAreaType(viewedStudent.municipality) },
+            { label: 'Income', value: viewedStudent.income === undefined || viewedStudent.income === null ? '—' : `₱${viewedStudent.income.toLocaleString()}` },
+            { label: 'SHS Type', value: viewedStudent.SHS_type || '—' },
+            { label: 'GWA', value: viewedStudent.GWA === undefined || viewedStudent.GWA === null ? '—' : viewedStudent.GWA },
+            { label: 'Honors', value: viewedStudent.Honors || '—' },
+            { label: 'Income Category', value: viewedStudent.IncomeCategory || '—' },
+          ] : []}
+        />
       </>
     )
   }

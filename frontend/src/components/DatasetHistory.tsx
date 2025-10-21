@@ -11,6 +11,7 @@ import { saveAs } from 'file-saver'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import type { PlotType } from 'plotly.js'
+import RecordViewModal from './RecordViewModal'
 interface Dataset {
   id: number
   filename: string
@@ -33,6 +34,8 @@ function DatasetHistory() {
   const [clusterCount, setClusterCount] = useState(3)
   const [previewRows, setPreviewRows] = useState<any[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewedDataset, setViewedDataset] = useState<Dataset | null>(null)
 
   // Elbow preview state
   const [elbowLoading, setElbowLoading] = useState(false)
@@ -166,6 +169,11 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     } catch (error: any) {
       setError(error.response?.data?.detail || "Failed to preview dataset")
     }
+  }
+
+  const handleRowClick = (dataset: Dataset) => {
+    setViewedDataset(dataset)
+    setShowViewModal(true)
   }
 
   const handleDownload = async (id: number) => {
@@ -434,32 +442,32 @@ const elbowPlot = () => {
                 </thead>
                 <tbody>
                   {datasets.map((dataset, index) => (
-                    <tr key={dataset.id}>
-                      <td className="fw-semibold">{dataset.filename}</td>
-                      <td>{dataset.uploaded_by_email}</td>
-                      <td>{formatDate(dataset.upload_date)}</td>
-                      <td>
+                    <tr key={dataset.id} onClick={() => handleRowClick(dataset)} style={{ cursor: 'pointer' }}>
+                      <td data-label="Filename" className="fw-semibold">{dataset.filename}</td>
+                      <td data-label="Uploaded By">{dataset.uploaded_by_email}</td>
+                      <td data-label="Upload Date">{formatDate(dataset.upload_date)}</td>
+                      <td data-label="Students">
                         <Badge bg="info">{dataset.student_count?.toLocaleString() || 'N/A'}</Badge>
                       </td>
-                      <td>
+                      <td data-label="Clusters">
                         <Badge bg="success">{dataset.cluster_count || 'N/A'}</Badge>
                       </td>
-                      <td>
+                      <td data-label="Status">
                         {index === 0 ? (
                           <Badge bg="primary">Active</Badge>
                         ) : (
                           <Badge bg="secondary">Archived</Badge>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         <div className="d-flex gap-2">
-                          <Button variant="outline-info" size="sm" onClick={() => handlePreview(dataset.id)}>
+                          <Button variant="outline-info" size="sm" onClick={(e) => { e.stopPropagation(); handlePreview(dataset.id); }}>
                             <Eye size={14} />
                           </Button>
-                          <Button variant="outline-success" size="sm" onClick={() => handleDownload(dataset.id)}>
+                          <Button variant="outline-success" size="sm" onClick={(e) => { e.stopPropagation(); handleDownload(dataset.id); }}>
                             <Download size={14} />
                           </Button>
-                          <Button variant="outline-danger" size="sm" onClick={() => deleteDataset(dataset.id)}>
+                          <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); deleteDataset(dataset.id); }}>
                             <Trash2 size={14} />
                           </Button>
                         </div>
@@ -618,6 +626,19 @@ const elbowPlot = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      {/* Read-only view modal for dataset rows */}
+      <RecordViewModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title="Dataset Details"
+        fields={viewedDataset ? [
+          { label: 'Filename', value: viewedDataset.filename },
+          { label: 'Uploaded By', value: viewedDataset.uploaded_by_email },
+          { label: 'Upload Date', value: formatDate(viewedDataset.upload_date) },
+          { label: 'Students', value: viewedDataset.student_count?.toLocaleString() || 'N/A' },
+          { label: 'Clusters', value: viewedDataset.cluster_count || 'N/A' },
+        ] : []}
+      />
       <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
         <Modal.Header closeButton className="bg-light">
           <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>

@@ -33,23 +33,6 @@ const Help: React.FC = () => {
         step by step, so you can maximize its potential in your work.
       </p>
 
-      {/* ROLE ACCESS */}
-      <p className="text-muted">
-        Access and functionality depend on your assigned role:
-      </p>
-      <ul>
-        <li>
-          <b>Admins</b> <Badge bg="danger">Full Access</Badge>  
-          – Manage datasets, configure clustering, generate reports, 
-          and ensure data integrity across the system.
-        </li>
-        <li>
-          <b>Viewers</b> <Badge bg="secondary">Limited Access</Badge>  
-          – Explore dashboards, analyze clusters, and download reports.  
-          Viewers <i>cannot</i> modify or upload datasets.
-        </li>
-      </ul>
-
       {/* ACCORDION START */}
       <Accordion defaultActiveKey="0" alwaysOpen>
 

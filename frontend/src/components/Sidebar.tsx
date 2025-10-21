@@ -81,28 +81,30 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom">
+        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom sidebar-header">
           <div className="d-flex align-items-center mb-1">
             <BarChart size={26} className="me-2 text-white" />
             <h5 className="mb-0 fw-bold">FreshGroup</h5>
           </div>
           <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+        </div>
 
-          {/* Compact user block under the brand */}
-          <div className="mt-3 d-flex align-items-center gap-2 sidebar-user">
-            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={20} className="text-white" />
+        {/* Separate user block beneath the brand header */}
+        <div className="p-3 border-bottom">
+          <div className="d-flex align-items-center gap-2 sidebar-user">
+            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(44,62,80,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={20} className="text-dark" />
             </div>
             <div className="flex-grow-1">
               <div className="d-flex align-items-center justify-content-between">
-                <small className="fw-semibold text-white">{user?.profile?.name || user?.email}</small>
+                <small className="fw-semibold text-dark">{user?.profile?.name || user?.email}</small>
                 <small className="badge rounded-pill px-2 py-1" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.7rem' }}>{user?.role}</small>
               </div>
               <div className="mt-2 d-flex gap-2">
-                <Button variant="outline-light" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
+                <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
                   Profile
                 </Button>
-                <Button variant="light" size="sm" onClick={handleLogout} className="py-1">
+                <Button variant="danger" size="sm" onClick={handleLogout} className="py-1">
                   Logout
                 </Button>
               </div>
