@@ -28,6 +28,25 @@ function Profile() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
+  // Password strength helper (simple heuristic)
+  const getPasswordScore = (pw: string) => {
+    if (!pw) return 0
+    let score = 0
+    if (pw.length >= 8) score += 1
+    if (pw.length >= 12) score += 1
+    if (/[A-Z]/.test(pw)) score += 1
+    if (/[0-9]/.test(pw)) score += 1
+    if (/[^A-Za-z0-9]/.test(pw)) score += 1
+    return Math.min(100, (score / 5) * 100)
+  }
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { label: 'Too short', color: '#e0e0e0' }
+    if (score < 40) return { label: 'Weak', color: '#f86c6b' }
+    if (score < 70) return { label: 'Medium', color: '#f0ad4e' }
+    return { label: 'Strong', color: '#28a745' }
+  }
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -273,11 +292,23 @@ function Profile() {
                           {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
                         </Button>
                       </InputGroup>
-                      {/* Inline feedback for password length */}
-                      {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 ? (
+                      {/* Strength meter and inline length feedback */}
+                      <div className="mt-2">
+                        {(() => {
+                          const score = getPasswordScore(passwordData.newPassword)
+                          const info = getStrengthLabel(score)
+                          return (
+                            <>
+                              <div style={{ height: 8, background: '#e9ecef', borderRadius: 6, overflow: 'hidden' }}>
+                                <div style={{ width: `${score}%`, height: '100%', background: info.color }} />
+                              </div>
+                              <small className="text-muted">{info.label} • {passwordData.newPassword.length} chars</small>
+                            </>
+                          )
+                        })()}
+                      </div>
+                      {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 && (
                         <Form.Text className="text-danger">Password must be at least 6 characters long</Form.Text>
-                      ) : (
-                        <Form.Text className="text-muted">Password must be at least 6 characters long</Form.Text>
                       )}
                     </Form.Group>
 
@@ -298,7 +329,7 @@ function Profile() {
                       )}
                     </Form.Group>
 
-                    <Button type="submit" variant="primary" disabled={loading}>
+                    <Button type="submit" variant="primary" disabled={loading || passwordData.newPassword.length < 6 || passwordData.newPassword !== passwordData.confirmPassword}>
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" />

@@ -82,6 +82,25 @@ function UserManagement() {
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
 
+  // Password strength helpers
+  const getPasswordScore = (pw: string) => {
+    if (!pw) return 0
+    let score = 0
+    if (pw.length >= 8) score += 1
+    if (pw.length >= 12) score += 1
+    if (/[A-Z]/.test(pw)) score += 1
+    if (/[0-9]/.test(pw)) score += 1
+    if (/[^A-Za-z0-9]/.test(pw)) score += 1
+    return Math.min(100, (score / 5) * 100)
+  }
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { label: 'Too short', color: '#e0e0e0' }
+    if (score < 40) return { label: 'Weak', color: '#f86c6b' }
+    if (score < 70) return { label: 'Medium', color: '#f0ad4e' }
+    return { label: 'Strong', color: '#28a745' }
+  }
+
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewedUser, setViewedUser] = useState<UserType | null>(null)
 
@@ -701,6 +720,27 @@ const handleResetPassword = async () => {
                 {showResetPasswordField ? <EyeOff size={16} /> : <Eye size={16} />}
               </Button>
             </div>
+
+            {/* Strength meter */}
+            <div className="mt-2">
+              {(() => {
+                const score = getPasswordScore(resetForm.newPassword)
+                const info = getStrengthLabel(score)
+                return (
+                  <>
+                    <div style={{ height: 8, background: '#e9ecef', borderRadius: 6, overflow: 'hidden' }}>
+                      <div style={{ width: `${score}%`, height: '100%', background: info.color }} />
+                    </div>
+                    <small className="text-muted">{info.label} • {resetForm.newPassword.length} chars</small>
+                  </>
+                )
+              })()}
+            </div>
+            {resetForm.newPassword && resetForm.newPassword.length > 0 && resetForm.newPassword.length < 6 && (
+              <Form.Text className="text-danger">
+                Password must be at least 6 characters
+              </Form.Text>
+            )}
           </Form.Group>
 
             <Form.Group className="mb-3">
@@ -712,17 +752,9 @@ const handleResetPassword = async () => {
                   setResetForm({ ...resetForm, confirmPassword: e.target.value })
                 }
               />
-              {resetForm.confirmPassword &&
-                resetForm.newPassword !== resetForm.confirmPassword && (
-                  <Form.Text className="text-danger">Passwords do not match</Form.Text>
-                )}
-              {resetForm.newPassword &&
-                resetForm.newPassword.length > 0 &&
-                resetForm.newPassword.length < 6 && (
-                  <Form.Text className="text-danger">
-                    Password must be at least 6 characters
-                  </Form.Text>
-                )}
+              {resetForm.confirmPassword && resetForm.newPassword !== resetForm.confirmPassword && (
+                <Form.Text className="text-danger">Passwords do not match</Form.Text>
+              )}
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -733,7 +765,7 @@ const handleResetPassword = async () => {
           <Button
             variant="primary"
             onClick={handleResetPassword}
-            disabled={saving}
+            disabled={saving || resetForm.newPassword.length < 6 || resetForm.newPassword !== resetForm.confirmPassword}
           >
             {saving ? <Spinner size="sm" animation="border" /> : "Update Password"}
           </Button>

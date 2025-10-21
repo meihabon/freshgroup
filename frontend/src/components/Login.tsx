@@ -462,9 +462,9 @@ function Login() {
               <p className="lead mb-4">Empowering institutions with insights on student performance and demographics.</p>
 
               <ul className="text-white mb-4" style={{ lineHeight: 1.9 }}>
-                <li>• Cluster students using advanced algorithms</li>
-                <li>• Visualize performance trends and demographics</li>
-                <li>• Export reports and share insights securely</li>
+                <li>Cluster students using advanced algorithms</li>
+                <li>Visualize performance trends and demographics</li>
+                <li>Export reports and share insights securely</li>
               </ul>
 
             </div>
