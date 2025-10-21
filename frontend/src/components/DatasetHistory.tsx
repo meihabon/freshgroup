@@ -29,6 +29,10 @@ function DatasetHistory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('All')
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10)
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const [uploadLoading, setUploadLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -53,6 +57,16 @@ function DatasetHistory() {
       fetchDatasets()
     }
   }, [user])
+
+  // Derived/filtered datasets
+  const filteredDatasets = datasets.filter((d, idx) => {
+    const matchesSearch = searchTerm.trim() === '' || d.filename.toLowerCase().includes(searchTerm.toLowerCase()) || d.uploaded_by_email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'All' || (statusFilter === 'Active' ? idx === 0 : idx !== 0)
+    return matchesSearch && matchesStatus
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredDatasets.length / itemsPerPage))
+  const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const fetchDatasets = async () => {
     try {
@@ -361,21 +375,30 @@ const elbowPlot = () => {
         <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
       </div>
 
-      {/* 🔹 Distinct Template Download Section */}
-      <div className="mb-4" style={{ background: 'rgba(242, 201, 93, 0.12)', padding: '12px', borderRadius: 8 }}>
-        <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
+      {/* Toolbar: search, status, show, download templates */}
+      <div className="mb-4 d-flex justify-content-between align-items-center gap-3">
+        <div className="d-flex gap-2 align-items-center">
+          <Form.Control size="sm" placeholder="Search by filename or uploader..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} style={{ minWidth: 260 }} />
+          <Form.Select size="sm" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
+            <option value="All">All status</option>
+            <option value="Active">Active</option>
+            <option value="Archived">Archived</option>
+          </Form.Select>
+          <Form.Select size="sm" value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+            <option value={5}>5 rows</option>
+            <option value={10}>10 rows</option>
+            <option value={15}>15 rows</option>
+            <option value={20}>20 rows</option>
+          </Form.Select>
+        </div>
         <div className="d-flex gap-2">
-          <Button variant="outline-success" onClick={handleDownloadTemplateCSV}>
-            <Download size={16} className="me-2" /> CSV Template
+          <Button variant="outline-success" onClick={handleDownloadTemplateCSV} size="sm">
+            <Download size={14} className="me-1" /> CSV Template
           </Button>
-          <Button variant="outline-success" onClick={handleDownloadTemplateExcel}>
-            <Download size={16} className="me-2" /> Excel Template
+          <Button variant="outline-success" onClick={handleDownloadTemplateExcel} size="sm">
+            <Download size={14} className="me-1" /> Excel Template
           </Button>
         </div>
-        <small className="text-muted">
-          Use this template to prepare your dataset before uploading. Columns must include: 
-          <code> firstname, lastname, sex, program, municipality, income, SHS_type, GWA </code>.
-        </small>
       </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
@@ -447,7 +470,7 @@ const elbowPlot = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {datasets.map((dataset, index) => (
+                  {paginatedDatasets.map((dataset) => (
                     <tr key={dataset.id} onClick={() => handleRowClick(dataset)} style={{ cursor: 'pointer' }}>
                       <td data-label="Filename" className="fw-semibold">{dataset.filename}</td>
                       <td data-label="Uploaded By">{dataset.uploaded_by_email}</td>
@@ -459,7 +482,7 @@ const elbowPlot = () => {
                         <Badge bg="success">{dataset.cluster_count || 'N/A'}</Badge>
                       </td>
                       <td data-label="Status">
-                        {index === 0 ? (
+                        {(datasets.indexOf(dataset) === 0) ? (
                           <Badge bg="primary">Active</Badge>
                         ) : (
                           <Badge bg="secondary">Archived</Badge>
@@ -482,6 +505,17 @@ const elbowPlot = () => {
                   ))}
                 </tbody>
               </Table>
+              {/* Pagination controls */}
+              <div className="d-flex justify-content-between align-items-center p-2">
+                <div>
+                  <small className="text-muted">Showing {Math.min(filteredDatasets.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(filteredDatasets.length, currentPage * itemsPerPage)} of {filteredDatasets.length}</small>
+                </div>
+                <div>
+                  <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="me-2">Prev</Button>
+                  <span className="me-2">{currentPage} / {totalPages}</span>
+                  <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
+                </div>
+              </div>
             </div>
           )}
         </Card.Body>

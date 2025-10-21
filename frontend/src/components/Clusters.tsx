@@ -84,7 +84,7 @@ function Clusters() {
   const [runningPairwise, setRunningPairwise] = useState<boolean>(false)
 
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const studentsPerPage = 20
+  const [studentsPerPage, setStudentsPerPage] = useState<number>(20)
 
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewedStudent, setViewedStudent] = useState<Student | null>(null)
@@ -615,6 +615,19 @@ const renderClusterSection = (
                 <h6 className="fw-bold">Interpretation</h6>
                 <p className="mb-2">{getClusterDescription(data.clusters[selectedCluster], data.x_name, data.y_name, isPairwise).summary}</p>
                 <p className="text-primary">{getClusterDescription(data.clusters[selectedCluster], data.x_name, data.y_name, isPairwise).recommendation}</p>
+              </div>
+
+              <div className="d-flex justify-content-end align-items-center mb-2">
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="small mb-0 fw-semibold">Show:</Form.Label>
+                  <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+                    <option value={10}>10 rows</option>
+                    <option value={15}>15 rows</option>
+                    <option value={20}>20 rows</option>
+                    <option value={25}>25 rows</option>
+                    <option value={30}>30 rows</option>
+                  </Form.Select>
+                </div>
               </div>
 
               <div className="table-responsive">

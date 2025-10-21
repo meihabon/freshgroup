@@ -53,6 +53,10 @@ function UserManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [roleFilter, setRoleFilter] = useState<string>("All")
+  const [usersPerPage, setUsersPerPage] = useState<number>(10)
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
 
@@ -84,6 +88,16 @@ function UserManagement() {
   const totalUsers = users.length
   const adminCount = users.filter((u) => u.role === "Admin").length
   const viewerCount = users.filter((u) => u.role === "Viewer").length
+
+  // Derived filtered users
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch = searchTerm.trim() === "" || `${u.profile?.name || u.email}`.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesRole = roleFilter === "All" || u.role === roleFilter
+    return matchesSearch && matchesRole
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage))
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage)
 
   useEffect(() => {
     fetchUsers()
@@ -358,17 +372,37 @@ const handleResetPassword = async () => {
     <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
-        <div className="btn-group" role="group" aria-label="Download options">
-          <Button variant="outline-success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> CSV
-          </Button>
-          <Button variant="outline-danger" onClick={handleDownloadPDF} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> PDF
-          </Button>
-          <Button variant="outline-info" onClick={handleDownloadExcel} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> Excel
-          </Button>
         </div>
+        <div className="d-flex gap-2">
+          <Form.Control
+            size="sm"
+            placeholder="Search users by name or email..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            style={{ minWidth: 220 }}
+          />
+          <Form.Select size="sm" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
+            <option value="All">All roles</option>
+            <option value="Admin">Admin</option>
+            <option value="Viewer">Viewer</option>
+          </Form.Select>
+          <Form.Select size="sm" value={usersPerPage} onChange={(e) => { setUsersPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+            <option value={5}>5 rows</option>
+            <option value={10}>10 rows</option>
+            <option value={15}>15 rows</option>
+            <option value={20}>20 rows</option>
+          </Form.Select>
+          <div className="btn-group" role="group" aria-label="Download options">
+            <Button variant="outline-success" onClick={handleDownloadCSV} size="sm">
+              <Download size={14} className="me-1" /> CSV
+            </Button>
+            <Button variant="outline-danger" onClick={handleDownloadPDF} size="sm">
+              <Download size={14} className="me-1" /> PDF
+            </Button>
+            <Button variant="outline-info" onClick={handleDownloadExcel} size="sm">
+              <Download size={14} className="me-1" /> Excel
+            </Button>
+          </div>
       </div>
       {/* Add User moved below (above table) to avoid crowding header */}
     </div>
@@ -442,40 +476,51 @@ const handleResetPassword = async () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
-                    <td data-label="User">
-                      <div>
-                        <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
-                        <small className="text-muted">ID: {u.id}</small>
-                      </div>
-                    </td>
-                    <td data-label="Email">{u.email}</td>
-                    <td data-label="Role"><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
-                    <td data-label="Department">{u.profile?.department || "N/A"}</td>
-                    <td data-label="Position">{u.profile?.position || "N/A"}</td>   
-                    <td data-label="Status">
-                      <Badge bg={u.active ? "success" : "secondary"}>
-                        {u.active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td data-label="Actions">
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
-                        <Edit size={14} />
-                      </Button>
-                      <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
-                        <Key size={14} />
-                      </Button>
-                      <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
-                        <Trash size={14} />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                  {paginatedUsers.map((u) => (
+                    <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
+                      <td data-label="User">
+                        <div>
+                          <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
+                          <small className="text-muted">ID: {u.id}</small>
+                        </div>
+                      </td>
+                      <td data-label="Email">{u.email}</td>
+                      <td data-label="Role"><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
+                      <td data-label="Department">{u.profile?.department || "N/A"}</td>
+                      <td data-label="Position">{u.profile?.position || "N/A"}</td>   
+                      <td data-label="Status">
+                        <Badge bg={u.active ? "success" : "secondary"}>
+                          {u.active ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td data-label="Actions">
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
+                          <Edit size={14} />
+                        </Button>
+                        <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
+                          <Key size={14} />
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
+                          <Trash size={14} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </Table>
           </div>
+            {/* Pagination controls */}
+            <div className="d-flex justify-content-between align-items-center p-2">
+              <div>
+                <small className="text-muted">Showing {Math.min(filteredUsers.length, (currentPage - 1) * usersPerPage + 1)} - {Math.min(filteredUsers.length, currentPage * usersPerPage)} of {filteredUsers.length}</small>
+              </div>
+              <div>
+                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="me-2">Prev</Button>
+                <span className="me-2">{currentPage} / {totalPages}</span>
+                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
+              </div>
+            </div>
         </Card.Body>
       </Card>
 

@@ -287,7 +287,9 @@ function Students() {
                 <Form.Label className="small fw-semibold">Show:</Form.Label>
                   <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
                     <option value={10}>10 rows</option>
+                    <option value={15}>15 rows</option>
                     <option value={20}>20 rows</option>
+                    <option value={25}>25 rows</option>
                     <option value={30}>30 rows</option>
                   </Form.Select>
                 </Col>
@@ -389,6 +391,18 @@ function Students() {
 
           <Card>
             <Card.Body className="p-0">
+              <div className="d-flex justify-content-end align-items-center p-2">
+                <div className="d-flex align-items-center" style={{ gap: 8 }}>
+                  <Form.Label className="small mb-0 me-1">Show:</Form.Label>
+                  <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 110 }}>
+                    <option value={10}>10 rows</option>
+                    <option value={15}>15 rows</option>
+                    <option value={20}>20 rows</option>
+                    <option value={25}>25 rows</option>
+                    <option value={30}>30 rows</option>
+                  </Form.Select>
+                </div>
+              </div>
               <div className="table-responsive-sm students-table-wrapper">
                 <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%', fontSize: '0.88rem' }}>
                   <thead>
