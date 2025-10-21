@@ -90,18 +90,18 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
-          <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'rgba(255,255,255,0.95)', padding: 12, borderRadius: 10 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+          <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'rgba(255,255,255,0.95)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', flexShrink: 0 }}>
               {/* Initials avatar */}
-              <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f3f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#2c3e50' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f3f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#2c3e50', fontSize: '0.95rem', lineHeight: 1 }}>
                 {user?.profile?.name ? (user.profile.name.split(' ').map((n: string) => n[0]).slice(0,2).join('')) : (user?.email || 'U').slice(0,2).toUpperCase()}
               </div>
             </div>
             <div className="flex-grow-1">
               <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <div className="fw-semibold text-dark">{user?.profile?.name || user?.email}</div>
-                  <div className="small text-muted">{user?.email}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 120 }}>{user?.profile?.name || user?.email}</div>
+                  <div className="small text-muted text-truncate" style={{ maxWidth: 140 }}>{user?.email}</div>
                 </div>
                 <div>
                   <span className="badge rounded-pill" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>

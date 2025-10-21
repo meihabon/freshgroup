@@ -378,7 +378,7 @@ const elbowPlot = () => {
       {/* Dataset Overview Cards */}
       <Row className="mb-4">
         <Col md={4}>
-          <Card className="text-center">
+          <Card className="text-center stat-card">
             <Card.Body>
               <Database size={40} className="text-primary mb-2" />
               <h4 className="fw-bold">{datasets.length}</h4>
@@ -387,7 +387,7 @@ const elbowPlot = () => {
           </Card>
         </Col>
         <Col md={4}>
-          <Card className="text-center">
+          <Card className="text-center stat-card">
             <Card.Body>
               <Eye size={40} className="text-success mb-2" />
               <h4 className="fw-bold">
@@ -398,7 +398,7 @@ const elbowPlot = () => {
           </Card>
         </Col>
         <Col md={4}>
-          <Card className="text-center">
+          <Card className="text-center stat-card">
             <Card.Body>
               <Upload size={40} className="text-info mb-2" />
               <h4 className="fw-bold">
@@ -428,7 +428,7 @@ const elbowPlot = () => {
             </div>
           ) : (
             <div className="table-responsive">
-              <Table striped hover className="mb-0">
+              <Table striped hover className="mb-0 datasets-table table-sm">
                 <thead>
                   <tr>
                     <th>Filename</th>
