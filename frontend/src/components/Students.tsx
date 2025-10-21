@@ -419,42 +419,42 @@ function Students() {
           <Card>
             <Card.Body className="p-0">
               <div className="table-responsive-sm students-table-wrapper">
-                <Table striped hover responsive className="mb-0 students-table table-sm">
+                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%' }}>
                   <thead>
                     <tr>
-                      <th className="col-first">First Name</th>
-                      <th className="col-last">Last Name</th>
-                      <th className="col-sex">Sex</th>
-                      <th className="col-program">Program</th>
-                      <th className="col-muni">Municipality</th>
-                      <th className="col-area">Area Type</th>
-                      <th className="col-income">Income</th>
-                      <th className="col-shs">Senior High School Type</th>
-                      <th className="col-gwa">HS GWA</th>
-                      <th className="d-none d-md-table-cell col-honors">Honors</th>
-                      <th className="d-none d-md-table-cell col-income-cat">Income Category</th>
-                      <th className="col-actions">Actions</th>
+                      <th className="col-first" style={{ width: '9%' }}>First Name</th>
+                      <th className="col-last" style={{ width: '9%' }}>Last Name</th>
+                      <th className="col-sex" style={{ width: '5%' }}>Sex</th>
+                      <th className="col-program" style={{ width: '18%' }}>Program</th>
+                      <th className="col-muni" style={{ width: '14%' }}>Municipality</th>
+                      <th className="col-area" style={{ width: '7%' }}>Area Type</th>
+                      <th className="col-income" style={{ width: '9%' }}>Income</th>
+                      <th className="col-shs" style={{ width: '8%' }}>Senior High School Type</th>
+                      <th className="col-gwa" style={{ width: '5%' }}>HS GWA</th>
+                      <th className="d-none d-md-table-cell col-honors" style={{ width: '8%' }}>Honors</th>
+                      <th className="d-none d-md-table-cell col-income-cat" style={{ width: '8%' }}>Income Category</th>
+                      <th className="col-actions" style={{ width: '8%' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentStudents.map((student) => (
                       <tr key={student.id} onClick={() => handleRowClick(student)} style={{ cursor: 'pointer' }}>
-                        <td data-label="First Name" className="fw-semibold">{student.firstname && student.firstname !== 'Incomplete' ? student.firstname : <Badge bg="danger">No First Name</Badge>}</td>
-                        <td data-label="Last Name" className="fw-semibold">{student.lastname && student.lastname !== 'Incomplete' ? student.lastname : <Badge bg="danger">No Last Name</Badge>}</td>
-                        <td data-label="Sex">{student.sex && student.sex !== 'Incomplete' ? student.sex : <Badge bg="danger">No Sex</Badge>}</td>
-                        <td data-label="Program">{student.program && student.program !== 'Incomplete' ? student.program : <Badge bg="danger">No Program</Badge>}</td>
-                        <td data-label="Municipality">{student.municipality && student.municipality !== 'Incomplete' ? student.municipality : <Badge bg="danger">No Municipality</Badge>}</td>
+                          <td data-label="First Name" className="fw-semibold text-truncate" style={{ maxWidth: 110 }}>{student.firstname && student.firstname !== 'Incomplete' ? student.firstname : <Badge bg="danger">No First Name</Badge>}</td>
+                          <td data-label="Last Name" className="fw-semibold text-truncate" style={{ maxWidth: 110 }}>{student.lastname && student.lastname !== 'Incomplete' ? student.lastname : <Badge bg="danger">No Last Name</Badge>}</td>
+                          <td data-label="Sex" className="text-truncate" style={{ maxWidth: 60 }}>{student.sex && student.sex !== 'Incomplete' ? student.sex : <Badge bg="danger">No Sex</Badge>}</td>
+                          <td data-label="Program" className="text-truncate" style={{ maxWidth: 220 }}>{student.program && student.program !== 'Incomplete' ? student.program : <Badge bg="danger">No Program</Badge>}</td>
+                          <td data-label="Municipality" className="text-truncate" style={{ maxWidth: 160 }}>{student.municipality && student.municipality !== 'Incomplete' ? student.municipality : <Badge bg="danger">No Municipality</Badge>}</td>
                         <td data-label="Area Type">
                           <Badge bg={getAreaType(student.municipality) === 'Upland' ? 'success' : getAreaType(student.municipality) === 'Lowland' ? 'info' : 'secondary'}>
                             {getAreaType(student.municipality)}
                           </Badge>
                         </td>
-                        <td data-label="Income">{student.income === -1 || student.income === null ? <Badge bg="danger">No Income Entered</Badge> : `₱${student.income.toLocaleString()}`}</td>
-                        <td data-label="SHS Type">{student.SHS_type && student.SHS_type !== 'Incomplete' ? student.SHS_type : <Badge bg="danger">No SHS Type</Badge>}</td>
-                        <td data-label="GWA">{student.GWA === -1 || student.GWA === null ? <Badge bg="danger">No GWA Entered</Badge> : student.GWA}</td>
-                        <td data-label="Honors"><Badge bg={getHonorsBadgeVariant(student.Honors)}>{student.Honors && student.Honors !== 'Incomplete' ? student.Honors : 'No Honors'}</Badge></td>
-                        <td data-label="Income Category" className="d-none d-md-table-cell"><Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>{student.IncomeCategory && student.IncomeCategory !== 'Incomplete' ? student.IncomeCategory : 'No Income Category'}</Badge></td>
-                        <td data-label="Actions"><Button variant="outline-primary" size="sm" onClick={(e) => { e.stopPropagation(); handleEditClick(student); }}>Edit</Button></td>
+                        <td data-label="Income" className="text-truncate" style={{ maxWidth: 120 }}>{student.income === -1 || student.income === null ? <Badge bg="danger">No Income Entered</Badge> : `₱${student.income.toLocaleString()}`}</td>
+                        <td data-label="SHS Type" className="text-truncate" style={{ maxWidth: 130 }}>{student.SHS_type && student.SHS_type !== 'Incomplete' ? student.SHS_type : <Badge bg="danger">No SHS Type</Badge>}</td>
+                        <td data-label="GWA" className="text-truncate" style={{ maxWidth: 80 }}>{student.GWA === -1 || student.GWA === null ? <Badge bg="danger">No GWA Entered</Badge> : student.GWA}</td>
+                        <td data-label="Honors" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getHonorsBadgeVariant(student.Honors)}>{student.Honors && student.Honors !== 'Incomplete' ? student.Honors : 'No Honors'}</Badge></td>
+                        <td data-label="Income Category" className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 140 }}><Badge bg={getIncomeBadgeVariant(student.IncomeCategory)}>{student.IncomeCategory && student.IncomeCategory !== 'Incomplete' ? student.IncomeCategory : 'No Income Category'}</Badge></td>
+                        <td data-label="Actions" style={{ maxWidth: 90 }}><Button variant="outline-primary" size="sm" onClick={(e) => { e.stopPropagation(); handleEditClick(student); }}>Edit</Button></td>
                       </tr>
                     ))}
                   </tbody>
