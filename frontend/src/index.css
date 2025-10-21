@@ -160,6 +160,40 @@ body, h1, h2, h3, h4, h5, h6, p {
   border-top: 1px solid rgba(0,0,0,0.06) !important;
 }
 
+/* Sidebar user block (compact) */
+.sidebar-user {
+  background: rgba(0,0,0,0.06);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.sidebar-user .fw-semibold {
+  font-size: 0.92rem;
+}
+
+.sidebar-user .badge {
+  font-size: 0.68rem;
+  padding: 4px 8px;
+}
+
+.sidebar-user .btn-outline-light {
+  border-color: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+.sidebar-user .btn-outline-light:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.sidebar-user .btn-light {
+  background: #fff;
+  color: #2c3e50;
+}
+
+.sidebar-user .btn-light:hover {
+  filter: brightness(0.98);
+}
+
 .sidebar .nav-link {
   color: #444 !important; /* neutral dark gray */
   transition: all 0.2s ease;

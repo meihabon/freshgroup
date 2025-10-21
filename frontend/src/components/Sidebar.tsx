@@ -139,8 +139,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             )
           })}
         </Nav>
-
-        {/* footer area removed; user controls moved under brand for a neater layout */}
       </div>
     </>
   )
