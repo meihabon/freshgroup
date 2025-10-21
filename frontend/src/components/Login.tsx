@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { Container, Row, Col, Card, Form, Button, Alert, Nav, Modal, InputGroup } from 'react-bootstrap'
-import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react'
+import { Eye, EyeOff, Mail, User, Lock, PieChart } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 function Login() {
@@ -76,6 +76,25 @@ function Login() {
     setAgreeTerms(false)
   }
 
+  // Password strength helper (simple heuristic)
+  const getPasswordScore = (pw: string) => {
+    if (!pw) return 0
+    let score = 0
+    if (pw.length >= 8) score += 1
+    if (pw.length >= 12) score += 1
+    if (/[A-Z]/.test(pw)) score += 1
+    if (/[0-9]/.test(pw)) score += 1
+    if (/[^A-Za-z0-9]/.test(pw)) score += 1
+    return Math.min(100, (score / 5) * 100)
+  }
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { label: 'Too short', color: '#e0e0e0' }
+    if (score < 40) return { label: 'Weak', color: '#f86c6b' }
+    if (score < 70) return { label: 'Medium', color: '#f0ad4e' }
+    return { label: 'Strong', color: '#28a745' }
+  }
+
   return (
     <div
       style={{
@@ -114,12 +133,8 @@ function Login() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxShadow: '0 6px 18px rgba(39,174,96,0.18)'
-                    }}>
-                      <img
-                        src="https://www.ispsc.edu.ph/images/misc/logo.png"
-                        alt="ISPSC Logo"
-                        style={{ width: 46 }}
-                      />
+                    }} aria-hidden>
+                      <PieChart size={40} color="#fff" />
                     </div>
 
                     <h2 className="fw-bold" style={{ color: "#2c3e50", letterSpacing: 0.4 }}>
@@ -225,26 +240,29 @@ function Login() {
                           />
                         </InputGroup>
 
-                        <InputGroup className="mb-3">
-                          <InputGroup.Text style={{ borderRadius: 10 }}>
-                            <Lock size={16} />
-                          </InputGroup.Text>
-                          <Form.Control
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            placeholder="Password"
-                            style={{ borderRadius: 10 }}
-                          />
-                          <Button
-                            variant="outline-secondary"
-                            onClick={() => setShowPassword(!showPassword)}
-                            style={{ marginLeft: 8, borderRadius: 10 }}
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </Button>
-                        </InputGroup>
+                        {/* Main password input (single-column) only for Sign In */}
+                        {isLogin && (
+                          <InputGroup className="mb-3">
+                            <InputGroup.Text style={{ borderRadius: 10 }}>
+                              <Lock size={16} />
+                            </InputGroup.Text>
+                            <Form.Control
+                              type={showPassword ? 'text' : 'password'}
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              placeholder="Password"
+                              style={{ borderRadius: 10 }}
+                            />
+                            <Button
+                              variant="outline-secondary"
+                              onClick={() => setShowPassword(!showPassword)}
+                              style={{ marginLeft: 8, borderRadius: 10 }}
+                            >
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </Button>
+                          </InputGroup>
+                        )}
 
                         {!isLogin && (
                           <>
@@ -265,7 +283,30 @@ function Login() {
                                       placeholder="Password"
                                       style={{ borderRadius: 10 }}
                                     />
+                                    <Button
+                                      variant="outline-secondary"
+                                      onClick={() => setShowPassword(!showPassword)}
+                                      style={{ marginLeft: 8, borderRadius: 10 }}
+                                    >
+                                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </Button>
                                   </InputGroup>
+
+                                  {/* Password strength */}
+                                  <div className="mt-2">
+                                    {(() => {
+                                      const score = getPasswordScore(password)
+                                      const info = getStrengthLabel(score)
+                                      return (
+                                        <>
+                                          <div style={{ height: 8, background: '#e9ecef', borderRadius: 6, overflow: 'hidden' }}>
+                                            <div style={{ width: `${score}%`, height: '100%', background: info.color }} />
+                                          </div>
+                                          <small className="text-muted">{info.label} • {password.length} chars</small>
+                                        </>
+                                      )
+                                    })()}
+                                  </div>
                                 </Form.Group>
                               </Col>
                               <Col md={6}>
@@ -279,6 +320,14 @@ function Login() {
                                     placeholder="Confirm password"
                                     style={{ borderRadius: 10 }}
                                   />
+                                  {/* Real-time match feedback */}
+                                  {confirmPassword.length > 0 && (
+                                    password === confirmPassword ? (
+                                      <Form.Text style={{ color: '#28a745' }}>Passwords match</Form.Text>
+                                    ) : (
+                                      <Form.Text style={{ color: '#d9534f' }}>Passwords do not match</Form.Text>
+                                    )
+                                  )}
                                 </Form.Group>
                               </Col>
                             </Row>
@@ -340,7 +389,7 @@ function Login() {
                             borderRadius: 12,
                             padding: '12px 16px',
                           }}
-                          disabled={loading}
+                          disabled={loading || (!isLogin && (password !== confirmPassword || password.length < 8 || !agreeTerms))}
                         >
                           {loading ? (
                             <span>
@@ -393,7 +442,7 @@ function Login() {
             md={7}
             className="d-none d-md-flex align-items-center justify-content-center"
             style={{
-              backgroundImage: `url('https://www.ispsctagudin.info/library/img/campus.jpg')`,
+              backgroundImage: `linear-gradient(rgba(39,174,96,0.7), rgba(241,196,15,0.7)), url('https://www.ispsctagudin.info/library/img/campus.jpg')`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               color: "#fff",
@@ -418,10 +467,6 @@ function Login() {
                 <li>• Export reports and share insights securely</li>
               </ul>
 
-              <div className="d-flex">
-                <Button variant="light" style={{ color: '#2c3e50', fontWeight: 600, borderRadius: 10 }} className="me-3">Learn More</Button>
-                <Button variant="outline-light" style={{ borderRadius: 10 }}>Contact Us</Button>
-              </div>
             </div>
           </Col>
         </Row>
