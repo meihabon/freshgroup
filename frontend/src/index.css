@@ -573,8 +573,9 @@ body, h1, h2, h3, h4, h5, h6, p {
 
 /* Profile section */
 .profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  /* Mustard yellow header for profile sidebar */
+  background: linear-gradient(135deg, #f3d27a 0%, #e6b800 60%, #d4a200 100%);
+  color: #2b2b2b; /* darker text for contrast on yellow */
   border-radius: 12px;
   padding: 30px;
   margin-bottom: 20px;
