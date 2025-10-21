@@ -362,7 +362,7 @@ const elbowPlot = () => {
       </div>
 
       {/* 🔹 Distinct Template Download Section */}
-      <div className="mb-4">
+      <div className="mb-4" style={{ background: 'rgba(242, 201, 93, 0.12)', padding: '12px', borderRadius: 8 }}>
         <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
         <div className="d-flex gap-2">
           <Button variant="outline-success" onClick={handleDownloadTemplateCSV}>

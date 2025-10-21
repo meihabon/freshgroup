@@ -1,7 +1,7 @@
 import { useState } from "react"
 import PageAbout from './PageAbout'
 import { FileText } from 'lucide-react'
-import { Button, Card, Row, Col, Alert, Spinner } from "react-bootstrap"
+import { Button, Card, Row, Col, Alert, Spinner, Modal } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
 
 function Reports() {
@@ -29,6 +29,26 @@ function Reports() {
       setError("Failed to generate report. Please try again.")
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Preview modal state
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  const handlePreview = async (reportKey: string) => {
+    setPreviewLoading(true)
+    setPreviewHtml(null)
+    try {
+      const res = await API.get(`/reports/${reportKey}/preview`, { responseType: 'text' })
+      setPreviewHtml(res.data)
+      setPreviewOpen(true)
+    } catch (err: any) {
+      setPreviewHtml('<p class="text-danger">Failed to load preview.</p>')
+      setPreviewOpen(true)
+    } finally {
+      setPreviewLoading(false)
     }
   }
 
@@ -71,16 +91,6 @@ function Reports() {
       <h2 className="fw-bold mb-4">Reports</h2>
       <PageAbout text="Export curated datasets and formatted reports. Choose CSV for raw data or PDF for printable summaries with charts." icon={FileText} accentColor="#17a2b8" />
 
-      {/* ✅ Introductory explanation */}
-      <div className="mb-4 p-3 border rounded bg-light text-muted">
-        <h6 className="fw-bold mb-2">About Reports</h6>
-        <p className="mb-0">
-          Reports let you export data-driven insights from the system. 
-          Use <strong>PDF</strong> for polished documents with charts and tables, 
-          or <strong>CSV</strong> if you need raw data for further analysis in Excel, Python, or R. 
-          Each report highlights a different aspect of the dataset to support decision-making and policy planning.
-        </p>
-      </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -98,6 +108,13 @@ function Reports() {
                 <Card.Title className="fw-bold">{report.title}</Card.Title>
                 <Card.Text className="flex-grow-1 text-muted">{report.description}</Card.Text>
                 <div className="d-flex gap-2 mt-2">
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => handlePreview(report.key)}
+                    disabled={loading || previewLoading}
+                  >
+                    Preview
+                  </Button>
                   <Button
                     variant="primary"
                     onClick={() => handleExport(report.key, "pdf")}
@@ -128,6 +145,30 @@ function Reports() {
           <li><b>PDF</b> → formatted report, ready to share. <b>CSV</b> → raw data for spreadsheets or further processing.</li>
         </ul>
       </div>
+      {/* Preview Modal */}
+      <Modal show={previewOpen} onHide={() => setPreviewOpen(false)} size="xl" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Report Preview</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {previewLoading ? (
+            <div className="d-flex justify-content-center py-4">
+              <Spinner animation="border" />
+            </div>
+          ) : (
+            <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
+              {previewHtml ? (
+                <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              ) : (
+                <div className="text-muted">No preview available.</div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setPreviewOpen(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

@@ -91,9 +91,9 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
           <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'linear-gradient(90deg, #f7d27a 0%, #f1c40f 100%)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.08)', flexShrink: 0 }}>
-                {/* Initials avatar */}
-                <div style={{ width: 40, height: 40, borderRadius: 8, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '1rem', lineHeight: 1 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                {/* Initials avatar (smaller) */}
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#1b2b24', fontSize: '0.85rem', lineHeight: 1 }}>
                   {(user?.profile?.name || user?.email || 'U').trim().charAt(0).toUpperCase()}
                 </div>
               </div>

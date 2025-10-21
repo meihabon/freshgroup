@@ -370,9 +370,7 @@ const handleResetPassword = async () => {
           </Button>
         </div>
       </div>
-      <Button variant="outline-primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
-        <UserPlus size={16} className="me-2" /> Add User
-      </Button>
+      {/* Add User moved below (above table) to avoid crowding header */}
     </div>
 
     {/* About card directly under heading */}
@@ -415,6 +413,13 @@ const handleResetPassword = async () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Add User button placed above the users table, right aligned */}
+      <div className="d-flex justify-content-end mb-3">
+        <Button variant="outline-primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
+          <UserPlus size={16} className="me-2" /> Add User
+        </Button>
+      </div>
 
       {/* Users Table */}
       <Card>
