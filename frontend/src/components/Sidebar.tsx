@@ -90,64 +90,62 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
-          <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'rgba(255,255,255,0.95)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
-            <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', flexShrink: 0 }}>
-              {/* Initials avatar */}
-              <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f3f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#2c3e50', fontSize: '0.95rem', lineHeight: 1 }}>
-                {user?.profile?.name ? (user.profile.name.split(' ').map((n: string) => n[0]).slice(0,2).join('')) : (user?.email || 'U').slice(0,2).toUpperCase()}
-              </div>
-            </div>
-            <div className="flex-grow-1">
-              <div className="d-flex align-items-center justify-content-between">
-                <div style={{ minWidth: 0 }}>
-                  <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 120 }}>{user?.profile?.name || user?.email}</div>
-                  <div className="small text-muted text-truncate" style={{ maxWidth: 140 }}>{user?.email}</div>
-                </div>
-                <div>
-                  <span className="badge rounded-pill" style={{ backgroundColor: '#f1c40f', color: '#2c3e50', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>
+          <div className="d-flex align-items-center gap-3 sidebar-user-card" style={{ background: 'linear-gradient(90deg, #f7d27a 0%, #f1c40f 100%)', padding: 12, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.08)', flexShrink: 0 }}>
+                {/* Initials avatar */}
+                <div style={{ width: 44, height: 44, borderRadius: 8, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1b2b24', fontSize: '0.95rem', lineHeight: 1 }}>
+                  {user?.profile?.name ? (user.profile.name.split(' ').map((n: string) => n[0]).slice(0,2).join('')) : (user?.email || 'U').slice(0,2).toUpperCase()}
                 </div>
               </div>
-              <div className="mt-2 d-flex gap-2">
-                <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
-                  Profile
-                </Button>
-                <Button variant="danger" size="sm" onClick={handleLogout} className="py-1">
-                  Logout
-                </Button>
+              <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                <div className="d-flex align-items-center justify-content-between">
+                  <div style={{ minWidth: 0 }}>
+                    <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 160 }}>{user?.profile?.name || user?.email}</div>
+                    <div className="small text-dark-800 text-truncate" style={{ maxWidth: 200 }}>{user?.email}</div>
+                  </div>
+                  <div>
+                    <span className="badge rounded-pill" style={{ backgroundColor: '#ffffff', color: '#1b2b24', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>
+                  </div>
+                </div>
+                <div className="mt-2 d-flex gap-2 flex-column flex-md-row">
+                  <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
+                    Profile
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={handleLogout} className="py-1">
+                    Logout
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
         </div>
-
-        <Nav className="flex-column flex-grow-1 px-2 py-3">
-          {filteredMenuItems.map((item) => {
-            const IconComponent = item.icon
-            const isActive = location.pathname === item.path
-            
-            return (
-              <Nav.Link
-                key={item.path}
-                as={Link as any}
-                to={item.path}
-                onClick={onClose}
-                className="d-flex align-items-center sidebar-link"
-                style={{
-                  color: isActive ? '#27ae60' : '#555',
-                  fontWeight: isActive ? 600 : 400,
-                  backgroundColor: isActive ? '#e9f7ef' : 'transparent',
-                  marginBottom: '6px',
-                  padding: '10px 14px',
-                  borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
-                  borderRadius: '4px',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <IconComponent size={18} className="me-3" />
-                {item.label}
-              </Nav.Link>
-            )
-          })}
-        </Nav>
+        <div className="p-3 flex-grow-1 overflow-auto">
+          <Nav className="flex-column">
+            {filteredMenuItems.map((item) => {
+              const IconComponent = item.icon as any
+              const isActive = location.pathname.startsWith(item.path)
+              return (
+                <Nav.Link
+                  as={Link}
+                  to={item.path}
+                  key={item.path}
+                  onClick={onClose}
+                  className="d-flex align-items-center"
+                  style={{
+                    backgroundColor: isActive ? '#e9f7ef' : 'transparent',
+                    marginBottom: '6px',
+                    padding: '10px 14px',
+                    borderLeft: isActive ? '4px solid #27ae60' : '4px solid transparent',
+                    borderRadius: '4px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <IconComponent size={18} className="me-3" />
+                  {item.label}
+                </Nav.Link>
+              )
+            })}
+          </Nav>
+        </div>
       </div>
     </>
   )
