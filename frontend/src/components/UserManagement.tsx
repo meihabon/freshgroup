@@ -372,44 +372,41 @@ const handleResetPassword = async () => {
     <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
-        </div>
-        <div className="d-flex gap-2">
-          <Form.Control
-            size="sm"
-            placeholder="Search users by name or email..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            style={{ minWidth: 220 }}
-          />
-          <Form.Select size="sm" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
-            <option value="All">All roles</option>
-            <option value="Admin">Admin</option>
-            <option value="Viewer">Viewer</option>
-          </Form.Select>
-          <Form.Select size="sm" value={usersPerPage} onChange={(e) => { setUsersPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
-            <option value={5}>5 rows</option>
-            <option value={10}>10 rows</option>
-            <option value={15}>15 rows</option>
-            <option value={20}>20 rows</option>
-          </Form.Select>
-          <div className="btn-group" role="group" aria-label="Download options">
-            <Button variant="outline-success" onClick={handleDownloadCSV} size="sm">
-              <Download size={14} className="me-1" /> CSV
-            </Button>
-            <Button variant="outline-danger" onClick={handleDownloadPDF} size="sm">
-              <Download size={14} className="me-1" /> PDF
-            </Button>
-            <Button variant="outline-info" onClick={handleDownloadExcel} size="sm">
-              <Download size={14} className="me-1" /> Excel
-            </Button>
-          </div>
       </div>
-      {/* Add User moved below (above table) to avoid crowding header */}
     </div>
 
     {/* About card directly under heading */}
     <div className="mb-4">
       <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
+    </div>
+
+    {/* Toolbar: search, role filter, show selector, download buttons */}
+    <div className="mb-3 d-flex justify-content-between align-items-center gap-3">
+      <div className="d-flex gap-2 align-items-center">
+        <Form.Control size="sm" placeholder="Search users by name or email..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} style={{ minWidth: 260 }} />
+        <Form.Select size="sm" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
+          <option value="All">All roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Viewer">Viewer</option>
+        </Form.Select>
+        <Form.Select size="sm" value={usersPerPage} onChange={(e) => { setUsersPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+          <option value={5}>5 rows</option>
+          <option value={10}>10 rows</option>
+          <option value={15}>15 rows</option>
+          <option value={20}>20 rows</option>
+        </Form.Select>
+      </div>
+      <div className="d-flex gap-2">
+        <Button variant="outline-success" onClick={handleDownloadCSV} size="sm">
+          <Download size={14} className="me-1" /> CSV
+        </Button>
+        <Button variant="outline-danger" onClick={handleDownloadPDF} size="sm">
+          <Download size={14} className="me-1" /> PDF
+        </Button>
+        <Button variant="outline-info" onClick={handleDownloadExcel} size="sm">
+          <Download size={14} className="me-1" /> Excel
+        </Button>
+      </div>
     </div>
 
 

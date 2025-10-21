@@ -375,6 +375,23 @@ const elbowPlot = () => {
         <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
       </div>
 
+      {/* 🔹 Distinct Template Download Section (restored) */}
+      <div className="mb-4" style={{ background: 'rgba(242, 201, 93, 0.12)', padding: '12px', borderRadius: 8 }}>
+        <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
+        <div className="d-flex gap-2">
+          <Button variant="outline-success" onClick={handleDownloadTemplateCSV}>
+            <Download size={16} className="me-2" /> CSV Template
+          </Button>
+          <Button variant="outline-success" onClick={handleDownloadTemplateExcel}>
+            <Download size={16} className="me-2" /> Excel Template
+          </Button>
+        </div>
+        <small className="text-muted">
+          Use this template to prepare your dataset before uploading. Columns must include: 
+          <code> firstname, lastname, sex, program, municipality, income, SHS_type, GWA </code>.
+        </small>
+      </div>
+
       {/* Toolbar: search, status, show, download templates */}
       <div className="mb-4 d-flex justify-content-between align-items-center gap-3">
         <div className="d-flex gap-2 align-items-center">
@@ -390,14 +407,6 @@ const elbowPlot = () => {
             <option value={15}>15 rows</option>
             <option value={20}>20 rows</option>
           </Form.Select>
-        </div>
-        <div className="d-flex gap-2">
-          <Button variant="outline-success" onClick={handleDownloadTemplateCSV} size="sm">
-            <Download size={14} className="me-1" /> CSV Template
-          </Button>
-          <Button variant="outline-success" onClick={handleDownloadTemplateExcel} size="sm">
-            <Download size={14} className="me-1" /> Excel Template
-          </Button>
         </div>
       </div>
 
