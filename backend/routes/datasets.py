@@ -1,4 +1,3 @@
-# datasets.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from db import get_db_connection
 from dependencies import get_current_user
@@ -14,6 +13,8 @@ from typing import List
 from fastapi.responses import StreamingResponse
 import csv
 import io
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
 
@@ -194,7 +195,12 @@ async def upload_dataset(
             kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
             preds = kmeans.fit_predict(X_scaled)
             centroids = scaler.inverse_transform(kmeans.cluster_centers_).tolist()
-
+            try:
+                silhouette = float(silhouette_score(X_scaled, preds))
+                dbi = float(davies_bouldin_score(X_scaled, preds))
+                chi = float(calinski_harabasz_score(X_scaled, preds))
+            except Exception:
+                silhouette = dbi = chi = 0
         # assign predicted cluster only to complete rows; keep others unclustered/unassigned (-1)
         df['Cluster'] = -1
         if not df_complete.empty:
@@ -282,7 +288,12 @@ async def upload_dataset(
             "message": "Dataset uploaded and processed successfully",
             "dataset_id": dataset_id,
             "total_students": len(df),
-            "clusters": k
+            "clusters": k,
+            "quality_metrics": {
+                "silhouette": silhouette,
+                "davies_bouldin": dbi,
+                "calinski_harabasz": chi
+            }
         }
 
     except Exception as e:

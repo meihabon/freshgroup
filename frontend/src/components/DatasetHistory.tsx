@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Button, Modal, Form, 
-  Spinner, Alert, Badge, ProgressBar 
+  Spinner, Alert, Badge, ProgressBar, Accordion
 } from 'react-bootstrap'
 import { Upload, Trash2, Eye, Database, Download } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -39,7 +39,11 @@ function DatasetHistory() {
   const [elbowError, setElbowError] = useState('')
   const [wcss, setWcss] = useState<number[]>([])
   const [recommendedK, setRecommendedK] = useState<number | null>(null)
-
+  const [qualityMetrics, setQualityMetrics] = useState<{
+    silhouette: number
+    davies_bouldin: number
+    calinski_harabasz: number
+  } | null>(null)
   useEffect(() => {
     if (user?.role === 'Admin') {
       fetchDatasets()
@@ -57,21 +61,26 @@ function DatasetHistory() {
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
-        setSelectedFile(file)
-        setError('')
-        previewElbow(file)
-      } else {
-        setError('Please select a CSV or Excel (.xlsx) file')
-        setSelectedFile(null)
-        setWcss([])
-        setRecommendedK(null)
-      }
+const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (file) {
+    if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
+      setSelectedFile(file)
+      setError('')
+      setWcss([])                // Reset previous elbow data
+      setRecommendedK(null)      // Reset previous recommended k
+      setQualityMetrics(null)    // ✅ Reset old clustering metrics
+      previewElbow(file)         // Generate new elbow preview
+    } else {
+      setError('Please select a CSV or Excel (.xlsx) file')
+      setSelectedFile(null)
+      setWcss([])
+      setRecommendedK(null)
+      setQualityMetrics(null)
     }
   }
+}
+
 
   const previewElbow = async (file: File) => {
     setElbowLoading(true)
@@ -129,6 +138,10 @@ function DatasetHistory() {
       })
 
       setSuccess(`Dataset uploaded successfully! Processed ${response.data.total_students} students into ${response.data.clusters} clusters.`)
+      if (response.data.quality_metrics) {
+        setQualityMetrics(response.data.quality_metrics)
+      }
+
       setShowUpload(false)
       setSelectedFile(null)
       setWcss([])
@@ -487,6 +500,44 @@ const elbowPlot = () => {
                       )}
                     </Card.Body>
                   </Card>
+                  {qualityMetrics && (
+                    <Accordion defaultActiveKey="0" className="mt-3">
+                      <Accordion.Item eventKey="0">
+                        <Accordion.Header>
+                          <span className="fw-bold">Clustering Quality Metrics</span>
+                        </Accordion.Header>
+                        <Accordion.Body className="bg-light border rounded">
+                          <ul className="mb-1" style={{ fontSize: "0.9rem" }}>
+                            <li>Silhouette Score: {qualityMetrics.silhouette.toFixed(3)}</li>
+                            <li>Davies–Bouldin Index: {qualityMetrics.davies_bouldin.toFixed(3)}</li>
+                            <li>Calinski–Harabasz Index: {qualityMetrics.calinski_harabasz.toFixed(3)}</li>
+                          </ul>
+
+                          {/* Interpretation with color-coded text */}
+                          <p
+                            className="mb-0 fw-semibold"
+                            style={{
+                              fontSize: "0.9rem",
+                              color:
+                                qualityMetrics.silhouette > 0.5
+                                  ? "#198754" // green
+                                  : qualityMetrics.silhouette > 0.3
+                                  ? "#fd7e14" // orange
+                                  : "#dc3545" // red
+                            }}
+                          >
+                            {qualityMetrics.silhouette > 0.5
+                              ? "Good clustering quality — clusters are well separated."
+                              : qualityMetrics.silhouette > 0.3
+                              ? "Moderate clustering quality — structure is acceptable but may overlap."
+                              : "Poor clustering quality — clusters are not clearly separated."}
+                          </p>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    </Accordion>
+                  )}
+
+
 
                   {/* Justification */}
                   <div className="mt-3 p-3 bg-light rounded border">
