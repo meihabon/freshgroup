@@ -110,7 +110,6 @@ function Dashboard() {
       <div className="mb-4">
         <h2 className="fw-bold">DASHBOARD</h2>
         <PageAbout text="Overview of key metrics and charts. Use filters to narrow down and click cards to explore related records." icon={Users} accentColor="#27ae60" />
-        <p className="text-muted">A comprehensive overview of student demographics and performance indicators.</p>
       </div>
 
       {/* Justification Section */}
