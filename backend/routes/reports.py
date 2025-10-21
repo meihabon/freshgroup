@@ -1,6 +1,5 @@
-# reports.py
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
 from db import get_db_connection
 import io, csv
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
@@ -45,21 +44,15 @@ async def get_all_students_from_db():
     connection.close()
     return students
 
-# === Reports Endpoint ===
-@router.get("/reports/{report_type}")
-async def export_report(report_type: str, format: str = Query("pdf")):
-    students = await get_all_students_from_db()
-    if not students:
-        raise HTTPException(status_code=404, detail="No student data found")
 
-    # ===== Define report types =====
+# Helper: build report context (title, summary_data, headers, rows, charts, recommendations)
+def build_report_context(report_type, students):
     summary_data, student_headers, student_rows, show_charts, recommendations = {}, [], [], False, ""
 
     if report_type == "dashboard_summary":
         title = "Dashboard Summary Report"
         total_students = len(students)
 
-        # Count categories
         sex_counts, program_counts, municipality_counts, income_counts, shs_counts, honors_counts = {}, {}, {}, {}, {}, {}
         for s in students:
             sex_counts[s["sex"]] = sex_counts.get(s["sex"], 0) + 1
@@ -144,13 +137,25 @@ async def export_report(report_type: str, format: str = Query("pdf")):
         student_headers = ["Cluster", "Firstname", "Lastname", "GWA", "Income"]
         sorted_students = sorted(students, key=lambda s: (s.get("cluster_number") if s.get("cluster_number") is not None else 999, s["GWA"]))
         student_rows = [
-            [s["cluster_number"] if s.get("cluster_number") is not None else "N/A", s["firstname"], s["lastname"], str(s["GWA"]), str(s["income"])]
+            [s["cluster_number"] if s.get("cluster_number") is not None else "N/A", s["firstname"], s["lastname"], str(s["GWA"]), str(s["income"]) ]
             for s in sorted_students
         ]
         recommendations = "Cluster analysis groups students by performance and financial background (GWA & income). This helps design targeted academic support and financial aid strategies."
 
     else:
         raise HTTPException(status_code=400, detail="Invalid report type")
+
+    return title, summary_data, student_headers, student_rows, show_charts, recommendations
+
+
+# === Reports Endpoint ===
+@router.get("/reports/{report_type}")
+async def export_report(report_type: str, format: str = Query("pdf")):
+    students = await get_all_students_from_db()
+    if not students:
+        raise HTTPException(status_code=404, detail="No student data found")
+
+    title, summary_data, student_headers, student_rows, show_charts, recommendations = build_report_context(report_type, students)
 
     # ===== CSV Export =====
     if format == "csv":
@@ -219,3 +224,43 @@ async def export_report(report_type: str, format: str = Query("pdf")):
     doc.build(story)
     buffer.seek(0)
     return StreamingResponse(buffer, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={report_type}.pdf"})
+
+
+@router.get("/reports/{report_type}/preview")
+async def preview_report(report_type: str):
+    students = await get_all_students_from_db()
+    if not students:
+        raise HTTPException(status_code=404, detail="No student data found")
+
+    # reuse the context builder
+    title, summary_data, student_headers, student_rows, show_charts, recommendations = build_report_context(report_type, students)
+
+    # Create a simple HTML preview
+    html_parts = [f"<h1>{title} (Preview)</h1>"]
+    html_parts.append("<h2>Summary Statistics</h2>")
+    html_parts.append("<ul>")
+    for k, v in summary_data.items():
+        html_parts.append(f"<li><strong>{k}:</strong> {v}</li>")
+    html_parts.append("</ul>")
+
+    if recommendations:
+        html_parts.append("<h3>Recommendations</h3>")
+        html_parts.append(f"<p>{recommendations}</p>")
+
+    # Show top 10 student rows in table
+    html_parts.append("<h3>Sample Students (top 10)</h3>")
+    html_parts.append("<table border=1 style='border-collapse:collapse; width:100%'><thead><tr>")
+    for h in student_headers:
+        html_parts.append(f"<th style='padding:6px'>{h}</th>")
+    html_parts.append("</tr></thead><tbody>")
+    for row in student_rows[:10]:
+        html_parts.append("<tr>")
+        for cell in row:
+            html_parts.append(f"<td style='padding:6px'>{cell}</td>")
+        html_parts.append("</tr>")
+    html_parts.append("</tbody></table>")
+
+    html_parts.append("<p><em>This is a lightweight preview. Use the export endpoint to download full PDF/CSV.</em></p>")
+
+    html = "\n".join(html_parts)
+    return HTMLResponse(content=html, status_code=200)

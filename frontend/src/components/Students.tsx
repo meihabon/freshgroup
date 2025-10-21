@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   Row, Col, Card, Table, Form, Button, 
-  InputGroup, Badge, Spinner, Alert, Modal, Accordion 
+  Badge, Spinner, Alert, Modal, Accordion 
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import RecordViewModal from './RecordViewModal'
@@ -249,18 +249,6 @@ function Students() {
   const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast)
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage)
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
-        <Spinner animation="border" variant="primary" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return <Alert variant="danger">{error}</Alert>
-  }
-
   return (
     <div className="fade-in">
       <div className="students-layout mb-4 d-flex align-items-start" style={{ gap: 16 }}>
@@ -271,30 +259,21 @@ function Students() {
               <small className="text-muted">Manage enrolled students and their attributes</small>
             </div>
 
-            <div className="d-flex align-items-center gap-2">
-              <InputGroup className="me-2" style={{ minWidth: 260 }}>
-                <InputGroup.Text>
-                  <Search size={16} />
-                </InputGroup.Text>
-                <Form.Control
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </InputGroup>
-
-              <Form.Select size="sm" value={studentsPerPage} onChange={(e) => { setStudentsPerPage(parseInt(e.target.value)); setCurrentPage(1); }} style={{ width: 110 }} aria-label="Rows per page">
-                <option value={10}>10 rows</option>
-                <option value={20}>20 rows</option>
-                <option value={30}>30 rows</option>
-              </Form.Select>
-
-              <Button variant="outline-success" onClick={exportToCSV} className="d-flex align-items-center px-3 py-2">
-                <Download size={18} className="me-2" /> Export CSV
-              </Button>
+            <div>
+              {/* Controls moved to the compact filter card above the table */}
             </div>
           </div>
+
+          {/* Loading and error indicators */}
+          {loading && (
+            <div className="mb-2">
+              <Spinner animation="border" size="sm" className="me-2" /> Loading...
+            </div>
+          )}
+
+          {error && (
+            <Alert variant="danger" className="mb-2">{error}</Alert>
+          )}
 
           <div className="mb-4">
             <PageAbout text="Browse and filter student profiles. Use the filters to refine results, change rows per page, or export the current selection as CSV. Click any row to view details." icon={<Search />} accentColor="#27ae60" />
