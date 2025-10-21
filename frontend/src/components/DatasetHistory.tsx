@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-
+import type { PlotType } from 'plotly.js'
 interface Dataset {
   id: number
   filename: string
@@ -240,41 +240,84 @@ function DatasetHistory() {
     )
   }
 
-  const elbowPlot = () => {
-    if (!wcss || wcss.length === 0) return null
-    const ks = Array.from({ length: wcss.length }, (_, i) => i + 2)
-    return (
-      <div>
-        <Plot
-          data={[
-            {
-              x: ks,
-              y: wcss,
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'WCSS',
-              hovertemplate: 'k=%{x}<br>WCSS=%{y:.2f}<extra></extra>'
-            }
-          ]}
-          layout={{
-            title: { text: 'Elbow Method (WCSS vs k)' },
-            xaxis: { title: { text: 'k (number of clusters)' }, dtick: 1 },
-            yaxis: { title: { text: 'WCSS (lower is better)' } },
-            height: 250,
-            margin: { t: 40, b: 40, l: 60, r: 20 },
-            showlegend: false
-          }}
-          style={{ width: '100%' }}
-        />
+const elbowPlot = () => {
+  if (!wcss || wcss.length === 0) return null
+  const ks = Array.from({ length: wcss.length }, (_, i) => i + 2)
 
-        {recommendedK && (
-          <div className="mt-2 d-flex align-items-center gap-2">
-            <Badge bg="info">K: {recommendedK}</Badge>
-          </div>
-        )}
-      </div>
-    )
-  }
+  return (
+    <div>
+      <Plot
+        data={[
+          {
+            x: ks,
+            y: wcss,
+            type: 'scatter' as PlotType, // ✅ fixed typing
+            mode: 'lines+markers',
+            name: 'WCSS',
+            hovertemplate: 'k=%{x}<br>WCSS=%{y:.2f}<extra></extra>',
+            marker: { color: 'blue', size: 6 },
+            line: { color: 'blue' },
+          },
+          // 🔴 Highlight elbow point
+          ...(recommendedK
+            ? [
+                ({
+                  x: [recommendedK],
+                  y: [wcss[recommendedK - 2]], // index offset since ks starts at 2
+                  type: 'scatter' as PlotType, // ✅ fix typing
+                  mode: 'text+markers' as any,
+                  marker: {
+                    color: 'red',
+                    size: 12,
+                    symbol: 'circle',
+                  },
+                  text: ['Elbow point'],
+                  textposition: 'top center',
+                  textfont: { color: 'red', size: 12 },
+                  name: 'Elbow Point',
+                  hovertemplate:
+                    '<b>Recommended K = %{x}</b><br>WCSS=%{y:.2f}<extra></extra>',
+                } as any),
+              ]
+            : []),
+        ]}
+        layout={{
+          title: { text: 'Elbow Method (WCSS vs k)' },
+          xaxis: { title: { text: 'k (number of clusters)' }, dtick: 1 },
+          yaxis: { title: { text: 'WCSS (lower is better)' } },
+          height: 260,
+          margin: { t: 40, b: 40, l: 60, r: 20 },
+          showlegend: false,
+          // 🔻 Vertical red dashed line
+          shapes: recommendedK
+            ? [
+                {
+                  type: 'line',
+                  x0: recommendedK,
+                  x1: recommendedK,
+                  y0: Math.min(...wcss),
+                  y1: Math.max(...wcss),
+                  line: {
+                    color: 'red',
+                    width: 2,
+                    dash: 'dot',
+                  },
+                },
+              ]
+            : [],
+        }}
+        style={{ width: '100%' }}
+      />
+
+      {recommendedK && (
+        <div className="mt-2 d-flex align-items-center gap-2">
+          <Badge bg="danger">Elbow at K = {recommendedK}</Badge>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
   return (
     <div className="fade-in">
