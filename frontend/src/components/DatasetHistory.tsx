@@ -543,17 +543,23 @@ const elbowPlot = () => {
 
 
 
-                  {/* Justification */}
-                  <div className="mt-3 p-3 bg-light rounded border">
-                    <h6 className="fw-bold">Why the Elbow Method?</h6>
-                    <p style={{ fontSize: "0.9rem" }}>
-                      The <b>Elbow Method</b> is a technique to determine the optimal number of clusters (k) in a dataset.  
-                      It works by plotting the <b>Within-Cluster Sum of Squares (WCSS)</b> for different values of k.  
-                      At first, adding more clusters reduces WCSS sharply, but after a certain point, the improvements become minimal.  
-                      This point looks like an “elbow” on the chart and usually indicates the most suitable k.  
-                      Our system automatically selects this value for you.
-                    </p>
-                  </div>
+                <Accordion defaultActiveKey="0" className="mt-3">
+                  <Accordion.Item eventKey="0">
+                    <Accordion.Header>
+                      <span className="fw-bold">Why the Elbow Method?</span>
+                    </Accordion.Header>
+                    <Accordion.Body className="bg-light rounded border">
+                      <p style={{ fontSize: "0.9rem" }}>
+                        The <b>Elbow Method</b> is a technique used to determine the optimal number of clusters (k) in a dataset.
+                        It works by plotting the <b>Within-Cluster Sum of Squares (WCSS)</b> for different values of k. 
+                        Initially, increasing the number of clusters sharply decreases the WCSS, but after a certain point,
+                        improvements become minimal. This “elbow” point typically represents the most suitable number of clusters. 
+                        The system automatically identifies and highlights this optimal k for you.
+                      </p>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
+
                 </Col>
 
                 {/* Right side: File Upload + System K */}
