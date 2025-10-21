@@ -53,11 +53,6 @@ interface ClusterData {
   x_categories?: string[] | null
   y_categories?: string[] | null
   k?: number
-  radar_data?: {
-    cluster: number
-    features: string[]
-    values: number[]
-  }[]
 }
 
 
@@ -701,105 +696,7 @@ const renderClusterSection = (
 
         {renderClusterSection(clusterData, false)}
 
-      {clusterData?.radar_data && clusterData.radar_data.length > 0 && (
-        <Card className="mt-4 bg-light shadow-sm">
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <div>
-              <h6 className="fw-bold mb-0">Radar Chart — Cluster Profile Overview</h6>
-              <small className="text-muted">
-                Displays the average normalized feature values per cluster for clearer profile comparison.
-              </small>
-            </div>
-            <span className="badge bg-primary">Official Clusters</span>
-          </Card.Header>
-
-          <Card.Body>
-            <Plot
-              data={clusterData.radar_data.map((c) => ({
-                type: "scatterpolar",
-                r: c.values,
-                theta: c.features.map((f) =>
-                  f === "gwa"
-                    ? "GWA (Core)"
-                    : f === "income"
-                    ? "Income (Core)"
-                    : f === "sex_enc"
-                    ? "Sex (Profile)"
-                    : f === "program_enc"
-                    ? "Program (Profile)"
-                    : f === "municipality_enc"
-                    ? "Municipality (Profile)"
-                    : f === "shs_type_enc"
-                    ? "SHS Type (Profile)"
-                    : f
-                ),
-                fill: "toself",
-                name: `Cluster ${c.cluster}`,
-                opacity: 0.7,
-                line: { width: 2 },
-              }))}
-              layout={{
-                polar: {
-                  radialaxis: {
-                    visible: true,
-                    range: [0, 1],
-                    tickfont: { size: 11 },
-                    title: { text: "Normalized Scale (0–1)" },
-                  },
-                },
-                title: {
-                  text: "Cluster Radar — Core and Descriptive Feature Comparison",
-                  font: { size: 16 },
-                },
-                legend: { orientation: "h", y: -0.3 },
-                showlegend: true,
-                height: 520,
-                margin: { t: 60, b: 80, l: 40, r: 40 },
-              }}
-              style={{ width: "100%" }}
-            />
-
-            {/* ======= EXPLANATION SECTION ======= */}
-            <div className="mt-4 p-4 bg-white border rounded">
-              <h6 className="fw-bold mb-2">Understanding the Radar Chart</h6>
-              <p className="text-muted mb-2">
-                This chart visualizes the <b>average normalized values</b> of selected features across all clusters.
-                It combines the two <b>core features</b> used in clustering — GWA and Income — with
-                <b> descriptive profile features</b> such as Sex, Program, Municipality, and SHS Type.
-              </p>
-
-              <ul className="text-muted small mb-3">
-                <li>
-                  <b>GWA</b> and <b>Income</b> are the <b>core clustering features</b> — the basis of how clusters were formed.
-                </li>
-                <li>
-                  The other axes (<b>Sex, Program, Municipality, SHS Type</b>) are <b>profile features</b> that describe the
-                  characteristics of students within each cluster.
-                </li>
-                <li>
-                  Points closer to the <b>outer edge (1)</b> indicate higher average normalized values for that feature.
-                </li>
-                <li>
-                  Points closer to the <b>center (0)</b> represent lower or less dominant feature averages.
-                </li>
-                <li>
-                  Overlapping areas between clusters show similar distributions for those features.
-                </li>
-              </ul>
-
-              <div className="alert alert-info small mb-0">
-                <b>Interpretation Tip:</b><br />
-                - A cluster extending outward on <b>GWA</b> but inward on <b>Income</b> suggests
-                high-performing students from lower-income households.<br />
-                - A cluster that extends outward on <b>Income</b> but inward on <b>GWA</b> represents
-                wealthier students with moderate academic performance.<br />
-                - Wider spread across profile features (Program, SHS Type, Municipality)
-                indicates greater diversity within that cluster.
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
+      {/* Radar chart removed per request. */}
 
 
 
