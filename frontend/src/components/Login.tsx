@@ -118,7 +118,7 @@ function Login() {
             }}
           >
             <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-              <Card className="border-0 w-100" style={{ maxWidth: "480px" }}>
+              <Card className="border-0 w-100 login-card enter-up" style={{ maxWidth: "480px" }}>
                 <Card.Body className="p-5" style={{ borderRadius: 12 }}>
 
                   {/* Brand */}
