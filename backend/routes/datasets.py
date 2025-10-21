@@ -135,8 +135,27 @@ async def elbow_preview(
 
         wcss = compute_wcss_for_range(X_scaled, k_min=2, k_max=10)
         recommended_k = recommend_k_by_curvature(wcss)
+        # --- Compute clustering quality for recommended_k ---
+        try:
+            kmeans = KMeans(n_clusters=recommended_k, random_state=42, n_init=10)
+            preds = kmeans.fit_predict(X_scaled)
 
-        return {"wcss": wcss, "recommended_k": recommended_k}
+            silhouette = float(silhouette_score(X_scaled, preds))
+            dbi = float(davies_bouldin_score(X_scaled, preds))
+            chi = float(calinski_harabasz_score(X_scaled, preds))
+        except Exception:
+            silhouette = dbi = chi = 0
+
+        return {
+            "wcss": wcss,
+            "recommended_k": recommended_k,
+            "quality_metrics": {
+                "silhouette": silhouette,
+                "davies_bouldin": dbi,
+                "calinski_harabasz": chi
+            }
+        }
+
 
     except Exception as e:
         import traceback

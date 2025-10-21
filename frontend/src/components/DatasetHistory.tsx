@@ -104,6 +104,10 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRecommendedK(data.recommended_k)
         setClusterCount(data.recommended_k) // auto-select recommended
       }
+      if (data && data.quality_metrics) {
+        setQualityMetrics(data.quality_metrics)
+      }
+
     } catch (err: any) {
       setElbowError(err.response?.data?.detail || 'Failed to compute elbow preview')
     } finally {
