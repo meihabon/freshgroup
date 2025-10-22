@@ -8,10 +8,6 @@ import RecordViewModal from './RecordViewModal'
 import PageAbout from './PageAbout'
 import { useAuth } from "../context/AuthContext"
 import { updateStudent } from "../api"
-import './custom.css'
-import * as XLSX from "xlsx"
-import { saveAs } from "file-saver"
-
 interface Student {
   id: number
   firstname: string
@@ -113,79 +109,48 @@ function Students() {
     setHonorsFilter('')
   }
 
-// ✅ Export filtered students as CSV or Excel
-const exportToCSV = () => {
-  const headers = [
-    'firstname',
-    'lastname',
-    'sex',
-    'program',
-    'municipality',
-    'area_type',
-    'income',
-    'SHS_type',
-    'GWA',
-    'Honors',
-    'IncomeCategory',
-  ];
+  const exportToCSV = () => {
+   
+    const headers = [
+      'firstname',
+      'lastname',
+      'sex',
+      'program',
+      'municipality',
+      'area_type',
+      'income',
+      'SHS_type',
+      'GWA',
+      'Honors',
+      'IncomeCategory',
+    ]
 
-  const csvContent = [
-    headers.join(','),
-    ...filteredStudents.map(student =>
-      [
-        student.firstname,
-        student.lastname,
-        student.sex,
-        student.program,
-        student.municipality,
-        getAreaType(student.municipality),
-        student.income,
-        student.SHS_type,
-        student.GWA,
-        student.Honors,
-        student.IncomeCategory,
-      ].join(',')
-    ),
-  ].join('\n');
+    const csvContent = [
+      headers.join(','),
+      ...filteredStudents.map(student =>
+        [
+          student.firstname,
+          student.lastname,
+          student.sex,
+          student.program,
+          student.municipality,
+          getAreaType(student.municipality),
+          student.income,
+          student.SHS_type,
+          student.GWA,
+          student.Honors,
+          student.IncomeCategory, 
+        ].join(',')
+      )
+    ].join('\n')
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'students.csv';
-  a.click();
-};
-
-// ✅ New function: export to Excel (.xlsx)
-const exportToExcel = () => {
-  if (filteredStudents.length === 0) {
-    alert("No data to export");
-    return;
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'students.csv'
+    a.click()
   }
-
-  // Convert filtered students to sheet-friendly objects
-  const worksheetData = filteredStudents.map((student) => ({
-    Firstname: student.firstname,
-    Lastname: student.lastname,
-    Sex: student.sex,
-    Program: student.program,
-    Municipality: student.municipality,
-    "Area Type": getAreaType(student.municipality),
-    Income: student.income,
-    "SHS Type": student.SHS_type,
-    GWA: student.GWA,
-    Honors: student.Honors,
-    "Income Category": student.IncomeCategory,
-  }));
-
-  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
-
-  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-  saveAs(blob, "students.xlsx");
-};
 
 
   const getHonorsBadgeVariant = (honors: string) => {
@@ -330,14 +295,7 @@ const exportToExcel = () => {
 
                 <Col xs={6} md={3} lg={5} className="d-flex justify-content-end" style={{ gap: 8 }}>
                   <Button variant="outline-secondary" size="sm" onClick={clearFilters}><Filter size={14} className="me-1" /> Reset</Button>
-                  <Button variant="outline-success" size="sm" onClick={exportToCSV}>
-                    <Download size={14} className="me-1" /> Export CSV
-                  </Button>
-
-                  <Button variant="outline-primary" size="sm" onClick={exportToExcel}>
-                    <Download size={14} className="me-1" /> Export Excel
-                  </Button>
-
+                  <Button variant="outline-success" size="sm" onClick={exportToCSV}><Download size={14} className="me-1" /> Export</Button>
                 </Col>
 
                 <Col xs={12}>
@@ -445,7 +403,7 @@ const exportToExcel = () => {
                 </div>
               </div>
               <div className="table-responsive-sm students-table-wrapper">
-                <Table striped hover responsive className="mb-0 students-table table-sm responsive-card-table" style={{ tableLayout: 'fixed', width: '100%', fontSize: '0.88rem' }}>
+                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%', fontSize: '0.88rem' }}>
                   <thead>
                     <tr>
                       <th className="col-first" style={{ width: '8%' }}>First Name</th>
