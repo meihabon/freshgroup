@@ -79,14 +79,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
-
-        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom sidebar-header">
-          <div className="d-flex align-items-center mb-1">
-            <BarChart size={26} className="me-2 text-white" />
-            <h5 className="mb-0 fw-bold">FreshGroup</h5>
-          </div>
-          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
-        </div>
         <div style={{ position: "relative" }}>
           <Button
             variant="danger"
@@ -104,6 +96,13 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           >
             Logout
           </Button>
+        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom sidebar-header">
+          <div className="d-flex align-items-center mb-1">
+            <BarChart size={26} className="me-2 text-white" />
+            <h5 className="mb-0 fw-bold">FreshGroup</h5>
+          </div>
+          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+        </div>
 
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
