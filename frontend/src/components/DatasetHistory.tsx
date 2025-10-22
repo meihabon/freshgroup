@@ -466,8 +466,8 @@ const elbowPlot = () => {
               </Button>
             </div>
           ) : (
-          <div className="table-responsive-sm dataset-table-wrapper">
-            <Table striped hover bordered responsive className="mb-0 table-sm align-middle text-nowrap">
+            <div className="table-responsive">
+              <Table striped hover className="mb-0 datasets-table table-sm">
                 <thead>
                   <tr>
                     <th>Filename</th>

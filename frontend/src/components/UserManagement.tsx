@@ -435,7 +435,7 @@ const handleResetPassword = async () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Stats */}
-      <Row xs={1} sm={2} md={3} className="g-3 mb-4">
+      <Row className="mb-4">
         <Col md={4}>
           <Card className="text-center">
             <Card.Body>
@@ -478,8 +478,8 @@ const handleResetPassword = async () => {
           <h6 className="mb-0 fw-bold">System Users</h6>
         </Card.Header>
         <Card.Body className="p-0">
-        <div className="table-responsive-sm users-table-wrapper">
-          <Table striped hover responsive bordered className="mb-0 table-sm align-middle text-nowrap">
+          <div className="table-responsive">
+            <Table striped hover className="mb-0 users-table table-sm">
               <thead>
                 <tr>
                   <th>User</th>
