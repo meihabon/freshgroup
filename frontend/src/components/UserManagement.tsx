@@ -430,7 +430,7 @@ const handleResetPassword = async () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Stats */}
-      <Row className="mb-4 g-3 flex-wrap">
+      <Row className="mb-4">
        <Col xs={12} sm={6} md={4} className="w-100">
           <Card className="text-center">
             <Card.Body>
