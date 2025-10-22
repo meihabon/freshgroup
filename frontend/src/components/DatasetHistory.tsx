@@ -428,7 +428,7 @@ const elbowPlot = () => {
 
       {/* Dataset Overview Cards */}
       <Row className="mb-4">
-        <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
 
           <Card className="text-center stat-card">
             <Card.Body>
@@ -438,7 +438,7 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
 
           <Card className="text-center stat-card">
             <Card.Body>
@@ -450,7 +450,7 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
           <Card className="text-center stat-card">
             <Card.Body>
               <Upload size={40} className="text-info mb-2" />

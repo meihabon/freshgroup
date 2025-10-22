@@ -431,7 +431,7 @@ const handleResetPassword = async () => {
 
       {/* Stats */}
       <Row className="mb-4">
-       <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <Users size={40} className="text-primary mb-2" />
@@ -440,7 +440,7 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-       <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <Shield size={40} className="text-danger mb-2" />
@@ -449,7 +449,7 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-       <Col xs={12} sm={6} md={4} className="w-100">
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <Shield size={40} className="text-info mb-2" />
