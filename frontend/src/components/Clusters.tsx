@@ -597,7 +597,6 @@ const renderClusterSection = (
                     }}
                   >
                     <h6>{getClusterLabel(data.clusters[cid], cid)}</h6>
-                    <small className="text-muted">{getClusterDescription(data.clusters[cid], data.x_name, data.y_name, isPairwise).summary}</small>
                   </div>
                 ))}
               </Card.Body>

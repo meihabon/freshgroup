@@ -133,15 +133,7 @@ function Reports() {
         ))}
       </Row>
 
-      {/* ✅ Instructions */}
-      <div className="mt-4 p-3 border rounded bg-light text-muted small">
-        <p className="mb-1 fw-bold">How to Use:</p>
-        <ul className="mb-0">
-          <li><b>Dashboard Summary</b> → full analytics with charts, distributions, and complete student list.</li>
-          <li><b>Other reports</b> → focused datasets with only relevant fields (e.g., income, honors, SHS type).</li>
-          <li><b>PDF</b> → formatted report, ready to share. <b>CSV</b> → raw data for spreadsheets or further processing.</li>
-        </ul>
-      </div>
+    
       {/* Preview Modal */}
       <Modal show={previewOpen} onHide={() => setPreviewOpen(false)} size="xl" centered>
         <Modal.Header closeButton>
