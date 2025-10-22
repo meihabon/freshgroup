@@ -87,6 +87,23 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
           <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
         </div>
+        <div style={{ position: "relative" }}>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleLogout}
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              borderRadius: "8px",
+              padding: "6px 12px",
+              fontWeight: 600,
+              zIndex: 10,
+            }}
+          >
+            Logout
+          </Button>
 
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
@@ -142,51 +159,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               )
             })}
           </Nav>
-          <div
-            className="sidebar-container"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100vh",
-            }}
-          >
-            {/* Scrollable content */}
-            <div
-              className="content"
-              style={{
-                flexGrow: 1,
-                overflowY: "auto",
-                paddingBottom: "80px", // prevents logout from being hidden
-              }}
-            >
-              {/* your sidebar links, user info, etc. */}
-            </div>
-
-            {/* Sticky logout button */}
-            <div
-              className="logout-section"
-              style={{
-                position: "sticky",
-                bottom: 0,
-                background: "#fff",
-                padding: "12px",
-                borderTop: "1px solid #ddd",
-              }}
-            >
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleLogout}
-                className="w-100 py-2 fw-semibold"
-                style={{ borderRadius: "8px" }}
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-
         </div>
-
+      </div>
       </div>
     </>
   )
