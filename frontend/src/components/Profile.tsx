@@ -350,15 +350,31 @@ function Profile() {
 
         {/* Sidebar */}
         <Col lg={4}>
-          <Card className="profile-header">
-            <Card.Body className="text-center">
+          <Card
+            className="profile-header border-0 shadow-sm"
+            style={{
+              background: 'linear-gradient(135deg, #f7d27a 0%, #f1c40f 100%)', // Mustard yellow gradient
+              borderRadius: '10px',
+            }}
+          >
+            <Card.Body className="text-center text-dark">
               <div className="mb-3">
-                <User size={64} className="text-white" />
+                <User size={64} className="text-dark" />
               </div>
-              <h5 className="text-white">{user?.profile?.name || "User"}</h5>
-              <p className="text-white opacity-75 mb-3">{user?.email}</p>
+              <h5 className="fw-bold">{user?.profile?.name || "User"}</h5>
+              <p className="opacity-75 mb-3">{user?.email}</p>
               <div className="d-flex justify-content-center">
-                <span className="badge bg-light text-dark">{user?.role}</span>
+                <span
+                  className="badge"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#1b2b24',
+                    fontSize: '0.85rem',
+                    padding: '6px 10px',
+                  }}
+                >
+                  {user?.role}
+                </span>
               </div>
             </Card.Body>
           </Card>
