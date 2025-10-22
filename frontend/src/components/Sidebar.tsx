@@ -142,17 +142,49 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               )
             })}
           </Nav>
-            <div className="mt-auto pt-3 border-top">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={handleLogout}
-              className="w-100 py-2 fw-semibold"
-              style={{ borderRadius: '8px' }}
+          <div
+            className="sidebar-container"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100vh",
+            }}
+          >
+            {/* Scrollable content */}
+            <div
+              className="content"
+              style={{
+                flexGrow: 1,
+                overflowY: "auto",
+                paddingBottom: "80px", // prevents logout from being hidden
+              }}
             >
-              Logout
-            </Button>
+              {/* your sidebar links, user info, etc. */}
+            </div>
+
+            {/* Sticky logout button */}
+            <div
+              className="logout-section"
+              style={{
+                position: "sticky",
+                bottom: 0,
+                background: "#fff",
+                padding: "12px",
+                borderTop: "1px solid #ddd",
+              }}
+            >
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleLogout}
+                className="w-100 py-2 fw-semibold"
+                style={{ borderRadius: "8px" }}
+              >
+                Logout
+              </Button>
+            </div>
           </div>
+
         </div>
 
       </div>
