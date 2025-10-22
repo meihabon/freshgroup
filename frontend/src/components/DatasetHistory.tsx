@@ -4,6 +4,7 @@ import {
   Spinner, Alert, Badge, ProgressBar, Accordion
 } from 'react-bootstrap'
 import { Upload, Trash2, Eye, Database, Download } from 'lucide-react'
+import PageAbout from './PageAbout'
 import { useAuth } from '../context/AuthContext'
 import Plot from 'react-plotly.js'
 import * as XLSX from 'xlsx'
@@ -11,6 +12,10 @@ import { saveAs } from 'file-saver'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import type { PlotType } from 'plotly.js'
+import RecordViewModal from './RecordViewModal'
+ 
+
+
 interface Dataset {
   id: number
   filename: string
@@ -27,12 +32,18 @@ function DatasetHistory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('All')
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10)
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const [uploadLoading, setUploadLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [clusterCount, setClusterCount] = useState(3)
   const [previewRows, setPreviewRows] = useState<any[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewedDataset, setViewedDataset] = useState<Dataset | null>(null)
 
   // Elbow preview state
   const [elbowLoading, setElbowLoading] = useState(false)
@@ -50,6 +61,16 @@ function DatasetHistory() {
     }
   }, [user])
 
+  // Derived/filtered datasets
+  const filteredDatasets = datasets.filter((d, idx) => {
+    const matchesSearch = searchTerm.trim() === '' || d.filename.toLowerCase().includes(searchTerm.toLowerCase()) || d.uploaded_by_email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'All' || (statusFilter === 'Active' ? idx === 0 : idx !== 0)
+    return matchesSearch && matchesStatus
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredDatasets.length / itemsPerPage))
+  const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   const fetchDatasets = async () => {
     try {
       const response = await API.get('/datasets')
@@ -60,6 +81,33 @@ function DatasetHistory() {
       setLoading(false)
     }
   }
+const handleDownloadAsExcel = async (id: number) => {
+  try {
+    // Fetch dataset file (CSV format)
+    const response = await API.get(`/datasets/${id}/download`, { responseType: "blob" });
+
+    // Convert blob to text
+    const text = await response.data.text();
+
+    // Split lines and cells safely with explicit typing
+    const rows: string[][] = text
+      .split("\n")
+      .filter((line: string) => line.trim() !== "")
+      .map((line: string) => line.split(","));
+
+    // Convert rows to Excel sheet
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dataset");
+
+    // Generate Excel blob and trigger download
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `dataset_${id}.xlsx`);
+  } catch (error: any) {
+    setError(error.response?.data?.detail || "Failed to download dataset as Excel");
+  }
+};
 
 const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
@@ -168,20 +216,12 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
   }
 
-  const handleDownload = async (id: number) => {
-    try {
-      const response = await API.get(`/datasets/${id}/download`, { responseType: "blob" })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.setAttribute("download", `dataset_${id}.csv`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-    } catch (error: any) {
-      setError(error.response?.data?.detail || "Failed to download dataset")
-    }
+  const handleRowClick = (dataset: Dataset) => {
+    setViewedDataset(dataset)
+    setShowViewModal(true)
   }
+
+
 
   const deleteDataset = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
@@ -339,19 +379,24 @@ const elbowPlot = () => {
   return (
     <div className="fade-in">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-2">
         <h2 className="fw-bold">Dataset History</h2>
-        <Button variant="primary" onClick={() => setShowUpload(true)}>
+        <Button variant="outline-primary" onClick={() => setShowUpload(true)}>
           <Upload size={18} className="me-2" />
           Upload New Dataset
         </Button>
       </div>
 
-      {/* 🔹 Distinct Template Download Section */}
+      {/* About card directly under heading */}
       <div className="mb-4">
+        <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
+      </div>
+
+      {/* 🔹 Distinct Template Download Section (restored) */}
+      <div className="mb-4" style={{ background: 'rgba(242, 201, 93, 0.12)', padding: '12px', borderRadius: 8 }}>
         <h6 className="fw-bold mb-2">Download Dataset Template:</h6>
         <div className="d-flex gap-2">
-          <Button variant="success" onClick={handleDownloadTemplateCSV}>
+          <Button variant="outline-success" onClick={handleDownloadTemplateCSV}>
             <Download size={16} className="me-2" /> CSV Template
           </Button>
           <Button variant="outline-success" onClick={handleDownloadTemplateExcel}>
@@ -364,13 +409,33 @@ const elbowPlot = () => {
         </small>
       </div>
 
+      {/* Toolbar: search, status, show, download templates */}
+      <div className="mb-4 d-flex justify-content-between align-items-center gap-3">
+        <div className="d-flex gap-2 align-items-center">
+          <Form.Control size="sm" placeholder="Search by filename or uploader..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} style={{ minWidth: 260 }} />
+          <Form.Select size="sm" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
+            <option value="All">All status</option>
+            <option value="Active">Active</option>
+            <option value="Archived">Archived</option>
+          </Form.Select>
+          <Form.Label className="small fw-semibold">Show:</Form.Label>
+          <Form.Select size="sm" value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+            <option value={5}>5 rows</option>
+            <option value={10}>10 rows</option>
+            <option value={15}>15 rows</option>
+            <option value={20}>20 rows</option>
+          </Form.Select>
+        </div>
+      </div>
+
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Dataset Overview Cards */}
-      <Row className="mb-4">
-        <Col md={4}>
-          <Card className="text-center">
+      <Row className="mb-4 g-3 flex-wrap">
+        <Col xs={12} sm={6} md={4} className="w-100">
+
+          <Card className="text-center stat-card">
             <Card.Body>
               <Database size={40} className="text-primary mb-2" />
               <h4 className="fw-bold">{datasets.length}</h4>
@@ -378,8 +443,9 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="text-center">
+        <Col xs={12} sm={6} md={4} className="w-100">
+
+          <Card className="text-center stat-card">
             <Card.Body>
               <Eye size={40} className="text-success mb-2" />
               <h4 className="fw-bold">
@@ -389,8 +455,8 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="text-center">
+        <Col xs={12} sm={6} md={4} className="w-100">
+          <Card className="text-center stat-card">
             <Card.Body>
               <Upload size={40} className="text-info mb-2" />
               <h4 className="fw-bold">
@@ -420,7 +486,7 @@ const elbowPlot = () => {
             </div>
           ) : (
             <div className="table-responsive">
-              <Table striped hover className="mb-0">
+              <Table striped hover className="mb-0 datasets-table table-sm responsive-card-table">
                 <thead>
                   <tr>
                     <th>Filename</th>
@@ -433,33 +499,41 @@ const elbowPlot = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {datasets.map((dataset, index) => (
-                    <tr key={dataset.id}>
-                      <td className="fw-semibold">{dataset.filename}</td>
-                      <td>{dataset.uploaded_by_email}</td>
-                      <td>{formatDate(dataset.upload_date)}</td>
-                      <td>
+                  {paginatedDatasets.map((dataset) => (
+                    <tr key={dataset.id} onClick={() => handleRowClick(dataset)} style={{ cursor: 'pointer' }}>
+                      <td data-label="Filename" className="fw-semibold">{dataset.filename}</td>
+                      <td data-label="Uploaded By">{dataset.uploaded_by_email}</td>
+                      <td data-label="Upload Date">{formatDate(dataset.upload_date)}</td>
+                      <td data-label="Students">
                         <Badge bg="info">{dataset.student_count?.toLocaleString() || 'N/A'}</Badge>
                       </td>
-                      <td>
+                      <td data-label="Clusters">
                         <Badge bg="success">{dataset.cluster_count || 'N/A'}</Badge>
                       </td>
-                      <td>
-                        {index === 0 ? (
+                      <td data-label="Status">
+                        {(datasets.indexOf(dataset) === 0) ? (
                           <Badge bg="primary">Active</Badge>
                         ) : (
                           <Badge bg="secondary">Archived</Badge>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         <div className="d-flex gap-2">
-                          <Button variant="outline-info" size="sm" onClick={() => handlePreview(dataset.id)}>
+                          <Button variant="outline-info" size="sm" onClick={(e) => { e.stopPropagation(); handlePreview(dataset.id); }}>
                             <Eye size={14} />
                           </Button>
-                          <Button variant="outline-success" size="sm" onClick={() => handleDownload(dataset.id)}>
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadAsExcel(dataset.id);
+                            }}
+                          >
                             <Download size={14} />
                           </Button>
-                          <Button variant="outline-danger" size="sm" onClick={() => deleteDataset(dataset.id)}>
+
+                          <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); deleteDataset(dataset.id); }}>
                             <Trash2 size={14} />
                           </Button>
                         </div>
@@ -468,6 +542,17 @@ const elbowPlot = () => {
                   ))}
                 </tbody>
               </Table>
+              {/* Pagination controls */}
+              <div className="d-flex justify-content-between align-items-center p-2">
+                <div>
+                  <small className="text-muted">Showing {Math.min(filteredDatasets.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(filteredDatasets.length, currentPage * itemsPerPage)} of {filteredDatasets.length}</small>
+                </div>
+                <div>
+                  <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="me-2">Prev</Button>
+                  <span className="me-2">{currentPage} / {totalPages}</span>
+                  <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
+                </div>
+              </div>
             </div>
           )}
         </Card.Body>
@@ -605,7 +690,7 @@ const elbowPlot = () => {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowUpload(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleUpload} disabled={!selectedFile || uploadLoading}>
+          <Button variant={uploadLoading ? 'primary' : 'outline-primary'} onClick={handleUpload} disabled={!selectedFile || uploadLoading}>
             {uploadLoading ? (
               <>
                 <Spinner size="sm" className="me-2" /> Processing...
@@ -618,6 +703,19 @@ const elbowPlot = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      {/* Read-only view modal for dataset rows */}
+      <RecordViewModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title="Dataset Details"
+        fields={viewedDataset ? [
+          { label: 'Filename', value: viewedDataset.filename },
+          { label: 'Uploaded By', value: viewedDataset.uploaded_by_email },
+          { label: 'Upload Date', value: formatDate(viewedDataset.upload_date) },
+          { label: 'Students', value: viewedDataset.student_count?.toLocaleString() || 'N/A' },
+          { label: 'Clusters', value: viewedDataset.cluster_count || 'N/A' },
+        ] : []}
+      />
       <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
         <Modal.Header closeButton className="bg-light">
           <Modal.Title className="fw-bold">Dataset Preview</Modal.Title>

@@ -21,13 +21,16 @@ import {
   Eye,
   EyeOff,
   Download,
+  Settings,
 } from "lucide-react"
+import PageAbout from './PageAbout'
 import { useAuth } from "../context/AuthContext"
+import RecordViewModal from './RecordViewModal'
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
-
+ 
 interface UserProfile {
   name: string
   department: string
@@ -50,6 +53,10 @@ function UserManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [roleFilter, setRoleFilter] = useState<string>("All")
+  const [usersPerPage, setUsersPerPage] = useState<number>(10)
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
 
@@ -75,9 +82,41 @@ function UserManagement() {
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
 
+  // Password strength helpers
+  const getPasswordScore = (pw: string) => {
+    if (!pw) return 0
+    let score = 0
+    if (pw.length >= 8) score += 1
+    if (pw.length >= 12) score += 1
+    if (/[A-Z]/.test(pw)) score += 1
+    if (/[0-9]/.test(pw)) score += 1
+    if (/[^A-Za-z0-9]/.test(pw)) score += 1
+    return Math.min(100, (score / 5) * 100)
+  }
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { label: 'Too short', color: '#e0e0e0' }
+    if (score < 40) return { label: 'Weak', color: '#f86c6b' }
+    if (score < 70) return { label: 'Medium', color: '#f0ad4e' }
+    return { label: 'Strong', color: '#28a745' }
+  }
+
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewedUser, setViewedUser] = useState<UserType | null>(null)
+
   const totalUsers = users.length
   const adminCount = users.filter((u) => u.role === "Admin").length
   const viewerCount = users.filter((u) => u.role === "Viewer").length
+
+  // Derived filtered users
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch = searchTerm.trim() === "" || `${u.profile?.name || u.email}`.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesRole = roleFilter === "All" || u.role === roleFilter
+    return matchesSearch && matchesRole
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage))
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage)
 
   useEffect(() => {
     fetchUsers()
@@ -210,14 +249,6 @@ const handleResetPassword = async () => {
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to delete user")
     }
-  }
-
-    // --- 📊 Download CSV ---
-  const handleDownloadCSV = () => {
-    if (users.length === 0) {
-      setError("No users available to download")
-      return
-    }
     const header = ["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"] 
     const rows = users.map((u) => [
       u.id,
@@ -270,6 +301,33 @@ const handleResetPassword = async () => {
     })
 
     doc.save("users.pdf")
+  }
+
+  const handleDownloadCSV = () => {
+    if (users.length === 0) {
+      setError("No users available to download")
+      return
+    }
+    const header = ["ID", "Email", "Role", "Name", "Department", "Position", "Status", "Created"]
+    const rows = users.map((u) => [
+      u.id,
+      u.email,
+      u.role,
+      u.profile?.name || "",
+      u.profile?.department || "",
+      u.profile?.position || "",
+      u.active ? "Active" : "Inactive",
+      new Date(u.created_at).toLocaleString(),
+    ])
+    const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", "users.csv")
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
 
@@ -330,24 +388,45 @@ const handleResetPassword = async () => {
 
   return (
   <div className="fade-in">
-    <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <h2 className="fw-bold mb-0 me-3">User Management</h2>
-        <div className="btn-group" role="group" aria-label="Download options">
-          <Button variant="success" onClick={handleDownloadCSV} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> CSV
-          </Button>
-          <Button variant="danger" onClick={handleDownloadPDF} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> PDF
-          </Button>
-          <Button variant="info" onClick={handleDownloadExcel} className="d-flex align-items-center px-3 py-2">
-            <Download size={16} className="me-2" /> Excel
-          </Button>
-        </div>
       </div>
-      <Button variant="primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
-        <UserPlus size={16} className="me-2" /> Add User
-      </Button>
+    </div>
+
+    {/* About card directly under heading */}
+    <div className="mb-4">
+      <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
+    </div>
+
+    {/* Toolbar: search, role filter, show selector, download buttons */}
+    <div className="mb-3 d-flex justify-content-between align-items-center gap-3">
+      <div className="d-flex gap-2 align-items-center">
+        <Form.Control size="sm" placeholder="Search users by name or email..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} style={{ minWidth: 260 }} />
+        <Form.Select size="sm" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }} style={{ width: 140 }}>
+          <option value="All">All roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Viewer">Viewer</option>
+        </Form.Select>
+        <Form.Label className="small fw-semibold">Show:</Form.Label>
+        <Form.Select size="sm" value={usersPerPage} onChange={(e) => { setUsersPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 120 }}>
+          <option value={5}>5 rows</option>
+          <option value={10}>10 rows</option>
+          <option value={15}>15 rows</option>
+          <option value={20}>20 rows</option>
+        </Form.Select>
+      </div>
+      <div className="d-flex gap-2">
+        <Button variant="outline-success" onClick={handleDownloadCSV} size="sm">
+          <Download size={14} className="me-1" /> CSV
+        </Button>
+        <Button variant="outline-danger" onClick={handleDownloadPDF} size="sm">
+          <Download size={14} className="me-1" /> PDF
+        </Button>
+        <Button variant="outline-info" onClick={handleDownloadExcel} size="sm">
+          <Download size={14} className="me-1" /> Excel
+        </Button>
+      </div>
     </div>
 
 
@@ -356,8 +435,8 @@ const handleResetPassword = async () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Stats */}
-      <Row className="mb-4">
-        <Col md={4}>
+      <Row className="mb-4 g-3 flex-wrap">
+       <Col xs={12} sm={6} md={4} className="w-100">
           <Card className="text-center">
             <Card.Body>
               <Users size={40} className="text-primary mb-2" />
@@ -366,7 +445,7 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+       <Col xs={12} sm={6} md={4} className="w-100">
           <Card className="text-center">
             <Card.Body>
               <Shield size={40} className="text-danger mb-2" />
@@ -375,7 +454,7 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+       <Col xs={12} sm={6} md={4} className="w-100">
           <Card className="text-center">
             <Card.Body>
               <Shield size={40} className="text-info mb-2" />
@@ -386,6 +465,13 @@ const handleResetPassword = async () => {
         </Col>
       </Row>
 
+      {/* Add User button placed above the users table, right aligned */}
+      <div className="d-flex justify-content-end mb-3">
+        <Button variant="outline-primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
+          <UserPlus size={16} className="me-2" /> Add User
+        </Button>
+      </div>
+
       {/* Users Table */}
       <Card>
         <Card.Header>
@@ -393,7 +479,7 @@ const handleResetPassword = async () => {
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive">
-            <Table striped hover className="mb-0">
+            <Table striped hover className="mb-0 users-table table-sm responsive-card-table">
               <thead>
                 <tr>
                   <th>User</th>
@@ -407,42 +493,69 @@ const handleResetPassword = async () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      <div>
-                        <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
-                        <small className="text-muted">ID: {u.id}</small>
-                      </div>
-                    </td>
-                    <td>{u.email}</td>
-                    <td><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
-                    <td>{u.profile?.department || "N/A"}</td>
-                    <td>{u.profile?.position || "N/A"}</td>   
-                    <td>
-                      <Badge bg={u.active ? "success" : "secondary"}>
-                        {u.active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowEdit(u)}>
-                        <Edit size={14} />
-                      </Button>
-                      <Button variant="outline-secondary" size="sm" className="me-2" onClick={() => handleShowResetPassword(u)}>
-                        <Key size={14} />
-                      </Button>
-                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteUser(u.id)}>
-                        <Trash size={14} />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                  {paginatedUsers.map((u) => (
+                    <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
+                      <td data-label="User">
+                        <div>
+                          <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
+                          <small className="text-muted">ID: {u.id}</small>
+                        </div>
+                      </td>
+                      <td data-label="Email">{u.email}</td>
+                      <td data-label="Role"><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
+                      <td data-label="Department">{u.profile?.department || "N/A"}</td>
+                      <td data-label="Position">{u.profile?.position || "N/A"}</td>   
+                      <td data-label="Status">
+                        <Badge bg={u.active ? "success" : "secondary"}>
+                          {u.active ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td data-label="Actions">
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
+                          <Edit size={14} />
+                        </Button>
+                        <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
+                          <Key size={14} />
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
+                          <Trash size={14} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </Table>
           </div>
+            {/* Pagination controls */}
+            <div className="d-flex justify-content-between align-items-center p-2">
+              <div>
+                <small className="text-muted">Showing {Math.min(filteredUsers.length, (currentPage - 1) * usersPerPage + 1)} - {Math.min(filteredUsers.length, currentPage * usersPerPage)} of {filteredUsers.length}</small>
+              </div>
+              <div>
+                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="me-2">Prev</Button>
+                <span className="me-2">{currentPage} / {totalPages}</span>
+                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
+              </div>
+            </div>
         </Card.Body>
       </Card>
+
+      {/* Read-only view modal for users */}
+      <RecordViewModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title={viewedUser ? `${viewedUser.profile?.name || viewedUser.email}` : 'User Details'}
+        fields={viewedUser ? [
+          { label: 'Name', value: viewedUser.profile?.name || '—' },
+          { label: 'Email', value: viewedUser.email },
+          { label: 'Role', value: viewedUser.role },
+          { label: 'Department', value: viewedUser.profile?.department || '—' },
+          { label: 'Position', value: viewedUser.profile?.position || '—' },
+          { label: 'Status', value: viewedUser.active ? 'Active' : 'Inactive' },
+          { label: 'Created', value: new Date(viewedUser.created_at).toLocaleString() },
+        ] : []}
+      />
 
       {/* Add/Edit User Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
@@ -607,6 +720,27 @@ const handleResetPassword = async () => {
                 {showResetPasswordField ? <EyeOff size={16} /> : <Eye size={16} />}
               </Button>
             </div>
+
+            {/* Strength meter */}
+            <div className="mt-2">
+              {(() => {
+                const score = getPasswordScore(resetForm.newPassword)
+                const info = getStrengthLabel(score)
+                return (
+                  <>
+                    <div style={{ height: 8, background: '#e9ecef', borderRadius: 6, overflow: 'hidden' }}>
+                      <div style={{ width: `${score}%`, height: '100%', background: info.color }} />
+                    </div>
+                    <small className="text-muted">{info.label} • {resetForm.newPassword.length} chars</small>
+                  </>
+                )
+              })()}
+            </div>
+            {resetForm.newPassword && resetForm.newPassword.length > 0 && resetForm.newPassword.length < 6 && (
+              <Form.Text className="text-danger">
+                Password must be at least 6 characters
+              </Form.Text>
+            )}
           </Form.Group>
 
             <Form.Group className="mb-3">
@@ -618,17 +752,9 @@ const handleResetPassword = async () => {
                   setResetForm({ ...resetForm, confirmPassword: e.target.value })
                 }
               />
-              {resetForm.confirmPassword &&
-                resetForm.newPassword !== resetForm.confirmPassword && (
-                  <Form.Text className="text-danger">Passwords do not match</Form.Text>
-                )}
-              {resetForm.newPassword &&
-                resetForm.newPassword.length > 0 &&
-                resetForm.newPassword.length < 6 && (
-                  <Form.Text className="text-danger">
-                    Password must be at least 6 characters
-                  </Form.Text>
-                )}
+              {resetForm.confirmPassword && resetForm.newPassword !== resetForm.confirmPassword && (
+                <Form.Text className="text-danger">Passwords do not match</Form.Text>
+              )}
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -639,7 +765,7 @@ const handleResetPassword = async () => {
           <Button
             variant="primary"
             onClick={handleResetPassword}
-            disabled={saving}
+            disabled={saving || resetForm.newPassword.length < 6 || resetForm.newPassword !== resetForm.confirmPassword}
           >
             {saving ? <Spinner size="sm" animation="border" /> : "Update Password"}
           </Button>
