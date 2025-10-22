@@ -1,0 +1,60 @@
+/* ✅ Default desktop: normal table */
+@media (max-width: 768px) {
+  /* Hide table headers */
+  table.responsive-card-table thead {
+    display: none;
+  }
+
+  /* Each row becomes a card */
+  table.responsive-card-table,
+  table.responsive-card-table tbody,
+  table.responsive-card-table tr,
+  table.responsive-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  /* Add card-like spacing and shadow */
+  table.responsive-card-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    background: #fff;
+    padding: 0.5rem 0.75rem;
+  }
+
+  table.responsive-card-table td {
+    text-align: left !important;
+    border: none !important;
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+
+  /* Use the data-label attribute as a pseudo-label */
+  table.responsive-card-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    display: block;
+    color: #555;
+    margin-bottom: 2px;
+  }
+}
+/* Responsive summary cards */
+.stat-card {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+  .stat-card {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+}
