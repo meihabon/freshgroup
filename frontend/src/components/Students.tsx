@@ -403,7 +403,7 @@ function Students() {
                 </div>
               </div>
               <div className="table-responsive-sm students-table-wrapper">
-                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'fixed', width: '100%', fontSize: '0.88rem' }}>
+                <Table striped hover responsive className="mb-0 students-table table-sm" style={{ tableLayout: 'auto', width: '100%', fontSize: '0.88rem' }}>
                   <thead>
                     <tr>
                       <th className="col-first" style={{ width: '8%' }}>First Name</th>

@@ -415,7 +415,7 @@ const elbowPlot = () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Dataset Overview Cards */}
-      <Row className="mb-4">
+      <Row xs={1} sm={2} md={3} className="g-3 mb-4">
         <Col md={4}>
           <Card className="text-center stat-card">
             <Card.Body>
@@ -466,8 +466,8 @@ const elbowPlot = () => {
               </Button>
             </div>
           ) : (
-            <div className="table-responsive">
-              <Table striped hover className="mb-0 datasets-table table-sm">
+          <div className="table-responsive-sm dataset-table-wrapper">
+            <Table striped hover bordered responsive className="mb-0 table-sm align-middle text-nowrap">
                 <thead>
                   <tr>
                     <th>Filename</th>
