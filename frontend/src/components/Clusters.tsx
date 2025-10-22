@@ -12,9 +12,9 @@ import {
   Form,
   Modal,
   Pagination,
+  Accordion
 } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
-import PageAbout from './PageAbout'
 import { Layers } from 'lucide-react'
 import Plot from "react-plotly.js"
 import RecordViewModal from './RecordViewModal'
@@ -713,14 +713,13 @@ const renderClusterSection = (
   return (
     <div className="fade-in">
       <h2 className="fw-bold mb-4">Student Clusters</h2>
-      <PageAbout text="Visualize student groups computed by k-means clustering. Toggle tabs to view official clusters, playground, or pairwise analyses." icon={Layers} accentColor="#f39c12" />
-
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "official")} className="mb-3">
         <Tab eventKey="official" title="Official Clusters">
           
-          <div className="mb-3 p-3 bg-light border rounded">
-            <h6 className="fw-bold">Why GWA and Income?</h6>
-            <p className="mb-0 text-muted">
+        <Accordion className="mb-3">
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Why GWA and Income?</Accordion.Header>
+            <Accordion.Body className="text-muted">
               The official clusters use <strong>General Weighted Average (GWA)</strong> and 
               <strong> household income</strong> as the main features because they provide the clearest picture 
               of both <em>academic performance</em> and <em>socioeconomic background</em>. 
@@ -729,8 +728,10 @@ const renderClusterSection = (
               By pairing them, clusters highlight not only who is excelling academically, but also whether 
               financial constraints may play a role in their educational journey. 
               This makes the analysis more actionable for policy and support interventions.
-            </p>
-          </div>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
+
 
         {renderClusterSection(clusterData, false)}
 
@@ -744,18 +745,23 @@ const renderClusterSection = (
           <Card className="mb-3">
             <Card.Header><h6 className="mb-0 fw-bold">Pairwise Mode</h6></Card.Header>
             <Card.Body>
-              <p className="mb-0 text-muted">
-                Pairwise Mode is built for <strong>custom comparisons</strong>. 
-                While the official clusters always use <em>GWA</em> and <em>Income</em>, 
-                this mode lets you explore how students group together when clustering 
-                is based on any two features of your choice, such as <em>Program</em>, 
-                <em> Municipality</em>, or <em>SHS Type</em>. 
-                This is valuable for discovering patterns that the official clusters might not highlight — 
-                for instance, whether students in the same municipality tend to cluster regardless of income, 
-                or how GWA varies within specific strands. 
-                It gives more flexibility to uncover <strong>alternative groupings </strong> 
-                and generate deeper policy insights.
-              </p>
+              <Accordion className="mb-3">
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>About Pairwise Mode</Accordion.Header>
+                  <Accordion.Body className="text-muted">
+                    Pairwise Mode is built for <strong>custom comparisons</strong>. 
+                    While the official clusters always use <em>GWA</em> and <em>Income</em>, 
+                    this mode lets you explore how students group together when clustering 
+                    is based on any two features of your choice, such as <em>Program</em>, 
+                    <em>Municipality</em>, or <em>SHS Type</em>. 
+                    This is valuable for discovering patterns that the official clusters might not highlight — 
+                    for instance, whether students in the same municipality tend to cluster regardless of income, 
+                    or how GWA varies within specific strands. 
+                    It gives more flexibility to uncover <strong>alternative groupings</strong> 
+                    and generate deeper policy insights.
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
               <div className="d-flex align-items-center gap-3 flex-wrap">
                 <Form.Label className="mb-0">X:</Form.Label>
                 <Form.Select value={pairX} onChange={(e) => setPairX(e.target.value)} style={{ width: 160 }}>
@@ -790,15 +796,20 @@ const renderClusterSection = (
           <Card className="mb-3">
             <Card.Header><h6 className="mb-0 fw-bold">Playground Mode</h6></Card.Header>
             <Card.Body>
-              <p className="mb-0 text-muted">
-                Playground Mode is designed for <strong>exploration</strong>. 
-                While the official clusters use the most statistically appropriate number of groups, 
-                in this mode you can freely adjust <em>k</em> (the number of clusters). 
-                This helps you see how student groupings change when you force fewer or more clusters. 
-                For example, a smaller k may reveal broader trends across many students, 
-                while a larger k may uncover niche sub-groups with very specific traits. 
-                It’s a hands-on way to understand the flexibility and sensitivity of clustering on the dataset.
-              </p>
+              <Accordion className="mb-3">
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>About Playground Mode</Accordion.Header>
+                  <Accordion.Body className="text-muted">
+                    Playground Mode is designed for <strong>exploration</strong>. 
+                    While the official clusters use the most statistically appropriate number of groups, 
+                    in this mode you can freely adjust <em>k</em> (the number of clusters). 
+                    This helps you see how student groupings change when you force fewer or more clusters. 
+                    For example, a smaller <em>k</em> may reveal broader trends across many students, 
+                    while a larger <em>k</em> may uncover niche sub-groups with very specific traits. 
+                    It’s a hands-on way to understand the flexibility and sensitivity of clustering on the dataset.
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
               <div className="d-flex align-items-center gap-3">
                 <Form.Label className="mb-0">Clusters (k):</Form.Label>
                 <Form.Control type="number" min={2} max={10} value={k} onChange={(e) => setK(Number(e.target.value))} style={{ width: 100 }} />
