@@ -79,38 +79,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             &times;
           </button>
         </div>
-        <div style={{ position: "relative" }}>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleLogout}
-            style={{
-              position: "absolute",
-              top: "12px",
-              right: "12px",
-              borderRadius: "8px",
-              padding: "6px 12px",
-              fontWeight: 600,
-              zIndex: 10,
-            }}
-          >
-            Logout
-          </Button>
-          <div
-            style={{
-              backgroundColor: '#27ae60',
-              color: '#fff',
-              position: 'relative',
-              padding: '3rem 1rem 1rem 1rem', // ⬅️ adds extra top padding
-            }}
-            className="border-bottom sidebar-header"
-          >
-            <div className="d-flex align-items-center mb-1">
-              <BarChart size={26} className="me-2 text-white" />
-              <h5 className="mb-0 fw-bold">FreshGroup</h5>
-            </div>
-            <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+
+        <div style={{ backgroundColor: '#27ae60', color: '#fff' }} className="p-3 border-bottom sidebar-header">
+          <div className="d-flex align-items-center mb-1">
+            <BarChart size={26} className="me-2 text-white" />
+            <h5 className="mb-0 fw-bold">FreshGroup</h5>
           </div>
+          <p className="mb-0 small text-light opacity-90">Student Profiling System</p>
+        </div>
 
         {/* Enhanced user card beneath the brand header */}
         <div className="p-3 border-bottom">
@@ -166,8 +142,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               )
             })}
           </Nav>
+            <div className="mt-auto pt-3 border-top">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleLogout}
+              className="w-100 py-2 fw-semibold"
+              style={{ borderRadius: '8px' }}
+            >
+              Logout
+            </Button>
+          </div>
         </div>
-      </div>
+
       </div>
     </>
   )
