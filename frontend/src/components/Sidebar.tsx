@@ -111,9 +111,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
                     Profile
                   </Button>
-                  <Button variant="danger" size="sm" onClick={handleLogout} className="py-1">
-                    Logout
-                  </Button>
                 </div>
               </div>
             </div>
@@ -145,7 +142,19 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               )
             })}
           </Nav>
+            <div className="mt-auto pt-3 border-top">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleLogout}
+              className="w-100 py-2 fw-semibold"
+              style={{ borderRadius: '8px' }}
+            >
+              Logout
+            </Button>
+          </div>
         </div>
+
       </div>
     </>
   )
