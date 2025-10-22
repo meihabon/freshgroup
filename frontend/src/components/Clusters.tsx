@@ -581,24 +581,51 @@ const renderClusterSection = (
             </Card>
           </Col>
           <Col lg={4} className="mb-4">
-            <Card className="h-100">
+            <Card className="h-100 shadow-sm border-0">
               <Card.Header>
                 <h6 className="mb-0 fw-bold">Cluster Summaries</h6>
               </Card.Header>
+
               <Card.Body>
-                {clusterIds.map((cid) => (
-                  <div
-                    key={cid}
-                    className="p-3 border rounded mb-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setSelectedCluster(cid)
-                      setCurrentPage(1)
-                    }}
-                  >
-                    <h6>{getClusterLabel(data.clusters[cid], cid)}</h6>
-                  </div>
-                ))}
+                <Accordion alwaysOpen>
+                  {clusterIds.map((cid) => {
+                    const isActive = selectedCluster === cid
+                    const label = getClusterLabel(data.clusters[cid], cid)
+                    const description = getClusterDescription(
+                      data.clusters[cid],
+                      data.x_name,
+                      data.y_name,
+                      isPairwise
+                    ).summary
+
+                    return (
+                      <Accordion.Item
+                        key={cid}
+                        eventKey={String(cid)}
+                        className={`mb-2 border rounded ${isActive ? "border-primary shadow-sm" : ""}`}
+                      >
+                        <Accordion.Header
+                          onClick={() => {
+                            setSelectedCluster(cid)
+                            setCurrentPage(1)
+                          }}
+                          className={`${isActive ? "bg-primary text-white rounded-top" : ""}`}
+                        >
+                          <div className="d-flex justify-content-between align-items-center w-100">
+                            <span className={isActive ? "fw-bold" : ""}>{label}</span>
+                            <small className={isActive ? "text-light" : "text-muted"}>
+                              See Description
+                            </small>
+                          </div>
+                        </Accordion.Header>
+
+                        <Accordion.Body className="bg-light text-muted">
+                          <small>{description}</small>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    )
+                  })}
+                </Accordion>
               </Card.Body>
             </Card>
           </Col>
