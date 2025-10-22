@@ -98,19 +98,101 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
               </div>
               <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                <div className="d-flex align-items-center justify-content-between">
-                  <div style={{ minWidth: 0 }}>
-                    <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 220 }}>{user?.profile?.name || user?.email}</div>
-                    <div className="small text-dark-800 text-truncate" style={{ maxWidth: 220 }}>{user?.email}</div>
+                <div
+                  className="d-flex align-items-center gap-3 sidebar-user-card"
+                  style={{
+                    background: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)', // 🌿 green gradient
+                    padding: 12,
+                    borderRadius: 10,
+                    color: '#fff', // white text for readability
+                  }}
+                >
+                  {/* Avatar */}
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 10,
+                      background: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 6,
+                        background: '#27ae60',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        color: '#fff',
+                        fontSize: '0.85rem',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {(user?.profile?.name || user?.email || 'U')
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
                   </div>
-                  <div>
-                    <span className="badge rounded-pill" style={{ backgroundColor: '#ffffff', color: '#1b2b24', fontSize: '0.75rem', padding: '6px 8px' }}>{user?.role}</span>
+
+                  {/* User Info */}
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          className="fw-semibold text-truncate"
+                          style={{ maxWidth: 220, color: '#fff' }}
+                        >
+                          {user?.profile?.name || user?.email}
+                        </div>
+                        <div
+                          className="small text-truncate"
+                          style={{ maxWidth: 220, color: 'rgba(255,255,255,0.85)' }}
+                        >
+                          {user?.email}
+                        </div>
+                      </div>
+                      <div>
+                        <span
+                          className="badge rounded-pill"
+                          style={{
+                            backgroundColor: '#fff',
+                            color: '#27ae60',
+                            fontSize: '0.75rem',
+                            padding: '6px 8px',
+                          }}
+                        >
+                          {user?.role}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Profile Button */}
+                    <div className="mt-2 d-flex gap-2 flex-column flex-md-row">
+                      <Button
+                        variant="light"
+                        size="sm"
+                        as={Link as any}
+                        to="/profile"
+                        onClick={onClose}
+                        className="flex-grow-1 py-1 fw-semibold"
+                        style={{
+                          color: '#27ae60',
+                          border: 'none',
+                        }}
+                      >
+                        Profile
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-2 d-flex gap-2 flex-column flex-md-row">
-                  <Button variant="outline-success" size="sm" as={Link as any} to="/profile" onClick={onClose} className="flex-grow-1 py-1">
-                    Profile
-                  </Button>
                 </div>
               </div>
             </div>
