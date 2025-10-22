@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Row, Col, Card, Spinner, Alert, Modal, Table } from 'react-bootstrap'
+import { Row, Col, Card, Spinner, Alert, Modal, Table, Accordion } from 'react-bootstrap'
 import { Users, GraduationCap, MapPin, DollarSign, School, Award, User } from 'lucide-react'
-import PageAbout from './PageAbout'
 import Plot from 'react-plotly.js'
 import { useAuth } from "../context/AuthContext"
 interface DashboardStats {
@@ -109,46 +108,68 @@ function Dashboard() {
       {/* Title */}
       <div className="mb-4">
         <h2 className="fw-bold">DASHBOARD</h2>
-        <PageAbout text="Overview of key metrics and charts. Use filters to narrow down and click cards to explore related records." icon={Users} accentColor="#27ae60" />
       </div>
 
-      {/* Justification Section */}
+
       <Card className="mb-4 shadow-sm border-0">
         <Card.Body>
-          <h5 className="fw-bold mb-3">Why These Data Are Critical for the Institution</h5>
-          <p className="text-muted">
-            The following indicators were carefully selected because they directly support academic planning, policy-making,
-            student support services, and institutional accreditation. Each dataset provides actionable insights that enable
-            evidence-based decision-making.
-          </p>
-          <Row>
-            <Col md={6}>
-              <ul>
-                <li>
-                  <b>Income:</b> Identifies students in financial need for <i>scholarship prioritization, tuition assistance, and equity programs</i>. Crucial for OSAS and Finance in targeting support fairly.
-                </li>
-                <li>
-                  <b>Sex:</b> Enables <i>gender-sensitive programming and compliance with CHED gender policies</i>. Ensures equal opportunities in leadership, facilities, and student services.
-                </li>
-                <li>
-                  <b>Program:</b> Highlights the most in-demand courses, guiding <i>curriculum development, faculty allocation, and resource distribution</i>. Essential for deans in strategic planning.
-                </li>
-              </ul>
-            </Col>
-            <Col md={6}>
-              <ul>
-                <li>
-                  <b>Municipality:</b> Maps student origins for <i>outreach, transportation planning, and regional access programs</i>. Helps Admin assess geographic inclusivity.
-                </li>
-                <li>
-                  <b>SHS Type:</b> Differentiates public vs. private feeder schools, revealing <i>academic preparation gaps</i>. Faculty and Guidance can use this to design bridging programs or remedial support.
-                </li>
-                <li>
-                  <b>Honors:</b> Recognizes achievers and supports <i>merit-based scholarships, recognition programs, and academic excellence tracking</i>. Provides benchmarks for overall student performance.
-                </li>
-              </ul>
-            </Col>
-          </Row>
+          <Accordion>
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>
+                Why These Data Are Critical for the Institution
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted">
+                  The following indicators were carefully selected because they directly support
+                  academic planning, policy-making, student support services, and institutional
+                  accreditation. Each dataset provides actionable insights that enable
+                  evidence-based decision-making.
+                </p>
+
+                <Row>
+                  <Col md={6}>
+                    <ul>
+                      <li>
+                        <b>Income:</b> Identifies students in financial need for
+                        <i> scholarship prioritization, tuition assistance, and equity programs</i>.
+                        Crucial for OSAS and Finance in targeting support fairly.
+                      </li>
+                      <li>
+                        <b>Sex:</b> Enables
+                        <i> gender-sensitive programming and compliance with CHED gender policies</i>.
+                        Ensures equal opportunities in leadership, facilities, and student services.
+                      </li>
+                      <li>
+                        <b>Program:</b> Highlights the most in-demand courses, guiding
+                        <i> curriculum development, faculty allocation, and resource distribution</i>.
+                        Essential for deans in strategic planning.
+                      </li>
+                    </ul>
+                  </Col>
+
+                  <Col md={6}>
+                    <ul>
+                      <li>
+                        <b>Municipality:</b> Maps student origins for
+                        <i> outreach, transportation planning, and regional access programs</i>.
+                        Helps Admin assess geographic inclusivity.
+                      </li>
+                      <li>
+                        <b>SHS Type:</b> Differentiates public vs. private feeder schools, revealing
+                        <i> academic preparation gaps</i>. Faculty and Guidance can use this to design
+                        bridging programs or remedial support.
+                      </li>
+                      <li>
+                        <b>Honors:</b> Recognizes achievers and supports
+                        <i> merit-based scholarships, recognition programs, and academic excellence tracking</i>.
+                        Provides benchmarks for overall student performance.
+                      </li>
+                    </ul>
+                  </Col>
+                </Row>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
         </Card.Body>
       </Card>
 
@@ -289,10 +310,16 @@ function Dashboard() {
                   style={{ width: '100%' }}
                 />
 
-                {/* Interpretation text */}
-                <p className="mt-3 text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
-                  {getInterpretation(chart.title, chart.data)}
-                </p>
+              <Accordion className="mt-3">
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>Interpretation</Accordion.Header>
+                  <Accordion.Body>
+                    <p className="text-muted" style={{ fontSize: '0.95rem', lineHeight: 1.4 }}>
+                      {getInterpretation(chart.title, chart.data)}
+                    </p>
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
               </Card.Body>
             </Card>
           </Col>

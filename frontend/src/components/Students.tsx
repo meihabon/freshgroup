@@ -5,7 +5,6 @@ import {
 } from 'react-bootstrap'
 import { Search, Filter, Download } from 'lucide-react'
 import RecordViewModal from './RecordViewModal'
-import PageAbout from './PageAbout'
 import { useAuth } from "../context/AuthContext"
 import { updateStudent } from "../api"
  
@@ -294,10 +293,6 @@ const exportToExcel = () => {
             <div>
               {/* Controls moved to the compact filter card above the table */}
             </div>
-          </div>
-
-          <div className="mb-4">
-            <PageAbout text="Browse and filter student profiles. Use the filters to refine results, change rows per page, or export the current selection as CSV. Click any row to view details." icon={Search} accentColor="#27ae60" />
           </div>
 
           {/* Compact filter bar placed above the table */}

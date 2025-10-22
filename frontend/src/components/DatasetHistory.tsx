@@ -4,7 +4,6 @@ import {
   Spinner, Alert, Badge, ProgressBar, Accordion
 } from 'react-bootstrap'
 import { Upload, Trash2, Eye, Database, Download } from 'lucide-react'
-import PageAbout from './PageAbout'
 import { useAuth } from '../context/AuthContext'
 import Plot from 'react-plotly.js'
 import * as XLSX from 'xlsx'
@@ -387,10 +386,6 @@ const elbowPlot = () => {
         </Button>
       </div>
 
-      {/* About card directly under heading */}
-      <div className="mb-4">
-        <PageAbout text="Upload and review past datasets. Use the preview to check columns before processing and view elbow plots to pick cluster counts." icon={Database} accentColor="#e74c3c" />
-      </div>
 
       {/* 🔹 Distinct Template Download Section (restored) */}
       <div className="mb-4" style={{ background: 'rgba(242, 201, 93, 0.12)', padding: '12px', borderRadius: 8 }}>

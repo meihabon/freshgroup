@@ -3,7 +3,7 @@ import { Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } from "react-
 import { useAuth } from "../context/AuthContext";
 import { getMe, updateProfile, changePassword } from "../api";
 import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react";
-import PageAbout from './PageAbout'
+
 
 function Profile() {
   const { user, refreshUser } = useAuth();
@@ -151,7 +151,6 @@ function Profile() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-bold">Profile Settings</h2>
-            <PageAbout text="Update your profile and change your password. Keep your contact and department information current for accurate reporting." icon={User} accentColor="#6f42c1" />
         </div>
       </div>
 

@@ -1,5 +1,4 @@
 import { useState } from "react"
-import PageAbout from './PageAbout'
 import { FileText } from 'lucide-react'
 import { Button, Card, Row, Col, Alert, Spinner, Modal } from "react-bootstrap"
 import { useAuth } from "../context/AuthContext"
@@ -89,9 +88,7 @@ function Reports() {
   return (
     <div className="fade-in">
       <h2 className="fw-bold mb-4">Reports</h2>
-      <PageAbout text="Export curated datasets and formatted reports. Choose CSV for raw data or PDF for printable summaries with charts." icon={FileText} accentColor="#17a2b8" />
-
-
+     
       {error && <Alert variant="danger">{error}</Alert>}
 
       {loading && (

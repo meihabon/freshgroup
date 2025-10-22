@@ -23,7 +23,6 @@ import {
   Download,
   Settings,
 } from "lucide-react"
-import PageAbout from './PageAbout'
 import { useAuth } from "../context/AuthContext"
 import RecordViewModal from './RecordViewModal'
 import jsPDF from "jspdf"
@@ -394,10 +393,6 @@ const handleResetPassword = async () => {
       </div>
     </div>
 
-    {/* About card directly under heading */}
-    <div className="mb-4">
-      <PageAbout text="Manage application users: add, edit, reset passwords, and export user lists. Actions are restricted to admins." icon={Settings} accentColor="#6c757d" />
-    </div>
 
     {/* Toolbar: search, role filter, show selector, download buttons */}
     <div className="mb-3 d-flex justify-content-between align-items-center gap-3">
