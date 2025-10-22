@@ -13,6 +13,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import type { PlotType } from 'plotly.js'
 import RecordViewModal from './RecordViewModal'
+ 
+
+
 interface Dataset {
   id: number
   filename: string
@@ -78,6 +81,33 @@ function DatasetHistory() {
       setLoading(false)
     }
   }
+const handleDownloadAsExcel = async (id: number) => {
+  try {
+    // Fetch dataset file (CSV format)
+    const response = await API.get(`/datasets/${id}/download`, { responseType: "blob" });
+
+    // Convert blob to text
+    const text = await response.data.text();
+
+    // Split lines and cells safely with explicit typing
+    const rows: string[][] = text
+      .split("\n")
+      .filter((line: string) => line.trim() !== "")
+      .map((line: string) => line.split(","));
+
+    // Convert rows to Excel sheet
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dataset");
+
+    // Generate Excel blob and trigger download
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `dataset_${id}.xlsx`);
+  } catch (error: any) {
+    setError(error.response?.data?.detail || "Failed to download dataset as Excel");
+  }
+};
 
 const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
@@ -191,20 +221,7 @@ const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShowViewModal(true)
   }
 
-  const handleDownload = async (id: number) => {
-    try {
-      const response = await API.get(`/datasets/${id}/download`, { responseType: "blob" })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.setAttribute("download", `dataset_${id}.csv`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-    } catch (error: any) {
-      setError(error.response?.data?.detail || "Failed to download dataset")
-    }
-  }
+
 
   const deleteDataset = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
@@ -415,8 +432,9 @@ const elbowPlot = () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Dataset Overview Cards */}
-      <Row xs={1} sm={2} md={3} className="g-3 mb-4">
-        <Col md={4}>
+      <Row className="mb-4 g-3 flex-wrap">
+        <Col xs={12} sm={6} md={4} className="w-100">
+
           <Card className="text-center stat-card">
             <Card.Body>
               <Database size={40} className="text-primary mb-2" />
@@ -425,7 +443,8 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+        <Col xs={12} sm={6} md={4} className="w-100">
+
           <Card className="text-center stat-card">
             <Card.Body>
               <Eye size={40} className="text-success mb-2" />
@@ -436,7 +455,7 @@ const elbowPlot = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+        <Col xs={12} sm={6} md={4} className="w-100">
           <Card className="text-center stat-card">
             <Card.Body>
               <Upload size={40} className="text-info mb-2" />
@@ -467,7 +486,7 @@ const elbowPlot = () => {
             </div>
           ) : (
             <div className="table-responsive">
-              <Table striped hover className="mb-0 datasets-table table-sm">
+              <Table striped hover className="mb-0 datasets-table table-sm responsive-card-table">
                 <thead>
                   <tr>
                     <th>Filename</th>
@@ -503,9 +522,17 @@ const elbowPlot = () => {
                           <Button variant="outline-info" size="sm" onClick={(e) => { e.stopPropagation(); handlePreview(dataset.id); }}>
                             <Eye size={14} />
                           </Button>
-                          <Button variant="outline-success" size="sm" onClick={(e) => { e.stopPropagation(); handleDownload(dataset.id); }}>
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadAsExcel(dataset.id);
+                            }}
+                          >
                             <Download size={14} />
                           </Button>
+
                           <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); deleteDataset(dataset.id); }}>
                             <Trash2 size={14} />
                           </Button>
