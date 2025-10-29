@@ -10,6 +10,7 @@ import {
   Badge,
   Spinner,
   Alert,
+  Pagination
 } from "react-bootstrap"
 import {
   UserPlus,
@@ -430,9 +431,9 @@ const handleResetPassword = async () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Stats */}
-      <Row className="mb-4">
-        <Col md={4}>
-          <Card className="text-center">
+      <Row xs={1} md={3} className="g-3 mb-4">
+        <Col>
+          <Card className="text-center shadow-sm border-0 rounded-4">
             <Card.Body>
               <Users size={40} className="text-primary mb-2" />
               <h4 className="fw-bold">{totalUsers}</h4>
@@ -440,8 +441,8 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="text-center">
+        <Col>
+          <Card className="text-center shadow-sm border-0 rounded-4">
             <Card.Body>
               <Shield size={40} className="text-danger mb-2" />
               <h4 className="fw-bold">{adminCount}</h4>
@@ -449,8 +450,8 @@ const handleResetPassword = async () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="text-center">
+        <Col>
+          <Card className="text-center shadow-sm border-0 rounded-4">
             <Card.Body>
               <Shield size={40} className="text-info mb-2" />
               <h4 className="fw-bold">{viewerCount}</h4>
@@ -459,7 +460,6 @@ const handleResetPassword = async () => {
           </Card>
         </Col>
       </Row>
-
       {/* Add User button placed above the users table, right aligned */}
       <div className="d-flex justify-content-end mb-3">
         <Button variant="outline-primary" onClick={handleShowAdd} className="d-flex align-items-center px-4 py-2 fw-bold shadow-sm">
@@ -467,15 +467,16 @@ const handleResetPassword = async () => {
         </Button>
       </div>
 
-      {/* Users Table */}
-      <Card>
-        <Card.Header>
-          <h6 className="mb-0 fw-bold">System Users</h6>
+      {/* Table */}
+      <Card className="shadow-sm border-0 rounded-4">
+        <Card.Header className="fw-bold bg-light py-3 px-4 border-bottom">
+          System Users
         </Card.Header>
+
         <Card.Body className="p-0">
           <div className="table-responsive">
-            <Table striped hover className="mb-0 users-table table-sm responsive-card-table">
-              <thead>
+            <Table hover borderless className="mb-0 align-middle text-center">
+              <thead className="bg-light">
                 <tr>
                   <th>User</th>
                   <th>Email</th>
@@ -488,52 +489,88 @@ const handleResetPassword = async () => {
                 </tr>
               </thead>
               <tbody>
-                  {paginatedUsers.map((u) => (
-                    <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true); }} style={{ cursor: 'pointer' }}>
-                      <td data-label="User">
-                        <div>
-                          <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
-                          <small className="text-muted">ID: {u.id}</small>
-                        </div>
+                {paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((u) => (
+                    <tr key={u.id} onClick={() => { setViewedUser(u); setShowViewModal(true) }} style={{ cursor: "pointer" }}>
+                      <td>
+                        <div className="fw-semibold">{u.profile?.name || "No Name"}</div>
+                        <small className="text-muted">ID: {u.id}</small>
                       </td>
-                      <td data-label="Email">{u.email}</td>
-                      <td data-label="Role"><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
-                      <td data-label="Department">{u.profile?.department || "N/A"}</td>
-                      <td data-label="Position">{u.profile?.position || "N/A"}</td>   
-                      <td data-label="Status">
-                        <Badge bg={u.active ? "success" : "secondary"}>
-                          {u.active ? "Active" : "Inactive"}
-                        </Badge>
-                      </td>
-                      <td data-label="Created">{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td data-label="Actions">
-                        <Button variant="outline-primary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowEdit(u); }}>
+                      <td>{u.email}</td>
+                      <td><Badge bg={getRoleBadgeVariant(u.role)}>{u.role}</Badge></td>
+                      <td>{u.profile?.department || "N/A"}</td>
+                      <td>{u.profile?.position || "N/A"}</td>
+                      <td><Badge bg={u.active ? "success" : "secondary"}>{u.active ? "Active" : "Inactive"}</Badge></td>
+                      <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td>
+                        <Button variant="outline-primary" size="sm" className="me-2"
+                          onClick={(e) => { e.stopPropagation(); handleShowEdit(u) }}>
                           <Edit size={14} />
                         </Button>
-                        <Button variant="outline-secondary" size="sm" className="me-2" onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u); }}>
+                        <Button variant="outline-secondary" size="sm" className="me-2"
+                          onClick={(e) => { e.stopPropagation(); handleShowResetPassword(u) }}>
                           <Key size={14} />
                         </Button>
-                        <Button variant="outline-danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id); }}>
+                        <Button variant="outline-danger" size="sm"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id) }}>
                           <Trash size={14} />
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <tr><td colSpan={8} className="py-4 text-muted">No users found</td></tr>
+                )}
               </tbody>
             </Table>
           </div>
-            {/* Pagination controls */}
-            <div className="d-flex justify-content-between align-items-center p-2">
-              <div>
-                <small className="text-muted">Showing {Math.min(filteredUsers.length, (currentPage - 1) * usersPerPage + 1)} - {Math.min(filteredUsers.length, currentPage * usersPerPage)} of {filteredUsers.length}</small>
-              </div>
-              <div>
-                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="me-2">Prev</Button>
-                <span className="me-2">{currentPage} / {totalPages}</span>
-                <Button variant="light" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
-              </div>
-            </div>
         </Card.Body>
+        {totalPages > 1 && (
+          <Card.Footer className="d-flex flex-column flex-md-row justify-content-between align-items-center bg-light px-4 py-3">
+            <span className="small text-muted mb-2 mb-md-0">
+              Showing {(currentPage - 1) * usersPerPage + 1} – {Math.min(currentPage * usersPerPage, filteredUsers.length)} of {filteredUsers.length} users (Page {currentPage} of {totalPages})
+            </span>
+
+            <div className="d-flex align-items-center">
+              <Button variant="outline-success" size="sm" className="me-2"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}>
+                Prev
+              </Button>
+
+              <Pagination className="mb-0">
+                {currentPage > 3 && (
+                  <>
+                    <Pagination.Item onClick={() => setCurrentPage(1)}>1</Pagination.Item>
+                    <Pagination.Ellipsis disabled />
+                  </>
+                )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
+                  .map((page) => (
+                    <Pagination.Item key={page} active={page === currentPage}
+                      onClick={() => setCurrentPage(page)}>
+                      {page}
+                    </Pagination.Item>
+                  ))}
+                {currentPage < totalPages - 2 && (
+                  <>
+                    <Pagination.Ellipsis disabled />
+                    <Pagination.Item onClick={() => setCurrentPage(totalPages)}>
+                      {totalPages}
+                    </Pagination.Item>
+                  </>
+                )}
+              </Pagination>
+
+              <Button variant="outline-success" size="sm" className="ms-2"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}>
+                Next
+              </Button>
+            </div>
+          </Card.Footer>
+        )}
       </Card>
 
       {/* Read-only view modal for users */}
