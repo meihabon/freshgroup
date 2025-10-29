@@ -309,6 +309,19 @@ function Profile() {
                       {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 && (
                         <Form.Text className="text-danger">Password must be at least 6 characters long</Form.Text>
                       )}
+                      <Card className="mt-4">
+                        <Card.Header>
+                          <h6 className="mb-0 fw-bold">Security Tips</h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <ul className="list-unstyled mb-0">
+                            <li className="mb-2"><small>✓ Use a strong, unique password</small></li>
+                            <li className="mb-2"><small>✓ Keep your profile information updated</small></li>
+                            <li className="mb-2"><small>✓ Log out when using shared computers</small></li>
+                            <li className="mb-0"><small>✓ Report any suspicious activity</small></li>
+                          </ul>
+                        </Card.Body>
+                      </Card>
                     </Form.Group>
 
                     <Form.Group className="mb-4">
@@ -407,20 +420,6 @@ function Profile() {
                   <small className="text-success">Active</small>
                 </div>
               </div>
-            </Card.Body>
-          </Card>
-
-          <Card className="mt-4">
-            <Card.Header>
-              <h6 className="mb-0 fw-bold">Security Tips</h6>
-            </Card.Header>
-            <Card.Body>
-              <ul className="list-unstyled mb-0">
-                <li className="mb-2"><small>✓ Use a strong, unique password</small></li>
-                <li className="mb-2"><small>✓ Keep your profile information updated</small></li>
-                <li className="mb-2"><small>✓ Log out when using shared computers</small></li>
-                <li className="mb-0"><small>✓ Report any suspicious activity</small></li>
-              </ul>
             </Card.Body>
           </Card>
         </Col>
