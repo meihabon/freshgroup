@@ -260,9 +260,90 @@ function ActivityLogs() {
             </div>
           )}
         </Card.Body>
+                {/* Pagination */}
+        {totalPages > 1 && (
+          <Card.Footer className="d-flex flex-column flex-md-row justify-content-between align-items-center bg-light px-4 py-3">
+            <span className="small text-muted mb-2 mb-md-0">
+              Showing {startIndex + 1} – {Math.min(startIndex + recordsPerPage, sortedLogs.length)} of {sortedLogs.length} logs (Page {currentPage} of {totalPages})
+            </span>
 
-        {/* Keep your pagination footer below */}
-        {/* ... (pagination code unchanged) ... */}
+            <div className="d-flex align-items-center">
+              <Button
+                variant="outline-success"
+                size="sm"
+                className="me-2"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Prev
+              </Button>
+
+              <Pagination className="mb-0">
+                {currentPage > 4 && (
+                  <>
+                    <Pagination.Item onClick={() => handlePageChange(1)}>1</Pagination.Item>
+                    <Pagination.Ellipsis disabled />
+                  </>
+                )}
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
+                  .map((page) => (
+                    <Pagination.Item
+                      key={page}
+                      active={page === currentPage}
+                      onClick={() => handlePageChange(page)}
+                      className="custom-page-item"
+                    >
+                      {page}
+                    </Pagination.Item>
+                  ))}
+
+                {currentPage < totalPages - 3 && (
+                  <>
+                    <Pagination.Ellipsis disabled />
+                    <Pagination.Item onClick={() => handlePageChange(totalPages)}>{totalPages}</Pagination.Item>
+                  </>
+                )}
+              </Pagination>
+
+              <Button
+                variant="outline-success"
+                size="sm"
+                className="ms-2"
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+
+            <style>
+              {`
+                .pagination .page-item .page-link {
+                  color: #198754;
+                  border: 1px solid #198754;
+                  border-radius: 6px;
+                  margin: 0 2px;
+                  transition: all 0.2s ease;
+                }
+                .pagination .page-item .page-link:hover {
+                  background-color: #198754;
+                  color: #fff;
+                }
+                .pagination .page-item.active .page-link {
+                  background-color: #198754 !important;
+                  border-color: #198754 !important;
+                  color: #fff !important;
+                }
+                .pagination .page-item.disabled .page-link {
+                  color: #adb5bd;
+                  border-color: #dee2e6;
+                }
+              `}
+            </style>
+          </Card.Footer>
+        )}
       </Card>
 
       {/* ✅ Record Modal */}
