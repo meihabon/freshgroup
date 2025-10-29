@@ -309,16 +309,16 @@ function Profile() {
                       {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 && (
                         <Form.Text className="text-danger">Password must be at least 6 characters long</Form.Text>
                       )}
-                      <Accordion className="mt-4">
+                      <Accordion className="mt-3" defaultActiveKey="0" style={{ fontSize: '0.85rem' }}>
                         <Accordion.Item eventKey="0">
                           <Accordion.Header>
-                            <strong>Security Tips</strong>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Security Tips</span>
                           </Accordion.Header>
-                          <Accordion.Body>
-                            <ul className="list-unstyled mb-0">
-                              <li className="mb-2"><small>✓ Use a strong, unique password</small></li>
-                              <li className="mb-2"><small>✓ Keep your profile information updated</small></li>
-                              <li className="mb-2"><small>✓ Log out when using shared computers</small></li>
+                          <Accordion.Body className="pt-2 pb-2">
+                            <ul className="list-unstyled mb-0 ms-1">
+                              <li className="mb-1"><small>✓ Use a strong, unique password</small></li>
+                              <li className="mb-1"><small>✓ Keep your profile information updated</small></li>
+                              <li className="mb-1"><small>✓ Log out when using shared computers</small></li>
                               <li className="mb-0"><small>✓ Report any suspicious activity</small></li>
                             </ul>
                           </Accordion.Body>
