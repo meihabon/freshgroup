@@ -11,8 +11,8 @@ import {
   Pagination
 } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
-import { ArrowDown, ArrowUp, Calendar, Eye } from 'lucide-react'
-import RecordViewModal from '../components/RecordViewModal' // ✅ import modal
+import { ArrowDown, ArrowUp, Calendar } from 'lucide-react'
+import RecordViewModal from '../components/RecordViewModal'
 
 function ActivityLogs() {
   const { user, API } = useAuth()
@@ -28,7 +28,7 @@ function ActivityLogs() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  // Modal
+  // Modal state
   const [showModal, setShowModal] = useState(false)
   const [selectedLog, setSelectedLog] = useState<any | null>(null)
 
@@ -94,7 +94,8 @@ function ActivityLogs() {
 
   const toggleSortOrder = () => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
 
-  const openViewModal = (log: any) => {
+  // ✅ Handle row click
+  const handleRowClick = (log: any) => {
     setSelectedLog(log)
     setShowModal(true)
   }
@@ -232,12 +233,16 @@ function ActivityLogs() {
                     <th>Action</th>
                     <th>Details</th>
                     <th>Date</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentLogs.map((log) => (
-                    <tr key={log.id}>
+                    <tr
+                      key={log.id}
+                      className="table-row-hover"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleRowClick(log)}
+                    >
                       {user?.role === 'Admin' && (
                         <td className="fw-semibold text-success">{log.user_email || '-'}</td>
                       )}
@@ -248,15 +253,6 @@ function ActivityLogs() {
                         </OverlayTrigger>
                       </td>
                       <td className="text-muted small">{formatDate(log.created_at)}</td>
-                      <td>
-                        <Button
-                          size="sm"
-                          variant="outline-success"
-                          onClick={() => openViewModal(log)}
-                        >
-                          <Eye size={16} className="me-1" /> View
-                        </Button>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -265,11 +261,11 @@ function ActivityLogs() {
           )}
         </Card.Body>
 
-        {/* Pagination (same as before) */}
-        {/* ... (keep your existing pagination here) ... */}
+        {/* Keep your pagination footer below */}
+        {/* ... (pagination code unchanged) ... */}
       </Card>
 
-      {/* ✅ RecordViewModal Integration */}
+      {/* ✅ Record Modal */}
       <RecordViewModal
         show={showModal}
         onHide={() => setShowModal(false)}
@@ -287,6 +283,19 @@ function ActivityLogs() {
             : []
         }
       />
+
+      <style>
+        {`
+          .table-row-hover:hover {
+            background-color: #f4fdf7 !important;
+            transition: background-color 0.25s ease;
+          }
+
+          .form-control::placeholder {
+            color: rgba(255,255,255,0.8);
+          }
+        `}
+      </style>
     </div>
   )
 }
