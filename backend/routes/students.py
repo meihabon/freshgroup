@@ -5,6 +5,7 @@ from dependencies import get_current_user
 from utils import classify_income, classify_honors
 from utils_complete import is_record_complete_row, filter_complete_students_df
 import routes.clusters as clusters_module
+from .users import log_activity, resolve_user
 
 router = APIRouter()
 
@@ -114,6 +115,14 @@ async def update_student(
             honors, income_category, student_id
         ))
         connection.commit()
+        # ✅ Log the edit action (for both Admin and Viewer)
+        full_name = f"{firstname} {lastname}".strip()
+        log_activity(
+            current_user["id"],
+            "Edit Student Record",
+            f"{current_user['email']} edited record of {full_name} (ID: {student_id})"
+        )
+
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
