@@ -72,9 +72,6 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     cursor.close()
     connection.close()
 
-    # ✅ Log admin viewing user list
-    log_activity(user["id"], "View Users", "Admin viewed the user list")
-
     return users
 
 
