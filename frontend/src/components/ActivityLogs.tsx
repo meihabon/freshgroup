@@ -11,7 +11,7 @@ import {
   Pagination
 } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, Calendar } from 'lucide-react'
 
 function ActivityLogs() {
   const { user, API } = useAuth()
@@ -24,6 +24,8 @@ function ActivityLogs() {
   const [recordsPerPage, setRecordsPerPage] = useState(10)
   const [search, setSearch] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -39,28 +41,40 @@ function ActivityLogs() {
     fetchLogs()
   }, [API])
 
-  const timeAgo = (dateStr: string) => {
-    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000
-    if (diff < 60) return `${Math.floor(diff)}s ago`
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-    return new Date(dateStr).toLocaleString()
+  // Date formatting
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
-  // Filter and sort
-  const filteredLogs = logs.filter(
-    (log) =>
+  // Filters
+  const filteredLogs = logs.filter((log) => {
+    const logDate = new Date(log.created_at)
+    const matchesSearch =
       log.action?.toLowerCase().includes(search.toLowerCase()) ||
       log.details?.toLowerCase().includes(search.toLowerCase()) ||
       log.user_email?.toLowerCase().includes(search.toLowerCase())
-  )
 
+    const matchesStart = startDate ? logDate >= new Date(startDate) : true
+    const matchesEnd = endDate ? logDate <= new Date(endDate) : true
+
+    return matchesSearch && matchesStart && matchesEnd
+  })
+
+  // Sorting
   const sortedLogs = [...filteredLogs].sort((a, b) => {
     const timeA = new Date(a.created_at).getTime()
     const timeB = new Date(b.created_at).getTime()
     return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
   })
 
+  // Pagination
   const totalPages = Math.ceil(sortedLogs.length / recordsPerPage)
   const startIndex = (currentPage - 1) * recordsPerPage
   const currentLogs = sortedLogs.slice(startIndex, startIndex + recordsPerPage)
@@ -155,7 +169,46 @@ function ActivityLogs() {
           </div>
         </Card.Header>
 
-        {/* Table Body */}
+        {/* Date Filters */}
+        <div className="px-4 py-3 bg-light border-bottom">
+          <div className="d-flex flex-wrap align-items-center gap-3">
+            <div className="d-flex align-items-center gap-2">
+              <Calendar size={18} className="text-success" />
+              <span className="fw-semibold text-muted small">Filter by Date:</span>
+            </div>
+
+            <Form.Control
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              size="sm"
+              style={{ width: '170px' }}
+            />
+            <span className="text-muted">to</span>
+            <Form.Control
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              size="sm"
+              style={{ width: '170px' }}
+            />
+
+            {(startDate || endDate) && (
+              <Button
+                size="sm"
+                variant="outline-success"
+                onClick={() => {
+                  setStartDate('')
+                  setEndDate('')
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
         <Card.Body className="p-0 bg-white">
           {sortedLogs.length === 0 ? (
             <div className="text-center py-5 text-muted">
@@ -165,12 +218,7 @@ function ActivityLogs() {
           ) : (
             <div className="table-responsive">
               <Table hover borderless className="mb-0 align-middle text-center">
-                <thead
-                  style={{
-                    backgroundColor: '#f8f9fa',
-                    borderBottom: '2px solid #e9ecef'
-                  }}
-                >
+                <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
                   <tr>
                     {user?.role === 'Admin' && <th>User</th>}
                     <th>Action</th>
@@ -180,26 +228,17 @@ function ActivityLogs() {
                 </thead>
                 <tbody>
                   {currentLogs.map((log) => (
-                    <tr
-                      key={log.id}
-                      className="table-row-hover"
-                      style={{ cursor: 'pointer' }}
-                    >
+                    <tr key={log.id} className="table-row-hover" style={{ cursor: 'pointer' }}>
                       {user?.role === 'Admin' && (
-                        <td className="fw-semibold text-success">
-                          {log.user_email || '-'}
-                        </td>
+                        <td className="fw-semibold text-success">{log.user_email || '-'}</td>
                       )}
                       <td className="fw-semibold text-dark">{log.action}</td>
-                      <td
-                        className="text-truncate text-secondary"
-                        style={{ maxWidth: '400px' }}
-                      >
+                      <td className="text-truncate text-secondary" style={{ maxWidth: '400px' }}>
                         <OverlayTrigger placement="top" overlay={<Tooltip>{log.details}</Tooltip>}>
                           <span>{log.details || '-'}</span>
                         </OverlayTrigger>
                       </td>
-                      <td className="text-muted small">{timeAgo(log.created_at)}</td>
+                      <td className="text-muted small">{formatDate(log.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -213,8 +252,7 @@ function ActivityLogs() {
           <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-3 bg-light px-4 py-3">
             <span className="small text-muted">
               Showing {startIndex + 1}–
-              {Math.min(startIndex + recordsPerPage, sortedLogs.length)} of{' '}
-              {sortedLogs.length} logs
+              {Math.min(startIndex + recordsPerPage, sortedLogs.length)} of {sortedLogs.length} logs
             </span>
 
             <Pagination className="mb-0">
