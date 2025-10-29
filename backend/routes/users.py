@@ -36,6 +36,16 @@ def resolve_user(current_user: dict):
 
     return user
 
+def log_activity(user_id: int, action: str, details: str = "", ip_address: str = None):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO activity_logs (user_id, action, details, ip_address) VALUES (%s, %s, %s, %s)",
+        (user_id, action, details, ip_address)
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 # --- Get all users (Admin only) ---
 @router.get("/users")
@@ -261,6 +271,17 @@ async def update_user(user_id: int, data: dict = Body(...), current_user: dict =
     connection.close()
     return {"message": "User updated successfully"}
 
+@router.post("/users/change-password")
+async def change_password(data: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    ...
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    # Log it
+    log_activity(user["id"], "Password Change", "User updated their password")
+    return {"message": "Password updated successfully"}
 
 # --- Delete User ---
 @router.delete("/users/{user_id}")
@@ -276,3 +297,34 @@ async def delete_user(user_id: int, current_user: dict = Depends(get_current_use
     cursor.close()
     connection.close()
     return {"message": "User deleted successfully"}
+@router.get("/activity-logs")
+async def get_activity_logs(current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    if user["role"] == "Admin":
+        # Admin sees all logs
+        cursor.execute("""
+            SELECT a.id, a.action, a.details, a.ip_address, a.created_at,
+                   u.email AS user_email
+            FROM activity_logs a
+            JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC
+        """)
+    else:
+        # Regular user sees only their logs
+        cursor.execute("""
+            SELECT id, action, details, ip_address, created_at
+            FROM activity_logs
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user["id"],))
+
+    logs = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return logs

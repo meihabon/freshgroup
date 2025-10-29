@@ -29,7 +29,8 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { path: '/clusters', icon: Layers, label: 'Clusters', roles: ['Admin', 'Viewer'] },
     { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
     { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
-    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },
+    { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },  
+    { path: '/activity-logs', icon: FileText, label: 'Activity Logs', roles: ['Admin', 'Viewer'] },
     { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
   ]
 

@@ -17,6 +17,8 @@ import Footer from './components/Footer'
 import UserGuide from './components/Help'
 import Home from './components/Home'
 import ResetPassword from './components/ResetPassword'
+import ActivityLogs from './components/ActivityLogs'
+
 // Configure axios defaults
 axios.defaults.baseURL = 'http://localhost:8000'
 axios.defaults.withCredentials = true
@@ -72,6 +74,7 @@ function AppContent() {
                     <Route path="/datasets" element={<DatasetHistory />} />
                     <Route path="/users" element={<UserManagement />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/activitylogs" element={<ActivityLogs />} />
                     <Route path='/help' element={<UserGuide/>} />
                     <Route path="*" element={<Navigate to="/home" replace />} />
                   </Routes>
