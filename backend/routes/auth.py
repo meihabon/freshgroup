@@ -7,7 +7,7 @@ from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, MAILJET_API_KEY, MAI
 from mailjet_rest import Client
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from users import log_activity, resolve_user
+from .users import log_activity, resolve_user
 import json, sys
 
 router = APIRouter()
