@@ -3,20 +3,19 @@ from pydantic import BaseModel
 from db import get_db_connection
 from security import verify_password, get_password_hash, create_access_token
 from dependencies import get_current_user
-from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
-from config import conf, MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_SENDER
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_SENDER
 from mailjet_rest import Client
-
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-import json
+from users import log_activity, resolve_user
+import json, sys
 
 router = APIRouter()
 
 # ---------------------------
 # Config
 # ---------------------------
-RESET_SECRET_KEY = SECRET_KEY  # ✅ reuse main secret
+RESET_SECRET_KEY = SECRET_KEY
 RESET_ALGORITHM = "HS256"
 RESET_TOKEN_EXPIRE_MINUTES = 60
 
@@ -47,6 +46,8 @@ class ResetPasswordRequest(BaseModel):
 # ---------------------------
 # Auth Routes
 # ---------------------------
+
+# 🔹 LOGIN
 @router.post("/auth/login")
 async def login(payload: LoginRequest, response: Response):
     email = payload.email
@@ -66,6 +67,10 @@ async def login(payload: LoginRequest, response: Response):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token(data={"sub": user["email"]})
+
+    # ✅ Log user login
+    log_activity(user["id"], "Login", "User logged into the system")
+
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -87,8 +92,24 @@ async def login(payload: LoginRequest, response: Response):
     }
 
 
+# 🔹 LOGOUT
+@router.post("/auth/logout")
+async def logout(response: Response, current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if user:
+        log_activity(user["id"], "Logout", "User logged out of the system")
+
+    response.delete_cookie(key="access_token")
+    return {"message": "Logged out successfully"}
+
+
+# 🔹 REGISTER (Admin only)
 @router.post("/auth/register")
-async def register(payload: RegisterRequest):
+async def register(payload: RegisterRequest, current_user: dict = Depends(get_current_user)):
+    user = resolve_user(current_user)
+    if not user or user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can register new users")
+
     email = payload.email
     password = payload.password
     profile = payload.profile or {}
@@ -97,7 +118,7 @@ async def register(payload: RegisterRequest):
     if not connection:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
     cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
     if cursor.fetchone():
         cursor.close()
@@ -113,15 +134,13 @@ async def register(payload: RegisterRequest):
     cursor.close()
     connection.close()
 
+    # ✅ Log user creation (by Admin)
+    log_activity(user["id"], "Register User", f"Admin created a new user: {email}")
+
     return {"message": "User registered successfully"}
 
 
-@router.post("/auth/logout")
-async def logout(response: Response):
-    response.delete_cookie(key="access_token")
-    return {"message": "Logged out successfully"}
-
-
+# 🔹 GET CURRENT USER INFO
 @router.get("/auth/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     return {
@@ -132,15 +151,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     }
 
 
-# ---------------------------
-# Forgot / Reset Password
-# ---------------------------
-
-# --- Password Reset: Send Reset Link ---
-
-import sys
-
-
+# 🔹 FORGOT PASSWORD
 @router.post("/auth/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest):
     connection = get_db_connection()
@@ -151,17 +162,16 @@ async def forgot_password(payload: ForgotPasswordRequest):
     connection.close()
 
     if not user:
-        print(f"[RESET] User not found: {payload.email}", file=sys.stderr)
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Create reset token
     expire = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
     token = jwt.encode({"sub": user["email"], "exp": expire}, RESET_SECRET_KEY, algorithm=RESET_ALGORITHM)
-
     reset_link = f"https://freshgroup-ispsc.vercel.app/reset-password?token={token}"
 
-    # Send email using Mailjet
-    print(f"[RESET] Attempting to send reset email to {payload.email}", file=sys.stderr)
+    # ✅ Log password reset request
+    log_activity(user["id"], "Forgot Password", "User requested a password reset link")
+
+    # --- Send email ---
     try:
         mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
         data = {
@@ -173,28 +183,23 @@ async def forgot_password(payload: ForgotPasswordRequest):
                     "HTMLPart": f"""
                         <h3>Password Reset</h3>
                         <p>Hello,</p>
-                        <p>Click the link below to open the password reset form (valid for 1 hour):</p>
+                        <p>Click the link below to reset your password (valid for 1 hour):</p>
                         <a href='{reset_link}'>{reset_link}</a>
-                        <br><br>
-                        If you did not request this, please ignore this email.
+                        <p>If you did not request this, please ignore this email.</p>
                     """
                 }
             ]
         }
         result = mailjet.send.create(data=data)
         if result.status_code != 200:
-            print(f"[RESET] Mailjet error: {result.status_code} {result.json()}", file=sys.stderr)
             raise Exception("Mailjet send failed")
-        print("[RESET] Reset email sent successfully", file=sys.stderr)
     except Exception as e:
-        print(f"[RESET] Error sending reset email: {e}", file=sys.stderr)
         raise HTTPException(status_code=500, detail="Failed to send reset email")
 
     return {"message": "Password reset link sent to your email"}
 
 
-
-# --- Password Reset: Handle New Password Submission ---
+# 🔹 RESET PASSWORD
 @router.post("/auth/reset-password")
 async def reset_password(payload: ResetPasswordRequest):
     try:
@@ -204,22 +209,23 @@ async def reset_password(payload: ResetPasswordRequest):
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 
     pwd = payload.new_password
-    # Only require at least 6 characters, and confirmation is handled on frontend
     if len(pwd) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
 
-    # 🔎 Verify user exists
     connection = get_db_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
     cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-    if not cursor.fetchone():
+    user = cursor.fetchone()
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 🔑 Save new hashed password
     hashed_password = get_password_hash(pwd)
     cursor.execute("UPDATE users SET password_hash = %s WHERE email = %s", (hashed_password, email))
     connection.commit()
     cursor.close()
     connection.close()
+
+    # ✅ Log password reset success
+    log_activity(user["id"], "Reset Password", "User successfully reset their password")
 
     return {"message": "Password updated successfully"}
