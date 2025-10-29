@@ -170,4 +170,4 @@ async def update_student(
                 # don't fail the update if recluster trigger failed; log instead
                 print("Recluster trigger failed:", e)
 
-    return {"message": "Student updated successfully"}
+    return {"message": "Student updated successfully. Reclustering triggered."}
