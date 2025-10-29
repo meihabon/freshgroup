@@ -36,12 +36,12 @@ def resolve_user(current_user: dict):
 
     return user
 
-def log_activity(user_id: int, action: str, details: str = "", ip_address: str = None):
+def log_activity(user_id: int, action: str, details: str = ""):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
-        "INSERT INTO activity_logs (user_id, action, details, ip_address) VALUES (%s, %s, %s, %s)",
-        (user_id, action, details, ip_address)
+        "INSERT INTO activity_logs (user_id, action, details) VALUES (%s, %s, %s)",
+        (user_id, action, details)
     )
     connection.commit()
     cursor.close()
@@ -309,7 +309,7 @@ async def get_activity_logs(current_user: dict = Depends(get_current_user)):
     if user["role"] == "Admin":
         # Admin sees all logs
         cursor.execute("""
-            SELECT a.id, a.action, a.details, a.ip_address, a.created_at,
+            SELECT a.id, a.action, a.details, a.created_at,
                    u.email AS user_email
             FROM activity_logs a
             JOIN users u ON a.user_id = u.id
@@ -318,7 +318,7 @@ async def get_activity_logs(current_user: dict = Depends(get_current_user)):
     else:
         # Regular user sees only their logs
         cursor.execute("""
-            SELECT id, action, details, ip_address, created_at
+            SELECT id, action, details, created_at
             FROM activity_logs
             WHERE user_id = %s
             ORDER BY created_at DESC

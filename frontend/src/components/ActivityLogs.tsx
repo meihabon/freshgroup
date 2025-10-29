@@ -3,15 +3,15 @@ import { Table, Card, Spinner, Alert } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 
 function ActivityLogs() {
-  const { user, API } = useAuth() // ✅ useAuth gives us API & user
+  const { user, API } = useAuth()
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchLogs = async () => {  // ✅ define async inside useEffect
+    const fetchLogs = async () => {
       try {
-        const res = await API.get('/activity-logs') // ✅ await allowed here
+        const res = await API.get('/activity-logs')
         setLogs(res.data)
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Failed to load logs')
@@ -19,8 +19,7 @@ function ActivityLogs() {
         setLoading(false)
       }
     }
-
-    fetchLogs() // ✅ call it
+    fetchLogs()
   }, [API])
 
   if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>
@@ -45,7 +44,6 @@ function ActivityLogs() {
                     {user?.role === 'Admin' && <th>User</th>}
                     <th>Action</th>
                     <th>Details</th>
-                    <th>IP Address</th>
                     <th>Date</th>
                   </tr>
                 </thead>
@@ -55,7 +53,6 @@ function ActivityLogs() {
                       {user?.role === 'Admin' && <td>{log.user_email || '-'}</td>}
                       <td>{log.action}</td>
                       <td>{log.details || '-'}</td>
-                      <td>{log.ip_address || '-'}</td>
                       <td>{new Date(log.created_at).toLocaleString()}</td>
                     </tr>
                   ))}
