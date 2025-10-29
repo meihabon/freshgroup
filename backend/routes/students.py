@@ -120,7 +120,7 @@ async def update_student(
         log_activity(
             current_user["id"],
             "Edit Student Record",
-            f"{current_user['email']} edited record of {full_name} (ID: {student_id})"
+            f"{current_user['email']} edited record of {full_name} (ID: {student_id}). Reclustering triggered."
         )
 
     except Exception as e:
