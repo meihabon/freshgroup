@@ -103,13 +103,9 @@ async def logout(response: Response, current_user: dict = Depends(get_current_us
     return {"message": "Logged out successfully"}
 
 
-# 🔹 REGISTER (Admin only)
+# 🔹 REGISTER (Anyone can register, defaults to Viewer)
 @router.post("/auth/register")
-async def register(payload: RegisterRequest, current_user: dict = Depends(get_current_user)):
-    user = resolve_user(current_user)
-    if not user or user["role"] != "Admin":
-        raise HTTPException(status_code=403, detail="Only Admins can register new users")
-
+async def register(payload: RegisterRequest):
     email = payload.email
     password = payload.password
     profile = payload.profile or {}
@@ -131,11 +127,12 @@ async def register(payload: RegisterRequest, current_user: dict = Depends(get_cu
         (email, hashed_password, "Viewer", json.dumps(profile)),
     )
     connection.commit()
+    new_user_id = cursor.lastrowid
     cursor.close()
     connection.close()
 
-    # ✅ Log user creation (by Admin)
-    log_activity(user["id"], "Register User", f"Admin created a new user: {email}")
+    # ✅ Log registration (user self-registered)
+    log_activity(new_user_id, "Register", f"New user registered with email: {email}")
 
     return {"message": "User registered successfully"}
 
