@@ -14,7 +14,7 @@ from fastapi.responses import StreamingResponse
 import csv
 import io
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from users import log_activity, resolve_user
+from .users import log_activity, resolve_user
 
 router = APIRouter()
 os.makedirs("uploads", exist_ok=True)
@@ -435,7 +435,7 @@ async def delete_dataset(dataset_id: int, current_user: dict = Depends(get_curre
     cursor.execute("DELETE FROM datasets WHERE id = %s", (dataset_id,))
     cursor.close()
     connection.close()
-    
+
     # ✅ Log dataset deletion
     log_activity(current_user["id"], "Delete Dataset", f"Admin deleted dataset ID: {dataset_id}")
 

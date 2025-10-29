@@ -59,7 +59,7 @@ function Login() {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
       await axios.post(`${apiUrl}/auth/forgot-password`, { email: resetEmail });
-      setSuccess(`Password reset link sent to ${resetEmail}`);
+      setSuccess(`Password reset link sent to ${resetEmail}. Please check your inbox or your spam folder.`);
       setShowReset(false);
       setResetEmail("");
     } catch (err: any) {
