@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Table, Card, Spinner, Alert, OverlayTrigger, Tooltip, Form, Button, Pagination } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 
 function ActivityLogs() {
   const { user, API } = useAuth()
@@ -8,10 +9,11 @@ function ActivityLogs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Pagination + filters
+  // Filters + pagination + sorting
   const [currentPage, setCurrentPage] = useState(1)
   const [recordsPerPage, setRecordsPerPage] = useState(10)
   const [search, setSearch] = useState('')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -35,7 +37,7 @@ function ActivityLogs() {
     return new Date(dateStr).toLocaleString()
   }
 
-  // Filter by search (email, action, or details)
+  // ✅ Filtering
   const filteredLogs = logs.filter(
     (log) =>
       log.action?.toLowerCase().includes(search.toLowerCase()) ||
@@ -43,10 +45,17 @@ function ActivityLogs() {
       log.user_email?.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Pagination
-  const totalPages = Math.ceil(filteredLogs.length / recordsPerPage)
+  // ✅ Sorting by date
+  const sortedLogs = [...filteredLogs].sort((a, b) => {
+    const timeA = new Date(a.created_at).getTime()
+    const timeB = new Date(b.created_at).getTime()
+    return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
+  })
+
+  // ✅ Pagination
+  const totalPages = Math.ceil(sortedLogs.length / recordsPerPage)
   const startIndex = (currentPage - 1) * recordsPerPage
-  const currentLogs = filteredLogs.slice(startIndex, startIndex + recordsPerPage)
+  const currentLogs = sortedLogs.slice(startIndex, startIndex + recordsPerPage)
 
   const handleRecordsChange = (e: any) => {
     setRecordsPerPage(Number(e.target.value))
@@ -58,51 +67,80 @@ function ActivityLogs() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const toggleSortOrder = () => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+
   if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>
   if (error) return <Alert variant="danger" className="mt-4 text-center">{error}</Alert>
 
   return (
     <div className="container py-4">
-      <Card className="shadow-sm border-0">
-        <Card.Header className="bg-success text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
+        <Card.Header className="bg-gradient d-flex flex-wrap justify-content-between align-items-center gap-3"
+          style={{ background: 'linear-gradient(90deg, #28a745, #20c997)', color: '#fff' }}
+        >
           <h5 className="mb-0 fw-bold">
-            Activity Logs {user?.role === 'Admin' && <small className="text-light opacity-75"> (All Users)</small>}
+            Activity Logs{' '}
+            {user?.role === 'Admin' && (
+              <small className="text-light opacity-75"> (All Users)</small>
+            )}
           </h5>
 
-          <div className="d-flex align-items-center gap-2">
-            {/* Search box */}
+          <div className="d-flex flex-wrap align-items-center gap-2">
+            {/* Search */}
             <Form.Control
               type="text"
-              placeholder="Search logs..."
+              placeholder="🔍 Search logs..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               size="sm"
-              style={{ width: '180px' }}
+              className="shadow-sm"
+              style={{ width: '180px', borderRadius: '8px' }}
             />
-            {/* Show per page */}
+
+            {/* Show count */}
             <Form.Select
               size="sm"
               value={recordsPerPage}
               onChange={handleRecordsChange}
-              style={{ width: '120px' }}
+              className="shadow-sm"
+              style={{ width: '120px', borderRadius: '8px' }}
             >
               <option value={10}>Show 10</option>
               <option value={15}>Show 15</option>
               <option value={20}>Show 20</option>
             </Form.Select>
+
+            {/* Sort button */}
+            <Button
+              size="sm"
+              variant="light"
+              onClick={toggleSortOrder}
+              className="d-flex align-items-center gap-1 fw-semibold shadow-sm"
+              style={{ borderRadius: '8px', color: '#28a745' }}
+            >
+              {sortOrder === 'asc' ? (
+                <>
+                  <ArrowUp size={16} /> Oldest First
+                </>
+              ) : (
+                <>
+                  <ArrowDown size={16} /> Newest First
+                </>
+              )}
+            </Button>
           </div>
         </Card.Header>
 
-        <Card.Body className="p-0">
-          {filteredLogs.length === 0 ? (
+        <Card.Body className="p-0 bg-white">
+          {sortedLogs.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <Spinner animation="grow" variant="success" size="sm" className="me-2" />
               No activity logs available.
             </div>
           ) : (
             <div className="table-responsive">
-              <Table hover striped borderless className="mb-0 align-middle text-center">
-                <thead className="table-light">
+              <Table hover borderless className="mb-0 align-middle text-center">
+                <thead className="table-success" style={{ backgroundColor: '#d1f2eb' }}>
                   <tr>
                     {user?.role === 'Admin' && <th style={{ width: '20%' }}>User</th>}
                     <th style={{ width: '20%' }}>Action</th>
@@ -112,12 +150,12 @@ function ActivityLogs() {
                 </thead>
                 <tbody>
                   {currentLogs.map((log) => (
-                    <tr key={log.id}>
+                    <tr key={log.id} className="table-row-hover">
                       {user?.role === 'Admin' && (
                         <td className="fw-semibold text-success">{log.user_email || '-'}</td>
                       )}
-                      <td>{log.action}</td>
-                      <td className="text-truncate" style={{ maxWidth: '400px' }}>
+                      <td className="fw-semibold">{log.action}</td>
+                      <td className="text-truncate text-secondary" style={{ maxWidth: '400px' }}>
                         <OverlayTrigger placement="top" overlay={<Tooltip>{log.details}</Tooltip>}>
                           <span>{log.details || '-'}</span>
                         </OverlayTrigger>
@@ -131,11 +169,12 @@ function ActivityLogs() {
           )}
         </Card.Body>
 
-        {/* Pagination controls */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <span className="small text-muted">
-              Showing {startIndex + 1}-{Math.min(startIndex + recordsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
+              Showing {startIndex + 1}–{Math.min(startIndex + recordsPerPage, sortedLogs.length)} of{' '}
+              {sortedLogs.length} logs
             </span>
 
             <Pagination className="mb-0">
@@ -154,12 +193,30 @@ function ActivityLogs() {
                   </Pagination.Item>
                 ))}
 
-              <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
-              <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+              <Pagination.Next
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              />
+              <Pagination.Last
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              />
             </Pagination>
           </Card.Footer>
         )}
       </Card>
+
+      <style>
+        {`
+          .table-row-hover:hover {
+            background-color: #f1fdf3 !important;
+            transition: background-color 0.2s ease;
+          }
+          .bg-gradient {
+            background: linear-gradient(90deg, #28a745, #20c997);
+          }
+        `}
+      </style>
     </div>
   )
 }
