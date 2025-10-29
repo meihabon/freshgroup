@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Table, Card, Spinner, Alert, OverlayTrigger, Tooltip, Form, Button } from 'react-bootstrap'
+import { Table, Card, Spinner, Alert, OverlayTrigger, Tooltip, Form, Button, Pagination } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 
 function ActivityLogs() {
@@ -8,9 +8,10 @@ function ActivityLogs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Pagination states
+  // Pagination + filters
   const [currentPage, setCurrentPage] = useState(1)
   const [recordsPerPage, setRecordsPerPage] = useState(10)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -34,19 +35,26 @@ function ActivityLogs() {
     return new Date(dateStr).toLocaleString()
   }
 
-  // Pagination calculations
-  const totalPages = Math.ceil(logs.length / recordsPerPage)
+  // Filter by search (email, action, or details)
+  const filteredLogs = logs.filter(
+    (log) =>
+      log.action?.toLowerCase().includes(search.toLowerCase()) ||
+      log.details?.toLowerCase().includes(search.toLowerCase()) ||
+      log.user_email?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  // Pagination
+  const totalPages = Math.ceil(filteredLogs.length / recordsPerPage)
   const startIndex = (currentPage - 1) * recordsPerPage
-  const currentLogs = logs.slice(startIndex, startIndex + recordsPerPage)
+  const currentLogs = filteredLogs.slice(startIndex, startIndex + recordsPerPage)
 
   const handleRecordsChange = (e: any) => {
     setRecordsPerPage(Number(e.target.value))
     setCurrentPage(1)
   }
 
-  const handlePageChange = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && currentPage > 1) setCurrentPage(currentPage - 1)
-    if (direction === 'next' && currentPage < totalPages) setCurrentPage(currentPage + 1)
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -56,16 +64,27 @@ function ActivityLogs() {
   return (
     <div className="container py-4">
       <Card className="shadow-sm border-0">
-        <Card.Header className="bg-success text-white d-flex justify-content-between align-items-center">
+        <Card.Header className="bg-success text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
           <h5 className="mb-0 fw-bold">
             Activity Logs {user?.role === 'Admin' && <small className="text-light opacity-75"> (All Users)</small>}
           </h5>
-          <div>
+
+          <div className="d-flex align-items-center gap-2">
+            {/* Search box */}
+            <Form.Control
+              type="text"
+              placeholder="Search logs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              size="sm"
+              style={{ width: '180px' }}
+            />
+            {/* Show per page */}
             <Form.Select
               size="sm"
               value={recordsPerPage}
               onChange={handleRecordsChange}
-              style={{ width: '120px', display: 'inline-block' }}
+              style={{ width: '120px' }}
             >
               <option value={10}>Show 10</option>
               <option value={15}>Show 15</option>
@@ -75,7 +94,7 @@ function ActivityLogs() {
         </Card.Header>
 
         <Card.Body className="p-0">
-          {logs.length === 0 ? (
+          {filteredLogs.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <Spinner animation="grow" variant="success" size="sm" className="me-2" />
               No activity logs available.
@@ -113,27 +132,31 @@ function ActivityLogs() {
         </Card.Body>
 
         {/* Pagination controls */}
-        {logs.length > recordsPerPage && (
-          <Card.Footer className="d-flex justify-content-between align-items-center">
-            <Button
-              variant="outline-success"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange('prev')}
-            >
-              ◀ Prev
-            </Button>
+        {totalPages > 1 && (
+          <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span className="small text-muted">
-              Page {currentPage} of {totalPages}
+              Showing {startIndex + 1}-{Math.min(startIndex + recordsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
             </span>
-            <Button
-              variant="outline-success"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange('next')}
-            >
-              Next ▶
-            </Button>
+
+            <Pagination className="mb-0">
+              <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+              <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
+                .map((page) => (
+                  <Pagination.Item
+                    key={page}
+                    active={page === currentPage}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </Pagination.Item>
+                ))}
+
+              <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+              <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+            </Pagination>
           </Card.Footer>
         )}
       </Card>
