@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Table, Card, Spinner, Alert, OverlayTrigger, Tooltip, Form, Button, Pagination } from 'react-bootstrap'
+import {
+  Table,
+  Card,
+  Spinner,
+  Alert,
+  OverlayTrigger,
+  Tooltip,
+  Form,
+  Button,
+  Pagination
+} from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 
@@ -9,7 +19,7 @@ function ActivityLogs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Filters + pagination + sorting
+  // Pagination + filters + sorting
   const [currentPage, setCurrentPage] = useState(1)
   const [recordsPerPage, setRecordsPerPage] = useState(10)
   const [search, setSearch] = useState('')
@@ -37,7 +47,7 @@ function ActivityLogs() {
     return new Date(dateStr).toLocaleString()
   }
 
-  // ✅ Filtering
+  // Filter and sort
   const filteredLogs = logs.filter(
     (log) =>
       log.action?.toLowerCase().includes(search.toLowerCase()) ||
@@ -45,14 +55,12 @@ function ActivityLogs() {
       log.user_email?.toLowerCase().includes(search.toLowerCase())
   )
 
-  // ✅ Sorting by date
   const sortedLogs = [...filteredLogs].sort((a, b) => {
     const timeA = new Date(a.created_at).getTime()
     const timeB = new Date(b.created_at).getTime()
     return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
   })
 
-  // ✅ Pagination
   const totalPages = Math.ceil(sortedLogs.length / recordsPerPage)
   const startIndex = (currentPage - 1) * recordsPerPage
   const currentLogs = sortedLogs.slice(startIndex, startIndex + recordsPerPage)
@@ -74,88 +82,119 @@ function ActivityLogs() {
 
   return (
     <div className="container py-4">
-      <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
-        <Card.Header className="bg-gradient d-flex flex-wrap justify-content-between align-items-center gap-3"
-          style={{ background: 'linear-gradient(90deg, #28a745, #20c997)', color: '#fff' }}
+      <Card className="shadow border-0 rounded-4 overflow-hidden">
+        {/* Header */}
+        <Card.Header
+          className="d-flex flex-wrap justify-content-between align-items-center gap-3 px-4 py-3"
+          style={{
+            background: 'linear-gradient(90deg, #28a745 0%, #20c997 100%)',
+            color: '#fff'
+          }}
         >
-          <h5 className="mb-0 fw-bold">
-            Activity Logs{' '}
+          <h5 className="mb-0 fw-semibold">
+            Activity Logs
             {user?.role === 'Admin' && (
-              <small className="text-light opacity-75"> (All Users)</small>
+              <small className="text-light opacity-75 ms-1">(All Users)</small>
             )}
           </h5>
 
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            {/* Search */}
+          <div className="d-flex align-items-center gap-2 flex-wrap">
             <Form.Control
               type="text"
-              placeholder="🔍 Search logs..."
+              placeholder="Search logs..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               size="sm"
-              className="shadow-sm"
-              style={{ width: '180px', borderRadius: '8px' }}
+              style={{
+                width: '180px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.3)',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                color: '#fff'
+              }}
             />
-
-            {/* Show count */}
             <Form.Select
               size="sm"
               value={recordsPerPage}
               onChange={handleRecordsChange}
-              className="shadow-sm"
-              style={{ width: '120px', borderRadius: '8px' }}
+              style={{
+                width: '120px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.3)'
+              }}
             >
               <option value={10}>Show 10</option>
               <option value={15}>Show 15</option>
               <option value={20}>Show 20</option>
             </Form.Select>
 
-            {/* Sort button */}
             <Button
               size="sm"
               variant="light"
               onClick={toggleSortOrder}
-              className="d-flex align-items-center gap-1 fw-semibold shadow-sm"
-              style={{ borderRadius: '8px', color: '#28a745' }}
+              className="fw-semibold"
+              style={{
+                border: 'none',
+                borderRadius: '8px',
+                color: '#28a745',
+                backgroundColor: '#fff'
+              }}
             >
               {sortOrder === 'asc' ? (
                 <>
-                  <ArrowUp size={16} /> Oldest First
+                  <ArrowUp size={16} className="me-1" /> Oldest
                 </>
               ) : (
                 <>
-                  <ArrowDown size={16} /> Newest First
+                  <ArrowDown size={16} className="me-1" /> Newest
                 </>
               )}
             </Button>
           </div>
         </Card.Header>
 
+        {/* Table Body */}
         <Card.Body className="p-0 bg-white">
           {sortedLogs.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <Spinner animation="grow" variant="success" size="sm" className="me-2" />
-              No activity logs available.
+              No activity logs found
             </div>
           ) : (
             <div className="table-responsive">
               <Table hover borderless className="mb-0 align-middle text-center">
-                <thead className="table-success" style={{ backgroundColor: '#d1f2eb' }}>
+                <thead
+                  style={{
+                    backgroundColor: '#f8f9fa',
+                    borderBottom: '2px solid #e9ecef'
+                  }}
+                >
                   <tr>
-                    {user?.role === 'Admin' && <th style={{ width: '20%' }}>User</th>}
-                    <th style={{ width: '20%' }}>Action</th>
-                    <th style={{ width: '40%' }}>Details</th>
-                    <th style={{ width: '20%' }}>Date</th>
+                    {user?.role === 'Admin' && <th>User</th>}
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentLogs.map((log) => (
-                    <tr key={log.id} className="table-row-hover">
+                    <tr
+                      key={log.id}
+                      className="table-row-hover"
+                      style={{ cursor: 'pointer' }}
+                    >
                       {user?.role === 'Admin' && (
-                        <td className="fw-semibold text-success">{log.user_email || '-'}</td>
+                        <td className="fw-semibold text-success">
+                          {log.user_email || '-'}
+                        </td>
                       )}
-                      <td className="fw-semibold">{log.action}</td>
-                      <td className="text-truncate text-secondary" style={{ maxWidth: '400px' }}>
+                      <td className="fw-semibold text-dark">{log.action}</td>
+                      <td
+                        className="text-truncate text-secondary"
+                        style={{ maxWidth: '400px' }}
+                      >
                         <OverlayTrigger placement="top" overlay={<Tooltip>{log.details}</Tooltip>}>
                           <span>{log.details || '-'}</span>
                         </OverlayTrigger>
@@ -171,9 +210,10 @@ function ActivityLogs() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <Card.Footer className="d-flex justify-content-between align-items-center flex-wrap gap-3 bg-light px-4 py-3">
             <span className="small text-muted">
-              Showing {startIndex + 1}–{Math.min(startIndex + recordsPerPage, sortedLogs.length)} of{' '}
+              Showing {startIndex + 1}–
+              {Math.min(startIndex + recordsPerPage, sortedLogs.length)} of{' '}
               {sortedLogs.length} logs
             </span>
 
@@ -193,14 +233,8 @@ function ActivityLogs() {
                   </Pagination.Item>
                 ))}
 
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-              />
+              <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+              <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
             </Pagination>
           </Card.Footer>
         )}
@@ -209,11 +243,12 @@ function ActivityLogs() {
       <style>
         {`
           .table-row-hover:hover {
-            background-color: #f1fdf3 !important;
-            transition: background-color 0.2s ease;
+            background-color: #f4fdf7 !important;
+            transition: background-color 0.25s ease;
           }
-          .bg-gradient {
-            background: linear-gradient(90deg, #28a745, #20c997);
+
+          .form-control::placeholder {
+            color: rgba(255,255,255,0.8);
           }
         `}
       </style>
