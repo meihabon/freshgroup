@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } from "react-bootstrap";
+import { Row, Col, Card, Form, Button, Alert, Spinner, InputGroup, Accordion } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 import { getMe, updateProfile, changePassword } from "../api";
 import { User, Lock, Save, Mail, Eye, EyeOff } from "lucide-react";
@@ -309,19 +309,21 @@ function Profile() {
                       {passwordData.newPassword && passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6 && (
                         <Form.Text className="text-danger">Password must be at least 6 characters long</Form.Text>
                       )}
-                      <Card className="mt-4">
-                        <Card.Header>
-                          <h6 className="mb-0 fw-bold">Security Tips</h6>
-                        </Card.Header>
-                        <Card.Body>
-                          <ul className="list-unstyled mb-0">
-                            <li className="mb-2"><small>✓ Use a strong, unique password</small></li>
-                            <li className="mb-2"><small>✓ Keep your profile information updated</small></li>
-                            <li className="mb-2"><small>✓ Log out when using shared computers</small></li>
-                            <li className="mb-0"><small>✓ Report any suspicious activity</small></li>
-                          </ul>
-                        </Card.Body>
-                      </Card>
+                      <Accordion className="mt-4">
+                        <Accordion.Item eventKey="0">
+                          <Accordion.Header>
+                            <strong>Security Tips</strong>
+                          </Accordion.Header>
+                          <Accordion.Body>
+                            <ul className="list-unstyled mb-0">
+                              <li className="mb-2"><small>✓ Use a strong, unique password</small></li>
+                              <li className="mb-2"><small>✓ Keep your profile information updated</small></li>
+                              <li className="mb-2"><small>✓ Log out when using shared computers</small></li>
+                              <li className="mb-0"><small>✓ Report any suspicious activity</small></li>
+                            </ul>
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
                     </Form.Group>
 
                     <Form.Group className="mb-4">
