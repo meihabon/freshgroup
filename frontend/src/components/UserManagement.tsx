@@ -588,7 +588,34 @@ const handleResetPassword = async () => {
           { label: 'Created', value: new Date(viewedUser.created_at).toLocaleString() },
         ] : []}
       />
+            <style>
+        {`
+          @media (max-width: 768px) {
+            .table-responsive {
+              font-size: 14px;
+            }
+            .card {
+              border-radius: 12px !important;
+            }
+            th, td {
+              white-space: nowrap;
+            }
+          }
 
+          .pagination .page-link {
+            color: #198754;
+            border: 1px solid #198754;
+            border-radius: 6px;
+            margin: 0 2px;
+          }
+
+          .pagination .page-item.active .page-link {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #fff !important;
+          }
+        `}
+      </style>
       {/* Add/Edit User Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
