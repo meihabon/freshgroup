@@ -1,16 +1,16 @@
-// React default import not required with newer JSX transforms
 import { Nav, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { 
-  BarChart,     // ✅ matches Help.tsx (Dashboard)
+  BarChart,    
   Users, 
-  Layers,       // ✅ matches Help.tsx (Clusters)
+  Layers,      
   FileText, 
   Database, 
   Settings,
   Home,
-  HelpCircle    // ✅ matches Help.tsx (Help)
+  HelpCircle,
+  History    
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -30,7 +30,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { path: '/reports', icon: FileText, label: 'Reports', roles: ['Admin', 'Viewer'] },
     { path: '/datasets', icon: Database, label: 'Dataset History', roles: ['Admin'] },
     { path: '/users', icon: Settings, label: 'User Management', roles: ['Admin'] },  
-    { path: '/activitylogs', icon: FileText, label: 'Activity Logs', roles: ['Admin', 'Viewer'] },
+    { path: '/activitylogs', icon: History, label: 'Activity Logs', roles: ['Admin', 'Viewer'] },
     { path: '/help', icon: HelpCircle, label: 'Help / User Guide', roles: ['Admin', 'Viewer'] }
   ]
 
