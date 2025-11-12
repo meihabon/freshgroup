@@ -53,7 +53,7 @@ function Dashboard() {
   const [chartView, setChartView] = useState<'doughnut' | 'bar'>('doughnut')
   const [chartSortBy, setChartSortBy] = useState<'alphabetical' | 'count'>('alphabetical')
   const [chartSortOrder, setChartSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [selectedBarChart, setSelectedBarChart] = useState('');
+  
 
   useEffect(() => {
     fetchStats()
@@ -206,12 +206,7 @@ const getInterpretation = (title: string, data?: Record<string, number>): string
     { title: 'SHS Origin Distribution', data: stats.school_distribution },
     { title: 'Honors Distribution', data: stats.honors_distribution },
   ]
-useEffect(() => {
-  if (distributionCharts.length > 0 && !selectedBarChart) {
-    setSelectedBarChart(distributionCharts[0].title);
-  }
-}, [distributionCharts, selectedBarChart]);
-
+const [selectedBarChart, setSelectedBarChart] = useState(distributionCharts[0]?.title || '');
   const filteredAndSortedData = modalData
     ? Object.entries(modalData.data)
         .filter(([key]) => key.toLowerCase().includes(searchTerm.toLowerCase()))
